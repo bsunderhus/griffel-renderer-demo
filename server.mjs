@@ -1,0 +1,48 @@
+import { createServer } from "node:http";
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+
+export function createReproServer() {
+  return createServer(async (request, response) => {
+    const pathname = new URL(request.url, "http://localhost").pathname;
+    const files = {
+      "/": ["index.html", "text/html"],
+      "/extracted": ["index.html", "text/html"],
+      "/runtime": ["index.html", "text/html"],
+      "/mechanisms": ["index.html", "text/html"],
+      "/three-actors": ["index.html", "text/html"],
+      "/app.js": ["app.js", "text/javascript"],
+      "/host-extracted.js": ["host-extracted.js", "text/javascript"],
+      "/host-runtime.js": ["host-runtime.js", "text/javascript"],
+      "/integration.js": ["integration.js", "text/javascript"],
+      "/persona.js": ["persona.js", "text/javascript"],
+      "/feedback-standard.js": ["feedback-standard.js", "text/javascript"],
+      "/feedback-raw.js": ["feedback-raw.js", "text/javascript"],
+      "/feedback-raw-modules.json": ["feedback-raw-modules.json", "application/json"],
+      "/griffel.css": ["griffel.css", "text/css"],
+      "/shared/griffel.css": ["shared/griffel.css", "text/css"],
+      "/shared/host-extracted.js": ["shared/host-extracted.js", "text/javascript"],
+      "/shared/host-runtime.js": ["shared/host-runtime.js", "text/javascript"],
+    };
+    const file = files[pathname];
+    if (!file) {
+      response.writeHead(404).end("Not found");
+      return;
+    }
+    try {
+      const content = await readFile(new URL(`./dist/${file[0]}`, import.meta.url));
+      response.writeHead(200, { "Content-Type": file[1], "Cache-Control": "no-store" });
+      response.end(content);
+    } catch (error) {
+      console.error("Unable to serve reproduction:", error);
+      response.writeHead(500).end("Run npm run build before starting the server.");
+    }
+  });
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const port = Number(process.env.PORT || 4173);
+  createReproServer().listen(port, "127.0.0.1", () => {
+    console.log(`Griffel reproduction: http://127.0.0.1:${port}`);
+  });
+}
