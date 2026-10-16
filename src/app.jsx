@@ -214,11 +214,17 @@ function ThreeActorGallery() {
       should be 137px wide. A lost width rule lets these secondary actions
       stretch across their columns. These custom colors and widths make the styling
       mechanisms visible; they do not represent a particular product's design.</p>
-    <p>Under each integration, <strong>Insertion</strong> reports whether rules reached the sheet,
-      <strong> Appearance</strong> reports the measured visual checks, and
-      <strong> Ownership</strong> reports whose sheets were reused.
-      A normal-looking control does not prove its own rules were inserted: existing CSS may
-      supply the same styling.</p>
+    <p>Under each integration, <strong>Insertion</strong> reports host decisions and native insertion results,
+      <strong> Rules</strong> reports the generated rules present in their destination CSSOM, and
+      <strong> Ownership</strong> and <strong>Sharing</strong> report destination creators and
+      other renderers retaining those sheets. <strong>Permission</strong> counts attempts that
+      rely on another actor's sheet marker rather than an independently accepted rule prefix.
+      Statuses follow the CSS evidence, not computed widths, colors, or visual comparisons.
+      A normal-looking control does not prove its own rules were inserted.</p>
+    <p>The host also reports foreign writes into its sheets and foreign selectors matching its elements.
+      Neither alone proves damage. Its avatar trace compares the winning <code>background-color</code>
+      declaration using a bounded CSSOM cascade check, not a pixel or computed-color comparison.
+      “Unchanged” applies only to that probe, never to the entire host.</p>
     </details>
     <details className="intro-help conflict-guide">
       <summary>How they interfere with each other</summary>
@@ -255,7 +261,7 @@ Persona looks for: bucket d / priority 0
                    -> does NOT add Persona's marker to it`}</pre>
       <h3>2. Is the rule allowed in?</h3>
       <p>The host filter checks the <strong>destination</strong>, not the identity of the caller.
-        An demo-approval marker permits insertion; the demonstration rule exception also
+        A demo-approval marker permits insertion; the demonstration rule exception also
         permits rules beginning with <code>/* demo-feedback */</code>. The master filter does not recognize that prefix.</p>
       <div className="table-scroll">
         <table>
@@ -298,9 +304,44 @@ Persona looks for: bucket d / priority 0
   -> host filter rejects it without throwing
   -> rule absent from CSS, but present in renderer cache
   -> a later insertion attempt may be skipped as already handled`}</pre>
-      <p>This is why each live example reports <strong>Insertion</strong>, <strong>Appearance</strong>,
-        and <strong>Ownership</strong> separately. Its expandable rule evidence connects these
-        mechanisms to an actual recorded rule, rather than inferring success from appearance.</p>
+      <p>This is why each live example reports <strong>Insertion</strong>, <strong>Rules</strong>,
+        <strong>Ownership</strong>, <strong>Sharing</strong>, and <strong>Permission</strong> separately.
+        The selected width rule is one probe; expand all recorded attempts for blocked rules,
+        native parser rejections and exact native-rule presence. An identical surviving rule does
+        not prove that the recorded insertion still exists.</p>
+      <div className="table-scroll">
+        <table>
+          <caption>Technique guarantees and assumptions</caption>
+          <thead><tr><th scope="col">Technique</th><th scope="col">What it establishes</th><th scope="col">Required assumption / live evidence</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Container selectors</th><td>Limit which elements match inserted rules.</td>
+              <td>Elements must remain inside the scope; insertion must still be allowed.
+                {" "}<a href="#unmarked-d-first">Unmarked-sheet rejection</a> separates these facts.</td></tr>
+            <tr><th scope="row">Sheet marker</th><td>Permits writes to a marked destination.</td>
+              <td>It does not identify the writer. <a href="#persona-first">Borrowed permission</a> records unprefixed foreign attempts.</td></tr>
+            <tr><th scope="row">Class salt</th><td>Changes runtime-generated names.</td>
+              <td>Component styles must still be generated at runtime; <a href="#precompiled-salted">precompiled classes</a> remain shared.
+                {" "}<a href="#host-collision-salted">Salted collision control</a> checks the host probe separately from sheet sharing.</td></tr>
+            <tr><th scope="row">Rule prefix</th><td>Identifies a rule to a compatible filter.</td>
+              <td>The host must accept that exact prefix. Compare <a href="#raw-marked-first">accepted</a> and
+                {" "}<a href="#master-rejects-marker">rejected</a>; neither provides private sheets.</td></tr>
+          </tbody>
+        </table>
+        <table>
+          <caption>Best paired reproductions: change one mechanism at a time</caption>
+          <thead><tr><th scope="col">Compare</th><th scope="col">Isolated question</th><th scope="col">Read the evidence</th></tr></thead>
+          <tbody>
+            <tr><td><a href="#persona-alone">Persona alone</a> / <a href="#unmarked-d-first">unmarked seed first</a></td>
+              <td>Does an existing unmarked destination change insertion?</td><td>Same scoped actor and filter; destination changes, blocked rules remain cached.</td></tr>
+            <tr><td><a href="#feedback-first">Filter on</a> / <a href="#no-policy">filter off</a></td>
+              <td>Is adoption alone enough to lose rules?</td><td>Adoption remains; only filtering rejects insertion. Check collisions independently.</td></tr>
+            <tr><td><a href="#raw-marked-first">Feedback first</a> / <a href="#persona-first-raw">Persona first</a></td>
+              <td>What does arrival order change?</td><td>Unmarked rejection versus shared marked destinations, not class ordering.</td></tr>
+            <tr><td><a href="#host-collision">Unsalted</a> / <a href="#host-collision-salted">salted</a></td>
+              <td>Can a foreign selector alter a host declaration?</td><td>Compare selector matches and the host CSSOM background trace in both host builds.</td></tr>
+          </tbody>
+        </table>
+      </div>
     </details>
     <details className="note"><summary>Technical provenance and model limits</summary>
     <p>These are synthetic local examples using public libraries. The demonstration form profile
@@ -308,6 +349,10 @@ Persona looks for: bucket d / priority 0
       Configuration controls vary these settings to isolate their effects.
       No product integration or deployment is represented. Similar-looking controls can hide blocked rules, and
       permission leakage does not necessarily cause visible damage.</p>
+    <p>This is an unguarded-adoption baseline, not a claim about every renderer version or a
+      current deployment. No adoption-ownership fix is silently enabled. The orange-avatar reset
+      is an explicitly constructed collision probe, separate from the adoption-plus-filter failure.
+      Recorded attempts are not an exhaustive inventory of all styles a component might require.</p>
     </details>
     <details className="host-settings" open={hostMode === "runtime" || coverage === "minimal"}>
       <summary>Advanced host control</summary>

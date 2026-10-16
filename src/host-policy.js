@@ -15,12 +15,20 @@ export function installHostPolicy(doc, mode, onAttempt) {
     const reason = blocked ? "blocked" : mode === "off" ? "filter disabled" :
       !dataset?.makeStylesBucket ? "not a Griffel bucket" : dataset.demoAllowRules ?
         "enhanced sheet" : "feedback rule prefix";
-    onAttempt({ sheet: this, rule, blocked, reason });
     if (blocked) {
+      onAttempt({ sheet: this, rule, blocked, reason, inserted: false });
       console.error("[demo host filter] Runtime style insertion blocked.");
       return 0;
     }
-    return original.call(this, rule, index);
+    let insertedIndex;
+    try {
+      insertedIndex = original.call(this, rule, index);
+    } catch (error) {
+      onAttempt({ sheet: this, rule, blocked, reason, inserted: false, error: error.message });
+      throw error;
+    }
+    onAttempt({ sheet: this, rule, blocked, reason, inserted: true, index: insertedIndex });
+    return insertedIndex;
   };
   return () => { proto.insertRule = original; };
 }

@@ -51,6 +51,7 @@ publication decisions are documented in the [roadmap](../ROADMAP.md).
 | Gallery | [app.jsx](../src/app.jsx) | Explanations, five primary examples, seven collapsed controls, URL settings. |
 | Configuration | [three-actor-cases.js](../src/three-actor-cases.js) | Stable scenario IDs, load order, policy, raw/salt/prefix flags, takeaways. |
 | Orchestration | [three-actor-demo.js](../src/three-actor-demo.js) | Host first, optional seed, insertion filter, sequential actor mounts, measurements and evidence. |
+| CSS evidence | [rule-evidence.js](../src/rule-evidence.js) | Native CSSOM selector matches, rule provenance, and the bounded host-avatar declaration cascade. |
 | Scoped actor | [persona-actor.jsx](../src/persona-actor.jsx) | Marked sheets, head insertion point, Stylis container selector rewrite. |
 | Form actor | [feedback-actor.jsx](../src/feedback-actor.jsx) | Independent renderer; optional salt and rule prefix; singleton for salted/prefixed configuration. |
 | Synthetic profile | [feedback-profile.js](../src/feedback-profile.js) | Invented salt and prefix, no artifact provenance. |
@@ -112,15 +113,15 @@ with a scenario below. Gallery links also preserve host and coverage settings.
 
 | Scenario ID | Question / expected signal |
 | --- | --- |
-| `persona-alone` | Marked sheets created by Persona: intended measured controls. |
-| `unmarked-d-first` | Existing unmarked default sheet: Persona adopts it and loses atomic rules; phone width grows from 32px to 96px under minimal coverage. |
-| `raw-marked-first` | Prefixed, salted Feedback first: Feedback works; Persona adopts unmarked sheets and its unprefixed rules are blocked. |
-| `persona-first-raw` | Reverse order: both insert successfully but share destinations. Appearance is not ownership proof. |
+| `persona-alone` | Persona creates marked sheets; all recorded scoped rules reach native CSSOM. No foreign selectors match the host. |
+| `unmarked-d-first` | Persona adopts the unmarked default sheet; its atomic rules are blocked and cached, while its reset rules insert into marked sheets. |
+| `raw-marked-first` | Prefixed, salted Feedback first: its rules are permitted; Persona adopts unmarked sheets and its unprefixed rules are blocked. Native parser rejection is recorded separately. |
+| `persona-first-raw` | Reverse order: both get insertion permission and retain shared handles. Persona's sheets are not exclusive; Feedback's accepted prefix does not require borrowed permission. |
 | `master-rejects-marker` | Host lacks prefix exception: both integrations have rejected rules. |
-| `persona-first` | Unprefixed Feedback can borrow permission in existing marked buckets but has 17 textarea rules blocked in newly created unmarked buckets under minimal coverage. |
+| `persona-first` | Unprefixed Feedback borrows permission in existing marked buckets but has 17 textarea rules blocked in its new unmarked buckets under extracted/minimal coverage. A shared runtime host can pre-create all destinations, eliminating that borrowed allowance. |
 | `precompiled-salted` | Salt changes custom runtime classes but cannot rename precompiled Fluent classes. |
-| `raw-unsalted` | Shared classes mask missing rules and can change the host avatar. |
-| `host-collision` / `host-collision-salted` | Same constructed reset, with and without salt: isolate class collision from adoption. |
+| `raw-unsalted` | Shared classes mask rejected rules; the winning host-avatar background declaration also changes in the extracted host. |
+| `host-collision` / `host-collision-salted` | Same constructed reset, with and without salt: compare actual selector overlap and winning declarations independently of shared storage. |
 
 Selected metrics are phone width 32px, primary background `rgb(15, 108, 189)`,
 and secondary action width 137px. Expansion width depends on viewport: assert
@@ -134,13 +135,89 @@ evidence. This is not a full visual or accessibility audit.
 `window.threeActorResult` inside each example contains stages, per-rule events,
 sheet creators, rule lists, renderer caches, and measurements. The UI's expanded
 rule trace follows an actual width rule: actor -> destination bucket/priority ->
-creator -> marker/prefix -> policy decision -> cache -> computed width.
+creator -> marker/prefix -> policy decision -> native insertion -> destination
+CSSOM -> cache -> matching width rules.
 Do not substitute inferred rule counts for this causal evidence.
+
+The live outcomes are Insertion, Rules, Ownership, Sharing, and Permission.
+Rule evidence retains the exact native `CSSRule` identity and separately checks
+equivalent serialized CSS in the actual destination. A removed instance with an
+identical surviving rule is a provenance warning, not proof that styling is
+absent. Removing all equivalent CSS is a rule-availability failure. Other matching
+rules never turn a blocked insertion into a successful insertion.
+
+Sharing is bidirectional: creators also report later adopters, even if all their
+own insertion attempts succeeded. Permission counts only foreign marked-sheet
+attempts that lack an independently accepted prefix. The raw prefixed reverse
+order therefore demonstrates shared storage, not a necessary filter bypass.
+
+The host reports foreign insertions into host-created sheets independently of
+foreign rules matching its elements. An extracted host can suffer a collision
+without sharing its stylesheet; a salted runtime integration can write into host
+sheets without matching host elements. The host avatar's native CSSOM trace
+resolves `background-color` only when all matching declarations have unconditional,
+unlayered, single-class selectors and no inline background override. Importance
+and native stylesheet/rule order select the winning declaration. Other cases
+are explicitly unresolved. No computed color or generic cascade engine is used;
+this one probe is not a full host audit.
+
+Evidence refreshes on resize and subsequent native insertion. Renderer caches,
+sheet handles and CSSOM contents are refreshed together. Later renderer calls
+retain their actor attribution rather than inheriting the last mount's identity.
+Expanded traces and all-rule ledgers stay open across refreshes.
+
+Browser layout scaling at 110% reproduces 136.989px and 31.9886px for the
+healthy 137px action and 32px phone. These computed values are not CSS
+correctness checks: the declarations remain `width:137px` and the Fluent phone
+width rules. Tests compare recorded CSS with live destination sheets at desktop
+and mobile widths and at 90%, 110%, and 125% scaling, across both host builds and
+coverage profiles. Hover and pressed states must not change rule outcomes.
+Legacy computed snapshots remain only in the full diagnostic data and baseline
+assertions; they do not drive UI success or failure.
+Chromium also rejects Fluent's Firefox-only `::-moz-placeholder` rules in
+unscoped Feedback CSS. These native parse failures are recorded separately from
+host-policy blocks; they do not by themselves establish a visible mismatch.
+
+### Reproduction contract and paired controls
+
+This baseline deliberately uses unguarded adopted-sheet selection. It is not a
+claim that every renderer or current deployment lacks an ownership guard. No
+mitigation is silently applied. The independently bundled renderers, actual
+public Fluent components, extraction and native insertion are experimental
+inputs, not approximated styles.
+
+| Pair (same selected host build and coverage) | Changed input | Assertion in [test-three-actors.mjs](../test-three-actors.mjs) |
+| --- | --- | --- |
+| `persona-alone` / `unmarked-d-first` | Existing unmarked default sheet | Creator/destination changes; atomic insertion is blocked despite cached scoped rules. |
+| `feedback-first` / `no-policy` | Filter enabled/disabled | Adoption persists; rejection disappears only when filtering is disabled. Collision evidence stays independent. |
+| `raw-marked-first` / `persona-first-raw` | Integration arrival order | Unmarked rejection versus shared marked sheets; both creators and adopters disclose sharing. |
+| `raw-marked-first` / `master-rejects-marker` | Host prefix compatibility | Exact predicate assertions and actual per-rule decisions distinguish allowed prefix from rejection. |
+| `host-collision` / `host-collision-salted` | Class salt | Unsalted foreign rule matches the host. Salt removes matching; runtime shared-sheet writes can remain. |
+
+The guide connects container scoping, sheet markers, class salt and per-rule
+prefixes to these live configurations. Their assumptions remain distinct:
+elements must stay inside the scope (including portals); the destination marker
+does not authenticate its writer; class generation must happen at runtime for
+salt to apply; and the host must explicitly recognize a rule prefix.
+
+Start with extracted/minimal coverage, then repeat with extracted/shared to
+expose masking and runtime/both to expose pre-existing bucket adoption. The
+runtime filter is intentionally diagnostic, not an assertion about a production
+installation gate. The overlapping avatar reset is explicitly constructed and
+is not needed for the missing scoped-rule reproduction.
+
+Recorded insertion attempts are not an exhaustive inventory of required
+component styles. Native parser rejections remain visible, and successful
+insertion does not prove all components, states or lifecycle paths correct.
+Regression tests cover all 48 combinations, the two host declaration outcomes,
+foreign matching versus storage, inbound sharing, borrowed permission,
+equivalent-rule replacement/removal, late attribution/cache refresh, unsupported
+probe conditions, and desktop/mobile/scaling disclosure behavior.
 
 ## UX decisions to preserve
 
 - Order: title, load order, takeaway, live examples, compact results, expandable
-  measurements/evidence. Examples should dominate diagnostics.
+  generated CSS/evidence. Examples should dominate diagnostics.
 - Contact card and feedback form are intentionally distinct. Persona has
   Message/View profile; Feedback has Send feedback/Clear status.
 - Primary and secondary actions share a grid row. The real 137px Griffel rule
@@ -165,13 +242,9 @@ Do not substitute inferred rule counts for this causal evidence.
 
 ## Next bounded task
 
-Complete phase 2 of the [roadmap](../ROADMAP.md): add a reader-facing
-guarantee/assumption comparison linked to existing scenarios and actual rule
-evidence. Start with the gallery's existing mechanism guide rather than adding
-another dashboard. Validate any UI change against both coverage profiles and
-preserve all baseline cases.
-
-Then introduce separately labeled host-contract and namespacing experiments.
+Phase 2's baseline comparison is now in the gallery mechanism guide, linked to
+live scenarios and native CSSOM assertions. Preserve those controls and evidence
+semantics when introducing separately labeled host-contract and namespacing experiments.
 For each, state who must change (host, integration, build, library), measure
 residual failures, and avoid claiming a durable fix from one healthy load order.
 Only after that expand to a third independently bundled integration and the

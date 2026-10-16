@@ -70,8 +70,44 @@ provide private style sheets.
 
 Five primary examples are visible; seven explanatory controls are collapsed.
 Each includes load order, a takeaway, live controls, and compact outcomes:
-**Insertion**, **Appearance**, and **Ownership**. Expand **Measurements and rule
-evidence** to follow an actual recorded rule.
+**Insertion**, **Rules**, **Ownership**, **Sharing**, and **Permission**.
+Expand **Generated CSS and rule evidence** to follow the selected action-width
+rule, then **All recorded insertion attempts** to inspect every recorded rule.
+
+The rule trace distinguishes the generated CSS, host permission decision,
+native insertion, actual destination CSSOM contents, renderer cache, and
+matching selectors. The original native rule's identity and equivalent
+serialized CSS are reported separately: a replacement can preserve styling
+without preserving the recorded insertion. Statuses depend on CSS evidence, not computed
+widths, colors, or visual comparisons. Browser scaling and pointer state cannot
+turn correctly inserted CSS into a reported style mismatch. Existing matching
+CSS never converts an actor's blocked rule into a successful insertion.
+Legacy computed snapshots remain in the full diagnostic JSON for baseline
+research; they do not determine the rule-evidence outcomes.
+
+The host is not marked healthy merely because integrations inserted their rules.
+Its card reports foreign sheet handles, native foreign writes into host-created
+sheets, and foreign CSS rules currently matching host elements. These are
+independent facts: shared storage or duplicate matching CSS need not cause damage.
+The constructed avatar probe compares the winning `background-color`
+declaration before and after integration load using native CSSOM rules,
+importance and source order. It is limited to unconditional, single-class
+selectors; unsupported cases are explicitly unresolved, never a success.
+An unchanged probe does not establish correctness of the entire host.
+
+Red indicates blocked/missing recorded CSS or a changed host-probe declaration.
+Amber flags sharing, borrowed permission, parser rejections, or lost native
+instances whose equivalent CSS remains. In particular, Chromium's rejection of
+Firefox-only placeholder syntax stays visible as a native rejection, not a host
+block or a claim that every component lost its styles.
+
+The gallery's mechanism guide links technique guarantees and assumptions to
+paired reproductions. Start with extracted CSS and minimal coverage to reduce
+masking, then repeat with shared coverage and the runtime-host control.
+This is an **unguarded-adoption baseline**, not a claim about a current product
+deployment or an integration that already filters incompatible adopted sheets.
+The intentionally overlapping avatar reset is a separate collision probe,
+not a prerequisite for the adoption-plus-filter failure.
 
 The contact card offers Message and View profile. The feedback form offers
 Send feedback and Clear status. All actions are local; no form data is sent.
@@ -170,7 +206,8 @@ and decision to preserve the pinned baseline. This is not a clean security audit
 - [src/feedback-profile.js](src/feedback-profile.js): synthetic salt/prefix settings.
 - [src/host-policy.js](src/host-policy.js): demonstration insertion filter.
 - [src/three-actor-cases.js](src/three-actor-cases.js): scenario configuration.
-- [src/three-actor-demo.js](src/three-actor-demo.js): orchestration and measurements.
+- [src/three-actor-demo.js](src/three-actor-demo.js): orchestration and per-rule evidence.
+- [src/rule-evidence.js](src/rule-evidence.js): native selector matching and bounded host cascade evidence.
 - [test-three-actors.mjs](test-three-actors.mjs): integration matrix.
 - [test.mjs](test.mjs): archived diagnostic coverage.
 

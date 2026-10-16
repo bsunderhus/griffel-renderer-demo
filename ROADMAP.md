@@ -95,16 +95,32 @@ integration is solely responsible.
 | Form class-name salt | Separate runtime-generated class names | Does not isolate sheets or rename precompiled component classes. |
 | Per-rule prefix | Identify rules to a compatible filter | Does not contain CSS or establish exclusive ownership; host compatibility is required. |
 
-- [ ] Add a reader-facing comparison connecting each guarantee to a live example
+- [x] Add a reader-facing comparison connecting each guarantee to a live example
   and recorded rule evidence.
-- [ ] For each approach, identify the assumptions required from the host,
+- [x] For each approach, identify the assumptions required from the host,
   renderer, build pipeline, and integration.
-- [ ] Separate observed behavior, interpretation, and remaining uncertainty.
-- [ ] Describe the combined failure: shared-sheet adoption plus
+- [x] Separate observed behavior, interpretation, and remaining uncertainty.
+- [x] Describe the combined failure: shared-sheet adoption plus
   destination-based permission, independently of class collision.
 
 **Exit gate:** every conclusion links to a reproducible configuration and an
 assertion. Do not infer isolation from appearance or blame from load order.
+
+Evidence maintenance: gallery examples wait for visible layout and refresh
+their CSS evidence on resize. Regression checks cover collapsed controls and
+desktop/mobile galleries across both host builds and coverage profiles.
+Rule traces separate native insertion and destination CSSOM presence from
+permission and cache. Statuses are based on generated CSS and actual destination
+rules, not computed dimensions, colors, or visual comparisons. Fractional
+scaling and pointer states must not change CSSOM-based outcomes.
+The host separately reports shared handles, native foreign writes, matching
+foreign rules, and the bounded avatar-background declaration cascade. Creators
+also report later adopters; sharing does not imply borrowed permission or damage.
+All-rule ledgers distinguish host rejection, native parser rejection, exact
+native-rule retention, equivalent CSS, and cache state. The gallery's paired
+controls and [research contract](docs/RESEARCH.md#reproduction-contract-and-paired-controls)
+define the unguarded historical baseline and its limits without claiming a
+current product deployment or complete component correctness.
 
 ## 3. Compare solution experiments
 
@@ -172,7 +188,8 @@ understand its cost, and identify what remains unresolved.
 
 - Finish one bounded experiment and its assertions before adding another.
 - Never manufacture a broken appearance with scenario-specific CSS.
-- Keep insertion, appearance, and ownership as separate outcomes.
+- Keep insertion, CSSOM rule presence, and ownership as separate outcomes;
+  appearance is not a correctness verdict.
 - Use the existing browser tests and build pipeline before introducing tooling.
 - Never upload private evidence or imply release approval from sanitization.
 - Update this roadmap when a gate is verified, not merely when code is written.
