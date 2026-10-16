@@ -68,7 +68,38 @@ provide private style sheets.
 
 ## Playground
 
-Five primary examples are visible; seven explanatory controls are collapsed.
+The single gallery at `/` has seven source-aligned primary scenarios and seven
+collapsed explanatory controls. Every primary scenario uses participant-owned
+production/extraction gating and explicitly named renderer revisions. Controls
+vary those contracts deliberately and are labeled as diagnostic, not production
+defaults.
+
+The source-aligned primary scenarios run across both host modes and component
+coverage profiles:
+
+- The **host** selects a no-op renderer and installs its filter in a layout
+  effect only when production mode and extraction are both enabled. Runtime
+  mode uses a DOM renderer and no insertion filter. Filter installation is
+  idempotent per document and survives provider unmount; sandbox disposal
+  separately restores native insertion.
+- **Persona** exposes `historical`, `marker-guard`, and `owner-guard` profiles.
+  Historical adoption remains reproducibly broken under the filter. The marker
+  guard discards incompatible handles before insertion; it does not enforce
+  ownership. The owner guard accepts only matching owner handles, caches per
+  owner/document, and recreates renderers after retained sheets are detached.
+- The **inspected form profile** uses its independently compiled raw-style
+  bundle, module-level renderer, salted runtime names and prefixed rules, without
+  requested sheet-approval metadata. A precompiled control bundle rejects that
+  profile rather than pretending to provide it.
+
+These are sanitized simulations of inspected styling contracts, not a complete
+product integration or an incident-time deployment. The pinned public library
+versions, fictional UI and marker names remain explicit experimental inputs.
+Host custom query sorting, CSP configuration, theme/font customization and
+portals are outside these cases. The actual deployed revision, incident-time UI
+asset and embedded SDK Griffel version are not established by this repository.
+
+Seven primary examples are visible; seven explanatory controls are collapsed.
 Each includes load order, a takeaway, live controls, and compact outcomes:
 **Insertion**, **Rules**, **Ownership**, **Sharing**, and **Permission**.
 Expand **Generated CSS and rule evidence** to follow the selected action-width
@@ -104,8 +135,10 @@ block or a claim that every component lost its styles.
 The gallery's mechanism guide links technique guarantees and assumptions to
 paired reproductions. Start with extracted CSS and minimal coverage to reduce
 masking, then repeat with shared coverage and the runtime-host control.
-This is an **unguarded-adoption baseline**, not a claim about a current product
-deployment or an integration that already filters incompatible adopted sheets.
+Historical Persona scenarios are an **unguarded-adoption baseline**, not a claim
+about a current product deployment. The marker-guard and owner-guard scenarios
+explicitly model separately inspected revisions; neither silently replaces the
+historical failures.
 The intentionally overlapping avatar reset is a separate collision probe,
 not a prerequisite for the adoption-plus-filter failure.
 
@@ -126,13 +159,16 @@ The URL preserves these choices, for example
 `/?host=extracted&coverage=minimal`. Each example starts in a fresh iframe.
 Fragment links such as `/#host-collision` open the relevant control group.
 An isolated example is available at
-`/three-actors?scenario=raw-marked-first&host=extracted&coverage=shared`.
+`/?scenario=raw-marked-first&host=extracted&coverage=shared`.
 Scenario IDs are stable technical identifiers, not product references.
+Old `/three-actors` and `/source` links redirect into this same gallery;
+the seven former `source-*` scenario IDs map to their canonical counterparts.
 
-The filter is deliberately installed after host mount in both host modes.
+Within explanatory controls, the filter is deliberately activated after host mount in both host modes.
 Runtime mode with filtering is a diagnostic control, not a claim about typical
-production configuration. The checks measure selected styles, not complete
-visual correctness or accessibility.
+production configuration. Primary scenarios instead use the host-owned
+production/extraction gate. The checks cover selected CSS mechanisms, not
+complete visual correctness or accessibility.
 
 Archived `/extracted`, `/runtime`, and `/mechanisms` routes contain earlier
 generic diagnostics. They remain available for regression testing.
@@ -150,9 +186,13 @@ On supported Linux systems needing browser libraries, use
 `npx playwright install --with-deps chromium`; OS installation may require
 administrator privileges.
 
-The full suite builds and runs 72 cases: 48 integration combinations
-(12 configurations × 2 host builds × 2 coverage profiles) and 24 archived
-diagnostics. Tests start ephemeral loopback servers and do not require a preview
+The full suite builds and runs 80 matrix cases: 56 gallery combinations
+(14 configurations × 2 host builds × 2 coverage profiles), split equally between
+source-aligned scenarios and explanatory controls, plus 24 archived diagnostics.
+The former overlapping galleries are no longer counted twice.
+The suite also checks gate truth tables, filter
+idempotence, renderer/cache lifecycle and build boundaries.
+Tests start ephemeral loopback servers and do not require a preview
 server. Expected blocked-insertion errors and red/amber cards are test evidence,
 not necessarily test failures. A failed assertion or build exits nonzero.
 
@@ -163,8 +203,16 @@ node test-three-actors.mjs
 node test.mjs
 ```
 
-Generated evidence is written to ignored `test-results/`. Builds are written
-to ignored `dist/`. Neither is needed in a source export.
+After a build, run only the source-aligned matrix and lifecycle checks with:
+
+```sh
+node tests/policy/host-contract.mjs
+node tests/source/run.mjs
+```
+
+Generated evidence is written to ignored `test-results/`. Builds and a
+module-name inventory used by the architecture checks are written to ignored
+`dist/`. Neither is needed in a source export; the inventory is not served.
 Source-map generation and serving are disabled to reduce accidental source
 and local-path disclosure when sharing a running preview.
 
@@ -194,21 +242,27 @@ and decision to preserve the pinned baseline. This is not a clean security audit
 
 ## Source layout
 
-- [build.mjs](build.mjs): four host variants and independent integration bundles.
-- [server.mjs](server.mjs): loopback static server.
-- [src/app.jsx](src/app.jsx): introduction, visual mechanism guide, and gallery.
-- [src/host.jsx](src/host.jsx): host rendering and extraction assertion.
-- [src/host-controls.jsx](src/host-controls.jsx): minimal host.
-- [src/host-shared-controls.jsx](src/host-shared-controls.jsx): shared-component host.
-- [src/fluent-controls.jsx](src/fluent-controls.jsx): synthetic interactive examples.
-- [src/persona-actor.jsx](src/persona-actor.jsx): container-scoped contact renderer.
-- [src/feedback-actor.jsx](src/feedback-actor.jsx): configurable form renderer.
-- [src/feedback-profile.js](src/feedback-profile.js): synthetic salt/prefix settings.
-- [src/host-policy.js](src/host-policy.js): demonstration insertion filter.
-- [src/three-actor-cases.js](src/three-actor-cases.js): scenario configuration.
-- [src/three-actor-demo.js](src/three-actor-demo.js): orchestration and per-rule evidence.
-- [src/rule-evidence.js](src/rule-evidence.js): native selector matching and bounded host cascade evidence.
-- [test-three-actors.mjs](test-three-actors.mjs): integration matrix.
+- [src/host/](src/host/): application UI, explicit minimal/shared entries,
+  renderer mounting, extraction assertion and host insertion policy.
+- [src/persona/](src/persona/): contact-card UI and its scoped, marked renderer.
+- [src/feedback/](src/feedback/): form UI, salted/prefixed renderer and singleton profile.
+- [src/shared/](src/shared/): neutral UI primitives compiled into each participant;
+  not a shared browser renderer or participant-switching component.
+- [src/experiments/](src/experiments/): runtime definitions, validated configuration,
+  bundle adapters, seed and sequential orchestration.
+- [src/evidence/](src/evidence/): observation, native CSSOM snapshots, pure
+  classification, presentation and refresh/disposal. Legacy computed diagnostics
+  are kept separate from correctness analysis.
+- [src/playground/](src/playground/): gallery, explanations, settings and scenario
+  presentation content; it does not own participant behavior.
+- [src/archived/](src/archived/): earlier diagnostics and their integration fixture.
+- [src/browser-entry.jsx](src/browser-entry.jsx): browser globals and route dispatch.
+- [build/targets.mjs](build/targets.mjs): explicit eight-target build manifest.
+- [build/webpack-config.mjs](build/webpack-config.mjs): extraction and raw-style
+  transforms; each target is compiled separately.
+- [build.mjs](build.mjs) / [server.mjs](server.mjs): build execution and loopback serving.
+- [tests/](tests/): policy, architecture, evidence, experiment, gallery and archived checks.
+- [test-three-actors.mjs](test-three-actors.mjs) / [test.mjs](test.mjs): stable focused test entry points.
 - [test.mjs](test.mjs): archived diagnostic coverage.
 
 ## Export boundary

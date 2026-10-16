@@ -122,6 +122,31 @@ controls and [research contract](docs/RESEARCH.md#reproduction-contract-and-pair
 define the unguarded historical baseline and its limits without claiming a
 current product deployment or complete component correctness.
 
+The source is organized into independent host, Persona and Feedback modules,
+a sequential experiment harness, and separate observation/snapshot/analysis/
+presentation layers. Build targets explicitly preserve independent Griffel
+copies and host coverage; architecture checks enforce those boundaries.
+See the [module contracts](docs/RESEARCH.md#module-contracts-and-dependency-direction)
+before extending the lab. This structural refactor does not enable a solution
+experiment or change the baseline failure mechanisms.
+
+One gallery at `/` now has seven source-aligned primary scenarios and seven
+collapsed explanatory controls. Primary cases model participant-owned
+production/extraction gating, a no-op extracted host renderer, document-lifetime
+filtering, the fixed inspected form profile and explicitly named
+historical/marker/owner Persona revisions. Controls retain intentional diagnostic
+overrides rather than being presented as source defaults. Old `/source` and
+`/three-actors` links redirect into the same gallery.
+
+Validation covers 56 unique gallery combinations and 24 archived cases, plus
+bounded lifecycle probes. The original source/diagnostic overlap is no longer
+counted twice. The 28 explanatory-control records remain comparable to the
+historical diagnostic baseline; primary host contracts intentionally changed.
+See the
+[contract matrix](docs/RESEARCH.md#source-aligned-contract-matrix) for verified
+behavior and explicit limits; this is not incident-time deployment attribution
+or a complete coexistence sign-off.
+
 ## 3. Compare solution experiments
 
 Preserve baseline scenarios unchanged. Put intentional behavior changes in

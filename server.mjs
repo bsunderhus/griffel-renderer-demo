@@ -1,16 +1,25 @@
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import { sourceScenarioAliases } from "./src/experiments/scenarios.js";
 
 export function createReproServer() {
   return createServer(async (request, response) => {
-    const pathname = new URL(request.url, "http://localhost").pathname;
+    const requested = new URL(request.url, "http://localhost");
+    const pathname = requested.pathname;
+    if (pathname === "/source" || pathname === "/three-actors") {
+      const scenario = requested.searchParams.get("scenario");
+      if (pathname === "/source" && Object.hasOwn(sourceScenarioAliases, scenario)) {
+        requested.searchParams.set("scenario", sourceScenarioAliases[scenario]);
+      }
+      response.writeHead(302, { Location: `/${requested.search}` }).end();
+      return;
+    }
     const files = {
       "/": ["index.html", "text/html"],
       "/extracted": ["index.html", "text/html"],
       "/runtime": ["index.html", "text/html"],
       "/mechanisms": ["index.html", "text/html"],
-      "/three-actors": ["index.html", "text/html"],
       "/app.js": ["app.js", "text/javascript"],
       "/host-extracted.js": ["host-extracted.js", "text/javascript"],
       "/host-runtime.js": ["host-runtime.js", "text/javascript"],
