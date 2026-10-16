@@ -68,11 +68,19 @@ provide private style sheets.
 
 ## Playground
 
-The single gallery at `/` has seven source-aligned primary scenarios and seven
-collapsed explanatory controls. Every primary scenario uses participant-owned
-production/extraction gating and explicitly named renderer revisions. Controls
-vary those contracts deliberately and are labeled as diagnostic, not production
-defaults.
+The single gallery at `/` keeps five primary scenarios. **LPC version** in
+Advanced host control reruns those same scenarios with either renderer revision,
+without adding duplicate cards:
+
+- **LPC 1.20260927.13.2:** the release pinned by the inspected consumer
+  bootstrapper, using unguarded sheet adoption.
+- **LPC main snapshot (2026-10-16):** the upstream source containing the marker
+  guard. No published release containing that guard is established here.
+
+The consumer's checked-in defaults enable version locking. That is source
+consumption evidence, not proof of effective runtime settings or deployed assets.
+Eight collapsed controls retain the unmerged owner-guard proposal and seven
+diagnostic configurations.
 
 The source-aligned primary scenarios run across both host modes and component
 coverage profiles:
@@ -82,11 +90,12 @@ coverage profiles:
   mode uses a DOM renderer and no insertion filter. Filter installation is
   idempotent per document and survives provider unmount; sandbox disposal
   separately restores native insertion.
-- **Persona** exposes `historical`, `marker-guard`, and `owner-guard` profiles.
-  Historical adoption remains reproducibly broken under the filter. The marker
-  guard discards incompatible handles before insertion; it does not enforce
-  ownership. The owner guard accepts only matching owner handles, caches per
-  owner/document, and recreates renderers after retained sheets are detached.
+- **Versioned Persona** explicitly selects either the pinned release's unguarded
+  renderer or the main snapshot's `marker-guard`. The latter discards incompatible
+  handles before insertion, but does not enforce exclusive ownership: another
+  owner's approved sheet can still be accepted, and a later foreign renderer can
+  adopt Persona's approved sheets. The unmerged `owner-guard` proposal remains a
+  control, not either revision's default.
 - The **inspected form profile** uses its independently compiled raw-style
   bundle, module-level renderer, salted runtime names and prefixed rules, without
   requested sheet-approval metadata. A precompiled control bundle rejects that
@@ -99,7 +108,7 @@ Host custom query sorting, CSP configuration, theme/font customization and
 portals are outside these cases. The actual deployed revision, incident-time UI
 asset and embedded SDK Griffel version are not established by this repository.
 
-Seven primary examples are visible; seven explanatory controls are collapsed.
+Five primary examples are visible; eight explanatory controls are collapsed.
 Each includes load order, a takeaway, live controls, and compact outcomes:
 **Insertion**, **Rules**, **Ownership**, **Sharing**, and **Permission**.
 Expand **Generated CSS and rule evidence** to follow the selected action-width
@@ -135,10 +144,22 @@ block or a claim that every component lost its styles.
 The gallery's mechanism guide links technique guarantees and assumptions to
 paired reproductions. Start with extracted CSS and minimal coverage to reduce
 masking, then repeat with shared coverage and the runtime-host control.
-Historical Persona scenarios are an **unguarded-adoption baseline**, not a claim
-about a current product deployment. The marker-guard and owner-guard scenarios
-explicitly model separately inspected revisions; neither silently replaces the
-historical failures.
+The versioned findings are:
+
+- The pinned release can cache scoped rules that are rejected after an unmarked
+  sheet or Feedback-first arrival. Calling it merely a historical control would
+  misrepresent the inspected consumer's version pin.
+- The upstream main snapshot's scoped rules insert in all five setups, including
+  after unmarked sheets. This does not establish consumer adoption of that fix.
+- Reversing arrival order can still produce shared approved sheets. That is not
+  exclusive ownership or proof of damage.
+- The inspected host main uses a sheet-only filter. The Feedback prefix
+  exception is an unmerged host proposal, labeled separately in each example.
+  Under the sheet-only filter, Feedback-first blocks both actors in the pinned
+  release; the upstream guard protects Persona, not Feedback.
+
+Both renderer revisions remain first-class reproductions. The owner proposal is
+a stronger, separately labeled comparison.
 The intentionally overlapping avatar reset is a separate collision probe,
 not a prerequisite for the adoption-plus-filter failure.
 
@@ -159,15 +180,24 @@ The URL preserves these choices, for example
 `/?host=extracted&coverage=minimal`. Each example starts in a fresh iframe.
 Fragment links such as `/#host-collision` open the relevant control group.
 An isolated example is available at
-`/?scenario=raw-marked-first&host=extracted&coverage=shared`.
-Scenario IDs are stable technical identifiers, not product references.
+`/?scenario=raw-marked-first&host=extracted&coverage=shared&personaVersion=1.20260927.13.2`.
+The version defaults to the consumer-pinned release. Set
+`personaVersion=main-2026-10-16` for the guarded source snapshot; the same scenario
+IDs are used for both. Changing host CSS or coverage preserves the version, and
+isolated links and reloads retain it. Explicit explanatory controls do not
+change renderer profile with this selector. Version names identify inspected
+renderer contracts, not a complete SDK implementation.
 Old `/three-actors` and `/source` links redirect into this same gallery;
 the seven former `source-*` scenario IDs map to their canonical counterparts.
+The former `marker-guard` example redirects to `raw-marked-first` with the main
+snapshot selected instead of duplicating it.
+The former `historical-unmarked-first` and `historical-feedback-first` links map
+to the same canonical scenarios with the pinned release selected.
 
-Within explanatory controls, the filter is deliberately activated after host mount in both host modes.
+Within the seven diagnostic controls, the filter is deliberately activated after host mount in both host modes.
 Runtime mode with filtering is a diagnostic control, not a claim about typical
-production configuration. Primary scenarios instead use the host-owned
-production/extraction gate. The checks cover selected CSS mechanisms, not
+production configuration. Both primary renderer revisions and the
+owner proposal use the host-owned production/extraction gate. The checks cover selected CSS mechanisms, not
 complete visual correctness or accessibility.
 
 Archived `/extracted`, `/runtime`, and `/mechanisms` routes contain earlier
@@ -186,11 +216,14 @@ On supported Linux systems needing browser libraries, use
 `npx playwright install --with-deps chromium`; OS installation may require
 administrator privileges.
 
-The full suite builds and runs 80 matrix cases: 56 gallery combinations
-(14 configurations × 2 host builds × 2 coverage profiles), split equally between
-source-aligned scenarios and explanatory controls, plus 24 archived diagnostics.
-The former overlapping galleries are no longer counted twice.
-The suite also checks gate truth tables, filter
+The full suite builds and runs 96 matrix cases: 72 distinct gallery/renderer
+combinations plus 24 archived diagnostics. There are only 13 gallery cards:
+5 primary scenarios × 2 LPC versions × 2 host builds × 2 coverage profiles = 40
+primary combinations, plus 8 fixed-profile controls × 2 host builds × 2 coverage
+profiles = 32 control combinations.
+The five release/main pairs yield 20 direct comparisons from those
+same records; no test-only scenario override or duplicate primary gallery is needed.
+It also checks gate truth tables, filter
 idempotence, renderer/cache lifecycle and build boundaries.
 Tests start ephemeral loopback servers and do not require a preview
 server. Expected blocked-insertion errors and red/amber cards are test evidence,

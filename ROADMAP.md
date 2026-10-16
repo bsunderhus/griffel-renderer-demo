@@ -119,7 +119,7 @@ also report later adopters; sharing does not imply borrowed permission or damage
 All-rule ledgers distinguish host rejection, native parser rejection, exact
 native-rule retention, equivalent CSS, and cache state. The gallery's paired
 controls and [research contract](docs/RESEARCH.md#reproduction-contract-and-paired-controls)
-define the unguarded historical baseline and its limits without claiming a
+separate the consumer-pinned release from upstream main without claiming a
 current product deployment or complete component correctness.
 
 The source is organized into independent host, Persona and Feedback modules,
@@ -130,26 +130,46 @@ See the [module contracts](docs/RESEARCH.md#module-contracts-and-dependency-dire
 before extending the lab. This structural refactor does not enable a solution
 experiment or change the baseline failure mechanisms.
 
-One gallery at `/` now has seven source-aligned primary scenarios and seven
+One gallery at `/` now has five primary scenarios and eight
 collapsed explanatory controls. Primary cases model participant-owned
 production/extraction gating, a no-op extracted host renderer, document-lifetime
-filtering, the fixed inspected form profile and explicitly named
-historical/marker/owner Persona revisions. Controls retain intentional diagnostic
-overrides rather than being presented as source defaults. Old `/source` and
+filtering and the fixed inspected form profile. Five paired setups compare
+LPC 1.20260927.13.2 with LPC main snapshot (2026-10-16) through one shared
+LPC version control, without adding scenario cards. The pinned release is the
+default; version, host build and coverage are independently retained in URLs.
+One control shows the unmerged owner proposal; seven retain explicit diagnostic
+profiles. Old `/source` and
 `/three-actors` links redirect into the same gallery.
 
-Validation covers 56 unique gallery combinations and 24 archived cases, plus
+Validation covers 72 distinct gallery/renderer combinations and 24 archived cases, plus
 bounded lifecycle probes. The original source/diagnostic overlap is no longer
-counted twice. The 28 explanatory-control records remain comparable to the
+counted twice. The 28 diagnostic-control records remain comparable to the
 historical diagnostic baseline; primary host contracts intentionally changed.
 See the
 [contract matrix](docs/RESEARCH.md#source-aligned-contract-matrix) for verified
 behavior and explicit limits; this is not incident-time deployment attribution
 or a complete coexistence sign-off.
 
+The 2026-10-16 authorized source recheck confirmed marker-guard behavior in the
+inspected main branch; owner-filtered adoption and shared renderer caching remain
+an unmerged proposal, not a deployed default. The verified marker-guard setups
+are selectable in the five primary scenarios (20 host/coverage cases). The inspected consumer
+instead pins LPC 1.20260927.13.2 with version locking enabled in checked-in
+defaults; its release build has no adopted-handle guard. Its five scenarios
+use the same five cards. Twenty direct paired comparisons cover both versions.
+The duplicate marker-guard card redirects to the current Feedback-first case.
+Separate actual-source probes corroborated
+native insertion, cache and sharing outcomes. See the
+[current-source recheck](docs/RESEARCH.md#current-source-recheck-2026-10-16)
+for dependency and execution limits. The inspected host main still lacks the
+Feedback prefix exception; that unmerged host proposal is labeled separately.
+The published bootstrapper and release-build source are verified, but effective
+runtime overrides and deployed client assets remain unverified. Source merge
+status is not deployment evidence.
+
 ## 3. Compare solution experiments
 
-Preserve baseline scenarios unchanged. Put intentional behavior changes in
+Preserve version-pinned failure cases unchanged. Put intentional behavior changes in
 separately labeled experiments with the same measurements.
 
 | Candidate | Experiment | Important trade-off |

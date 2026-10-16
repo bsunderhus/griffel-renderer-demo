@@ -163,7 +163,7 @@ try {
   await page.waitForURL(`${url}/`);
   assert.deepEqual(await page.locator("nav a").evaluateAll(links =>
     links.map(link => link.getAttribute("href"))), ["/"]);
-  assert.equal(await page.locator(".walkthrough").count(), 14);
+  assert.equal(await page.locator(".walkthrough").count(), 13);
   assert.deepEqual(errors, [], "Unexpected browser errors");
   assert.deepEqual(failedRequests, [], "No failed asset requests");
   await writeFile("test-results/results.json", JSON.stringify({

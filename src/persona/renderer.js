@@ -70,7 +70,7 @@ const profiles = {
   "owner-guard": (doc, owner) => getOwnerGuardRenderer(doc, owner),
 };
 
-export function getPersonaRenderer(doc, { profile = "historical", owner = "contact-card" } = {}) {
+export function getPersonaRenderer(doc, { profile = "marker-guard", owner = "contact-card" } = {}) {
   if (!Object.hasOwn(profiles, profile)) throw new Error(`Unknown Persona renderer profile: ${profile}`);
   return profiles[profile](doc, owner);
 }

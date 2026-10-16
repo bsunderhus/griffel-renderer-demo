@@ -1,16 +1,20 @@
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { sourceScenarioAliases } from "./src/experiments/scenarios.js";
+import { scenarioAliases, scenarioAliasVersions } from "./src/experiments/scenarios.js";
 
 export function createReproServer() {
   return createServer(async (request, response) => {
     const requested = new URL(request.url, "http://localhost");
     const pathname = requested.pathname;
-    if (pathname === "/source" || pathname === "/three-actors") {
-      const scenario = requested.searchParams.get("scenario");
-      if (pathname === "/source" && Object.hasOwn(sourceScenarioAliases, scenario)) {
-        requested.searchParams.set("scenario", sourceScenarioAliases[scenario]);
+    const scenario = requested.searchParams.get("scenario");
+    const alias = Object.hasOwn(scenarioAliases, scenario);
+    if (pathname === "/source" || pathname === "/three-actors" || (pathname === "/" && alias)) {
+      if (alias) {
+        requested.searchParams.set("scenario", scenarioAliases[scenario]);
+        if (Object.hasOwn(scenarioAliasVersions, scenario)) {
+          requested.searchParams.set("personaVersion", scenarioAliasVersions[scenario]);
+        }
       }
       response.writeHead(302, { Location: `/${requested.search}` }).end();
       return;

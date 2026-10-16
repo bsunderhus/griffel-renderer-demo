@@ -1,6 +1,11 @@
-import { experiments } from "../experiments/scenarios.js";
-import { scenarioContent } from "./scenario-content.js";
+import { experiments, personaRevisions } from "../experiments/scenarios.js";
+import { getScenarioContent } from "./scenario-content.js";
 
-export const threeActorCases = experiments.map(experiment => ({
-  ...experiment, ...scenarioContent[experiment.id],
-}));
+export function getThreeActorCases(personaVersion = "1.20260927.13.2") {
+  return experiments.map(experiment => ({
+    ...experiment, ...getScenarioContent(experiment, personaVersion),
+    ...(experiment.personaRevision === "selected" ? { personaProfile: personaRevisions[personaVersion].profile } : {}),
+  }));
+}
+
+export const threeActorCases = getThreeActorCases();

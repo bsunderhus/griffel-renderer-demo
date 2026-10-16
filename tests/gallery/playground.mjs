@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { threeActorCases } from "../../src/playground/scenarios.js";
+import { threeActorCases, getThreeActorCases } from "../../src/playground/scenarios.js";
+import { personaRevisions } from "../../src/experiments/scenarios.js";
 import { assertPresentedEvidence } from "../evidence/assert-presented.mjs";
 
 export async function assertPlayground(page, url) {
@@ -20,7 +21,7 @@ export async function assertPlayground(page, url) {
   await guide.locator("summary").click();
   assert.equal(await guide.getByRole("list", { name: "Style rule journey" }).locator("li").count(), 3);
   assert.equal(await guide.getByRole("table").count(), 4);
-  for (const id of ["unmarked-d-first", "marker-guard", "owner-guard", "persona-first", "precompiled-salted", "host-collision-salted",
+  for (const id of ["unmarked-d-first", "owner-guard", "persona-first", "precompiled-salted", "host-collision-salted",
     "raw-marked-first", "master-rejects-marker", "no-policy"]) {
     assert.ok(await guide.locator(`a[href="#${id}"]`).count(), `Guide links ${id} to a live reproduction`);
   }
@@ -28,12 +29,13 @@ export async function assertPlayground(page, url) {
   assert.match(await guide.getByLabel("Rejected rule cache sequence").textContent(), /absent from CSS, but present in renderer cache/);
   await guide.locator("summary").click();
   const working = page.frameLocator('#persona-alone iframe');
-  const broken = page.frameLocator('#unmarked-d-first iframe');
+  const guarded = page.frameLocator('#unmarked-d-first iframe');
   await working.locator(".result").first().waitFor();
-  await broken.locator(".result").first().waitFor();
+  await guarded.locator(".result").first().waitFor();
   assert.equal(await working.locator('[data-fluent-icon]').last().evaluate(el => getComputedStyle(el).width), "32px");
-  assert.equal(await broken.locator('[data-fluent-icon]').last().evaluate(el => getComputedStyle(el).width), "96px");
-  assert.equal(await broken.locator('[data-actor-probe="persona"]').textContent(), "View profile");
+  assert.equal(await guarded.locator("body").evaluate(() => window.threeActorResult.events
+    .find(event => event.actor === "persona" && event.rule.includes("width:137px")).blocked), true);
+  assert.equal(await guarded.locator('[data-actor-probe="persona"]').textContent(), "View profile");
   assert.equal(await working.locator('[data-actor-probe="persona"]').evaluate(el => el.tagName), "BUTTON");
   assert.equal(await working.locator(".probe").count(), 0);
   await working.locator('[data-fluent-primary]').last().click();
@@ -48,11 +50,17 @@ export async function assertPlayground(page, url) {
   assert.equal(await page.locator(".intended-reference").count(), 0);
   assert.equal(await page.locator("iframe").count(), threeActorCases.length);
   assert.equal(await page.locator(".explanatory-controls").evaluate(el => el.open), false);
-  assert.equal(await page.locator(".walkthrough:visible").count(), 7);
+  assert.equal(await page.locator(".walkthrough:visible").count(), 5);
   for (const config of threeActorCases) {
     assert.equal(await page.locator(`#${config.id}`).isVisible(), Boolean(config.primaryExample));
     assert.equal(await page.locator(`#${config.id}`).getAttribute("data-scenario-contract"),
-      config.primaryExample ? "source-aligned" : "diagnostic");
+      config.hostContract === "production-extraction" ? "source-aligned" : "diagnostic");
+    assert.equal(await page.locator(`#${config.id}`).getAttribute("data-scenario-kind"),
+      config.primaryExample ? "release" : config.controlKind || "diagnostic");
+    if (config.primaryExample) {
+      assert.match(await page.locator(`#${config.id} > .note`).textContent(),
+        /Pinned release renderer; deployment unverified/);
+    }
   }
   await page.locator(".explanatory-controls > summary").click();
   for (const config of threeActorCases) {
@@ -76,6 +84,31 @@ export async function assertPlayground(page, url) {
   assert.equal(await page.locator("#host-collision").isVisible(), true);
   assert.equal(await page.locator('nav a[aria-current="page"]').getAttribute("href"), "/");
   await page.locator(".host-settings > summary").click();
+  assert.equal(await page.getByLabel("LPC version", { exact: true }).inputValue(), "1.20260927.13.2");
+  await page.getByLabel("LPC version", { exact: true }).selectOption("main-2026-10-16");
+  await page.waitForURL(`${url}/?personaVersion=main-2026-10-16`);
+  assert.equal(await page.locator(".walkthrough").count(), threeActorCases.length);
+  assert.equal(await page.locator('[data-scenario-kind="main"]').count(), 5);
+  await page.frameLocator("#unmarked-d-first iframe").locator(".result").first().waitFor();
+  assert.equal(await page.frameLocator("#unmarked-d-first iframe").locator("body")
+    .evaluate(() => window.threeActorResult.simulation.persona), "marker-guard");
+  await page.reload();
+  assert.equal(await page.getByLabel("LPC version", { exact: true }).inputValue(), "main-2026-10-16");
+  await page.getByLabel("Host CSS", { exact: true }).selectOption("runtime");
+  await page.waitForURL(`${url}/?personaVersion=main-2026-10-16&host=runtime`);
+  await page.getByLabel("Host component coverage", { exact: true }).selectOption("minimal");
+  await page.waitForURL(`${url}/?personaVersion=main-2026-10-16&host=runtime&coverage=minimal`);
+  assert.equal(await page.getByLabel("LPC version", { exact: true }).inputValue(), "main-2026-10-16");
+  const isolated = new URL(await page.locator("#raw-marked-first .scenario-details a").getAttribute("href"), url);
+  assert.equal(isolated.searchParams.get("personaVersion"), "main-2026-10-16");
+  assert.equal(isolated.searchParams.get("host"), "runtime");
+  assert.equal(isolated.searchParams.get("coverage"), "minimal");
+  await page.getByLabel("LPC version", { exact: true }).selectOption("1.20260927.13.2");
+  await page.waitForURL(`${url}/?personaVersion=1.20260927.13.2&host=runtime&coverage=minimal`);
+  assert.equal(await page.locator(".walkthrough").count(), threeActorCases.length);
+  assert.equal(await page.locator('[data-scenario-kind="release"]').count(), 5);
+  await page.goto(`${url}/#host-collision`);
+  await page.locator(".host-settings > summary").click();
   await page.getByLabel("Host CSS", { exact: true }).selectOption("runtime");
   await page.waitForURL(`${url}/?host=runtime`);
   await page.frameLocator("#persona-alone iframe").locator(".result").first().waitFor();
@@ -94,17 +127,22 @@ export async function assertPlayground(page, url) {
   await page.waitForURL(`${url}/?host=extracted&coverage=minimal`);
   await page.frameLocator("#persona-alone iframe").locator(".result").first().waitFor();
   await page.screenshot({ path: "test-results/three-actors.png", fullPage: true });
-  for (const hostMode of ["extracted", "runtime"]) {
+  const galleries = Object.keys(personaRevisions).flatMap(personaVersion =>
+    ["extracted", "runtime"].map(hostMode => ({ personaVersion, hostMode })));
+  for (const { personaVersion, hostMode } of galleries) {
+    const versionCases = getThreeActorCases(personaVersion);
     for (const coverage of ["shared", "minimal"]) {
       await page.setViewportSize({ width: 1400, height: 1800 });
       await page.mouse.move(0, 0);
-      await page.goto(`${url}/?host=${hostMode}&coverage=${coverage}`);
+      await page.goto(`${url}/?host=${hostMode}&coverage=${coverage}&personaVersion=${personaVersion}`);
+      assert.equal(await page.locator("iframe").evaluateAll((frames, version) =>
+        frames.every(frame => new URL(frame.src).searchParams.get("personaVersion") === version), personaVersion), true);
       const hiddenControl = page.frameLocator("#persona-first iframe");
       await hiddenControl.locator("#actor-evidence").waitFor({ state: "attached" });
       assert.equal(await hiddenControl.locator("body").evaluate(() => Boolean(window.threeActorResult)), false,
         "Collapsed examples must not publish measurements without layout");
       await page.locator(".explanatory-controls > summary").click();
-      for (const config of threeActorCases) {
+      for (const config of versionCases) {
         const frame = page.frameLocator(`#${config.id} iframe`);
         await frame.locator("[data-rule-trace]").first().waitFor();
         const result = await frame.locator("body").evaluate(() => window.threeActorResult);
@@ -114,11 +152,19 @@ export async function assertPlayground(page, url) {
           assert.equal(result.actors.persona.measured.probeWidth, "137px",
             "The healthy reference inserts in both source-aligned host modes");
         }
-        if (config.primaryExample) {
+        if (config.hostContract === "production-extraction") {
           assert.equal(result.simulation.host.contract, "production-extraction");
           assert.equal(result.simulation.host.installed, hostMode === "extracted");
-          assert.equal(result.simulation.persona, config.personaProfile);
+          const revision = config.primaryExample ? personaVersion : null;
+          const profile = config.primaryExample ? personaRevisions[personaVersion].profile : config.personaProfile;
+          assert.equal(result.simulation.persona, profile);
           assert.equal(result.simulation.feedback, "inspected");
+          assert.equal(result.simulation.personaRevision, revision);
+          if (profile === "marker-guard") {
+            assert.equal(result.simulation.persona, "marker-guard");
+            assert.ok(result.events.filter(event => event.actor === "persona" && event.bucket)
+              .every(event => !event.blocked), "Current Persona must not inherit the historical failure verdict");
+          }
         } else {
           assert.equal(result.simulation, undefined, "Diagnostic controls cannot be presented as source-aligned");
         }
@@ -130,7 +176,7 @@ export async function assertPlayground(page, url) {
       assert.equal(await brokenFrame.locator("[data-rule-trace]").evaluate(element => element.open), true,
         "Resizing preserves expanded rule evidence");
       await brokenFrame.locator("[data-rule-trace] > summary").click();
-      for (const config of threeActorCases) {
+      for (const config of versionCases) {
         const frame = page.frameLocator(`#${config.id} iframe`);
         await assertPresentedEvidence(frame, await frame.locator("body").evaluate(() => window.threeActorResult));
       }
@@ -168,7 +214,7 @@ export async function assertPlayground(page, url) {
           }
         }, zoom);
         await page.evaluate(() => new Promise(requestAnimationFrame));
-        for (const config of threeActorCases) {
+        for (const config of versionCases) {
           const frame = page.frameLocator(`#${config.id} iframe`);
           const result = await frame.locator("body").evaluate(() => window.threeActorResult);
           await assertPresentedEvidence(frame, result);
@@ -194,7 +240,7 @@ export async function assertPlayground(page, url) {
           }
           if (hostMode === "extracted" && config.id === "unmarked-d-first") {
             assert.equal(await frame.locator('[data-actor-status="persona"]').evaluate(element =>
-              element.classList.contains("missing")), true,
+              element.classList.contains("missing")), personaVersion === "1.20260927.13.2",
             "Rejected rules remain a CSSOM failure independently of scaling");
           }
         }

@@ -58,7 +58,7 @@ export async function runThreeActorCase(config) {
     };
     if (settings.hostContract === "production-extraction") {
       result.simulation = {
-        host: host.policyState(), persona: settings.personaProfile,
+        host: host.policyState(), persona: settings.personaProfile, personaRevision: settings.personaRevision,
         feedback: settings.feedbackProfile,
         scope: "Sanitized renderer/insertion contracts, not a full product or incident-time deployment.",
       };

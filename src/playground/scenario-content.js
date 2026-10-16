@@ -1,15 +1,17 @@
+import { personaRevisions } from "../experiments/scenarios.js";
+
 export const scenarioContent = {
   "persona-alone": {
     "primaryExample": true,
-    "title": "Historical Persona without interference",
-    "takeaway": "Persona works when it creates its own marked style sheets.",
-    "description": "The production/extracted host loads its built CSS, uses a no-op renderer and installs its sheet-only filter in a layout effect. Historical Persona creates marked sheets and inserts its scoped rules. No Feedback or unrelated renderer intervenes. This is the healthy insertion reference, not a claim about every Persona revision."
+    "title": "Persona without interference",
+    "takeaway": "The verified main-branch renderer inserts its scoped rules into approved sheets.",
+    "description": "The production/extracted host loads its built CSS, uses a no-op renderer and installs its sheet-only filter in a layout effect. Current Persona uses the marker guard verified in the 2026-10-16 main-branch snapshot. It inserts scoped rules into approved destinations. No Feedback or unrelated renderer intervenes. This is the current insertion reference, not proof of a deployed version."
   },
   "unmarked-d-first": {
     "primaryExample": true,
-    "title": "An existing sheet blocks Persona's styles",
-    "takeaway": "Persona's renderer settings do not change the unmarked sheet it adopts.",
-    "description": "After the production/extracted host mounts, an unrelated renderer creates an unmarked default bucket. Its seed rule is rejected, but the sheet remains. Historical Persona adopts that sheet and caches scoped atomic rules whose native insertion is blocked. Other buckets can still be inserted. This isolates adoption plus host filtering from selector scoping."
+    "title": "Unmarked destination first",
+    "takeaway": "The marker guard discards incompatible adopted handles before inserting Persona's rules.",
+    "description": "After the production/extracted host mounts, an unrelated renderer creates an unmarked default bucket. Its seed rule is rejected, but the sheet remains. Current Persona discards the incompatible handle before insertion, creates an approved destination and inserts its scoped rules. The unrelated seed remains rejected; protecting Persona does not change the host policy."
   },
   "feedback-first": {
     "title": "What if Feedback has no permission marker?",
@@ -23,33 +25,27 @@ export const scenarioContent = {
   },
   "raw-marked-first": {
     "primaryExample": true,
-    "title": "Inspected Feedback profile before historical Persona",
-    "takeaway": "Isolating class names does not isolate style sheets: Persona can still adopt Feedback's sheets.",
-    "description": "The inspected Feedback styling profile uses runtime styles and a module-level salted renderer with prefixed rules, without requesting sheet approval metadata. The production/extracted host accepts that prefix. Historical Persona then adopts Feedback's unmarked sheets, and its own unprefixed rules are blocked despite remaining in its renderer cache."
+    "title": "Feedback first",
+    "takeaway": "Both integrations insert their rules: Feedback has prefix permission and Persona rejects unapproved destinations.",
+    "description": "The inspected Feedback profile uses runtime styles and a module-level salted renderer with prefixed rules, without requesting sheet approval metadata. The production/extracted host accepts that prefix. Current Persona discards Feedback's unmarked handles before insertion and creates approved destinations. Neither actor has host-blocked rules; native parser rejections remain separate. This order does not reproduce the historical missing-Persona-rule failure."
   },
   "persona-first-raw": {
     "primaryExample": true,
-    "title": "Historical Persona before the inspected Feedback profile",
+    "title": "Persona first",
     "takeaway": "Successful styling does not prove independent sheet ownership.",
-    "description": "Reverse the arrival order without changing the profiles or prefix-aware host filter. Historical Persona creates marked sheets; the separately bundled Feedback renderer adopts them. Both insert rules, but storage is shared. Feedback's prefix would also be accepted in unmarked sheets, so this case does not demonstrate a necessary permission bypass."
+    "description": "Reverse the arrival order without changing the current Persona profile or prefix-aware host filter. Persona creates approved sheets; the separately bundled Feedback renderer adopts them. Both insert rules, but storage is shared. Persona's guard restricts the handles it uses, not what later foreign renderers can adopt. Feedback's prefix grants independent permission, so shared storage is not itself a necessary bypass."
   },
   "master-rejects-marker": {
     "primaryExample": true,
-    "title": "Sheet-only host rejects the inspected Feedback prefix",
-    "takeaway": "A rule marker only grants permission when the host filter recognizes it.",
-    "description": "The inspected Feedback profile is unchanged, but the production/extracted host models the sheet-only filter revision without the rule-prefix exception. Feedback creates unmarked sheets and its rules are blocked. Historical Persona adopts them and is blocked too. Host component coverage can mask missing declarations, but cannot turn rejected insertions into successful ones."
-  },
-  "marker-guard": {
-    "primaryExample": true,
-    "title": "Marker-guard Persona after the inspected Feedback profile",
-    "takeaway": "Rejecting unapproved adopted handles restores insertion, but is not exclusive sheet ownership.",
-    "description": "This separately labeled inspected Persona revision discards adopted handles whose approval attribute is not exactly the string true before inserting. After Feedback creates unmarked sheets, Persona creates marked destinations and inserts its scoped rules. Another owner's correctly marked sheets can still be accepted; this is not the historical incident-time implementation."
+    "title": "Sheet-only host",
+    "takeaway": "Persona's guard protects its own insertion; it does not grant permission to independently rejected Feedback rules.",
+    "description": "The inspected Feedback profile is unchanged, but the production/extracted host uses the sheet-only filter revision without the rule-prefix exception. Feedback creates unmarked destinations and its rules are blocked. Current Persona discards those handles, creates approved destinations and inserts its own scoped rules. This separates the remaining host/Feedback compatibility problem from Persona's resolved adoption failure."
   },
   "owner-guard": {
-    "primaryExample": true,
-    "title": "Owner-guard Persona after the inspected Feedback profile",
+    "controlKind": "proposal",
+    "title": "Proposed owner guard after the inspected Feedback profile",
     "takeaway": "Owner-filtered adoption separates destinations; renderer reuse also has an explicit document lifetime.",
-    "description": "This separately labeled inspected Persona revision accepts adopted sheets only for its owner. After Feedback arrives, Persona uses its own marked destinations. Its renderer is cached per owner and document and recreated if retained sheets detach. This demonstrates a stronger ownership/lifecycle contract, not proof of complete product coexistence or the deployed incident revision."
+    "description": "This inspected owner-guard proposal was still unmerged at the 2026-10-16 recheck; it is not the main-branch default. It accepts adopted sheets only for its owner. After Feedback arrives, Persona uses its own marked destinations. Its renderer is cached per owner and document and recreated if retained sheets detach. This demonstrates a stronger ownership/lifecycle contract, not proof of complete product coexistence or a deployed version."
   },
   "precompiled-salted": {
     "title": "What if component class names are already fixed?",
@@ -77,3 +73,44 @@ export const scenarioContent = {
     "description": "Same cards, declarations, load order, and disabled filter as the preceding case; only feedback's class-name salt changes. The reset now has a different class and cannot match the avatar. The host stays green. This isolates class collision from sheet adoption and insertion filtering."
   }
 };
+
+const releasedContent = {
+  "persona-alone": {
+    title: "Persona without interference",
+    takeaway: "The pinned release inserts scoped rules when it creates approved destinations.",
+    description: "No Feedback or unrelated renderer intervenes. This release uses marked sheets and scoped selectors, but has no adopted-handle guard. Its scoped rules insert into the approved sheets it creates.",
+  },
+  "unmarked-d-first": {
+    title: "Unmarked destination first",
+    takeaway: "The pinned release retains an unmarked destination; rejected scoped rules remain cached.",
+    description: "An unrelated renderer leaves an unmarked default bucket after the extracted host rejects its seed rule. This release adopts that bucket without checking its approval marker. The host rejects Persona's atomic rules, although Griffel caches them. Compare the main snapshot: its guard changes the destination, not the generated scoped rule.",
+  },
+  "raw-marked-first": {
+    title: "Feedback first",
+    takeaway: "The proposed host prefix exception permits Feedback, but does not protect unguarded Persona.",
+    description: "Feedback inserts its prefixed rules under the proposed prefix-aware host filter. This release then adopts Feedback's unmarked sheets and has its scoped rules rejected. The main snapshot drops those incompatible handles. Native rule presence and cache remain separate evidence.",
+  },
+  "persona-first-raw": {
+    title: "Persona first",
+    takeaway: "Both actors insert supported rules, but Feedback shares Persona's approved sheets.",
+    description: "This release creates approved sheets before Feedback arrives. Feedback can adopt those sheets. Under the proposed prefix-aware host filter, its prefix also grants independent permission; sharing does not prove that permission was borrowed. Reversing arrival order exposes this release's rejected Persona rules.",
+  },
+  "master-rejects-marker": {
+    title: "Sheet-only host",
+    takeaway: "The inspected host main rejects both actors' rules in Feedback's unmarked destinations.",
+    description: "This release and the sheet-only filter match the inspected consumer's locked source path. Feedback arrives first and cannot use its prefix to bypass that filter. Persona then retains Feedback's unmarked destinations and its own scoped rules are rejected too. This is source-consumption evidence, not proof of the effective settings or assets in any deployed client.",
+  },
+};
+
+const primaryContent = {
+  "1.20260927.13.2": releasedContent,
+  "main-2026-10-16": scenarioContent,
+};
+
+export function getScenarioContent(config, personaVersion) {
+  if (config.personaRevision !== "selected") return scenarioContent[config.id];
+  const content = primaryContent[personaVersion]?.[config.id];
+  if (!content) throw new Error(`Missing scenario content for ${config.id} / ${personaVersion}`);
+  return { ...content, primaryExample: true,
+    title: `${personaRevisions[personaVersion].label}: ${content.title}` };
+}

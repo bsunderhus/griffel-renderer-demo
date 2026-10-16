@@ -49,7 +49,7 @@ publication decisions are documented in the [roadmap](../ROADMAP.md).
 | Surface | Entry point | Responsibility |
 | --- | --- | --- |
 | Browser entry | [browser-entry.jsx](../src/browser-entry.jsx) | React globals and route dispatch only. |
-| Gallery | [playground/](../src/playground/) | One gallery, seven source-aligned primary examples, seven collapsed diagnostic controls, URL settings. |
+| Gallery | [playground/](../src/playground/) | Five primary examples with one release/main version control, eight collapsed proposal/diagnostic controls, URL settings. |
 | Configuration | [scenarios.js](../src/experiments/scenarios.js), [configuration.js](../src/experiments/configuration.js) | Runtime inputs and validation, separate from gallery prose. |
 | Orchestration | [run.js](../src/experiments/run.js) | Host baseline, optional seed, policy, ordered mounts and evidence lifecycle. |
 | Bundle adapters | [participants.js](../src/experiments/participants.js) | Script/global boundary; no participant UI or renderer construction. |
@@ -64,7 +64,7 @@ publication decisions are documented in the [roadmap](../ROADMAP.md).
 | Archived diagnostics | [archived/](../src/archived/) | Earlier mechanism and extraction routes, not dependencies of the main runner. |
 | Bundling | [targets.mjs](../build/targets.mjs), [webpack-config.mjs](../build/webpack-config.mjs) | Explicit independent targets and narrowly scoped extraction/raw-style transforms. |
 | Serving | [server.mjs](../server.mjs) | Allowlisted assets and routes, loopback only, no source maps. |
-| Primary tests | [test-three-actors.mjs](../test-three-actors.mjs), [tests/](../tests/) | Policy, architecture, pure analysis, 56 gallery combinations, evidence UI, interactions and navigation. |
+| Primary tests | [test-three-actors.mjs](../test-three-actors.mjs), [tests/](../tests/) | Policy, architecture, pure analysis, 72 gallery combinations, evidence UI, interactions and navigation. |
 | Archived tests | [test.mjs](../test.mjs), [archived tests](../tests/archived/) | 24 extraction/runtime/adoption/cache diagnostics. |
 
 ### Build boundaries matter
@@ -96,8 +96,10 @@ provides a runtime-call counter and insertion-decision subscription.
 Historical and marker-guard Persona retain per-mount renderer creation;
 owner-guard Persona caches by owner and document. The form profile creates its
 singleton at module evaluation. No shared renderer factory is introduced.
-Guarded profiles are separately labeled primary scenarios, not replacements for
-the historical Persona cases.
+Both LPC 1.20260927.13.2 and the guarded main snapshot (2026-10-16) have primary
+scenarios. Every pair selects its revision explicitly. Unguarded adoption is not
+merely historical: it is present in the inspected consumer's pinned release
+build. Owner-filtered adoption remains an unmerged explanatory comparison.
 
 Evidence follows observation -> snapshot -> analysis -> presentation.
 Observation keeps native object identity out of serialized results; snapshots
@@ -151,28 +153,37 @@ stylesheets prevent unused form CSS from contaminating the minimal experiment.
 
 ## Source-aligned contract matrix
 
-The single gallery at `/` has seven primary source-aligned cases and seven
+The single gallery at `/` has five primary cases and eight
 collapsed explanatory controls, all defined in one
 [runtime registry](../src/experiments/scenarios.js). Every primary case uses the
 production/extraction host contract and the inspected form profile (when mounted).
-Historical, marker-guard and owner-guard Persona revisions are explicitly named.
-Only explanatory controls use forced diagnostic policies or alternative form
-settings. All cases share the independently bundled participants, public controls
-and evidence pipeline.
+The shared LPC version control selects the pinned release's unguarded adoption
+or the main snapshot's marker guard for those same five cases. The default is
+LPC 1.20260927.13.2, not upstream main. Neither source state is silently
+substituted for the other. Controls comprise one unmerged owner proposal and seven diagnostic
+configurations. Forced diagnostic policies and alternative form settings are explicit.
+All cases share the independently bundled participants, public controls and
+evidence pipeline.
 
-The five formerly duplicated source examples use the existing scenario IDs:
+Both version selections retain the existing scenario IDs:
 `persona-alone`, `unmarked-d-first`, `raw-marked-first`, `persona-first-raw` and
-`master-rejects-marker`. `marker-guard` and `owner-guard` add the two distinct
-adoption revisions. `/source` and `/three-actors` redirect to `/`, preserving URL
-settings and mapping former `source-*` IDs rather than rendering another gallery.
+`master-rejects-marker`. The `personaVersion` query parameter selects
+`1.20260927.13.2` or `main-2026-10-16`; card titles, descriptions, iframe URLs,
+isolated links and evidence metadata follow that selection. The former
+`historical-unmarked-first` and `historical-feedback-first` IDs redirect to the
+canonical scenarios with the release selected.
+`owner-guard` is an explanatory proposal, not current main.
+The duplicate `marker-guard` example redirects to `raw-marked-first`.
+`/source` and `/three-actors` redirect to `/`, preserving URL settings and mapping
+former scenario IDs and fragments rather than rendering another gallery.
 
 | Participant | Named behavior | Contract under test |
 | --- | --- | --- |
 | Host | `production-extraction` | Production plus extraction selects a no-op renderer and installs the insertion patch in a host layout effect. Non-extracted mode has a DOM renderer and no patch. |
 | Host | `diagnostic` | Explicitly retains the old forced filtering controls; never described as the production gate. |
-| Persona | `historical` | Per-mount marked/scoped renderer, without an adopted-sheet guard. |
-| Persona | `marker-guard` | Per-mount marked/scoped renderer; drops adopted handles without the exact approval value before inserting. Marked foreign owners can still share sheets. |
-| Persona | `owner-guard` | Accepts adopted handles only for its owner; one renderer per owner/document, replaced when retained sheets become detached. |
+| Persona | LPC main snapshot (2026-10-16), `marker-guard` | Per-mount marked/scoped renderer; drops adopted handles without the exact approval value before inserting. Consumer adoption and a released version containing it are unverified. |
+| Persona | LPC 1.20260927.13.2, internal profile `historical` | Per-mount marked/scoped renderer without an adopted-sheet guard. Pinned by the inspected consumer bootstrapper; not proof of deployed assets. |
+| Persona | `owner-guard` (proposal control) | Accepts adopted handles only for its owner; one renderer per owner/document, replaced when retained sheets become detached. Not merged into the inspected main snapshot. |
 | Form | `inspected` | A raw-style bundle, module-level salted renderer and prefixed atomic/reset rules; no requested approval attributes. A precompiled bundle refuses this profile. |
 | Form | `control` | Existing raw/precompiled, salt and prefix alternatives remain diagnostic controls. |
 
@@ -187,8 +198,10 @@ the host rejected its harmless seed rule. The event is recorded as unrelated;
 it is not misattributed to Persona. Unlike the old diagnostic seed setup, this
 seed runs under the already-active source-aligned gate.
 
-[Source browser tests](../tests/source/run.mjs) cover 7 cases x 2 host modes x
-2 coverage profiles = 28 primary combinations. They assert native rule/cache
+[Source browser tests](../tests/source/run.mjs) cover 5 primary cases x 2 versions
+x 2 host modes x 2 coverage profiles, plus the fixed owner proposal x 2 host modes
+x 2 coverage profiles = 44 combinations: 20 pinned-release, 20 upstream-main and
+4 owner-proposal cases. They assert native rule/cache
 state rather than visual appearance. The [lifecycle probes](../tests/source/lifecycle.mjs)
 also verify:
 
@@ -203,10 +216,10 @@ also verify:
 [Gate tests](../tests/policy/host-contract.mjs) cover production, development
 and test environments with extraction both enabled and disabled, plus patch
 idempotence and explicit diagnostic overrides. Browser source cases run the
-actual production build. The complete suite has 80 matrix cases:
-28 source-aligned primary combinations, 28 diagnostic control combinations and
-24 archived cases. Removing duplicate presentations does not remove the control
-mechanisms or the source-aligned lifecycle assertions.
+actual production build. The complete suite has 96 matrix cases:
+44 source-contract combinations, 28 diagnostic combinations and 24 archived
+cases. Each renderer revision is tested with all five setups; the duplicate
+standalone marker-guard card is not needed.
 
 This establishes the inspected styling mechanisms under pinned public
 dependencies, not a complete product implementation. The captured form bundle's
@@ -216,11 +229,81 @@ customization and portals are not represented by these controls. Private source,
 bundle captures and authenticated inspection artifacts are never dependencies of
 the public tests or copied into this repository.
 
-## Mechanisms established by the diagnostic baseline
+### Current-source recheck (2026-10-16)
+
+An authorized source recheck confirmed that the inspected main branch uses the
+`marker-guard` behavior. The source fix has merged; the stronger `owner-guard`
+implementation remains an unmerged proposal. A completed source merge does not
+establish a published artifact, consumer upgrade or deployed revision.
+
+A subsequent consumer trace found LPC 1.20260927.13.2 pinned by the published
+bootstrapper, with version locking enabled in checked-in consumer defaults.
+The package integrity was verified. The corresponding successful worldwide
+release build uses an unguarded renderer: its renderer blob is identical to the
+previously executed unguarded source. The scoping helper differs only in an
+explicit return-type annotation, not its algorithm. Thus the failing profile is
+not safely described as obsolete simply because upstream main is fixed.
+Runtime version overrides, the effective settings and assets of any deployed
+client, and incident-time attribution remain unverified.
+
+The inspected host main still has the sheet-only filter. Its prefix exception
+is an active, unmerged proposal. The gallery labels that independent host axis
+instead of presenting all source-aligned cases as shipped consumer behavior.
+
+The recheck separately executed immutable renderer source and the original host
+filter revisions in isolated native-insertion probes. The downloaded renderer
+algorithms were not rewritten. Public renderer re-exports and separately bundled
+Griffel stand-ins were used, not the full product provider or SDK. Private source,
+lockfiles and provenance remain outside this repository.
+
+Under those fixtures:
+
+- Main's marker guard prevents the historical rejection of Persona rules in
+  unmarked adopted sheets, in both arrival orders and both coverage profiles.
+- The guard still accepts another owner's correctly approved sheet. It does not
+  stop a later foreign renderer from adopting Persona's marked sheets.
+  A deliberately unprefixed foreign control remains blocked alone but is
+  admitted after main's Persona creates marked sheets, under both coverage
+  profiles. That demonstrates residual borrowed permission, not a claim that
+  the inspected prefixed SDK needs to borrow it.
+- Main uses a new renderer for each provider mount. Repeated mounts can share
+  the same sheet and insert a generated rule again; the owner proposal's shared
+  renderer/cache avoids that duplicate attempt in the probe.
+- Protecting Persona does not admit Feedback rules rejected by the sheet-only
+  host filter. Sharing remains distinct from borrowed permission when Feedback
+  already has an independently accepted prefix.
+
+At the recheck, all five baseline setups were also executed with the public
+marker-guard profile across both host modes and coverage profiles. Their 20
+native rule, cache, creator and sharing outcomes matched the corresponding
+actual-source probes. Those configurations are now available through the shared
+LPC version control, not test-only overrides or a consumer-upgrade claim.
+
+[Current-main comparisons](../tests/source/current-main.mjs) compare all five
+release/main pairs across both host modes and coverage profiles:
+20 comparisons using the existing
+matrix records. The generated scoped rule, host contract, Feedback profile and
+arrival order are the same; the Persona adoption profile changes. Both profiles
+cache the rule. The release loses native insertion under the extracted host
+filter after unmarked or Feedback-first arrival; both versions insert when
+Persona creates approved sheets first. Runtime mode confirms that adoption
+alone does not reject the unguarded rule.
+
+The separate source probes used public Griffel React 1.7.5/Core 1.21.3,
+React/React DOM 19.2.8 and Stylis 4.3.6, matching selected entries in the
+inspected lockfile. The demo retains its pinned dependency set, including
+Griffel React 1.7.4, React 18.3.1 and Stylis 4.4.0. Agreement under those two
+controlled runtimes is not equivalence of complete dependency graphs or product
+bundles. Provider portals, theme/font settings, document-prop transitions and
+the actual deployed version remain outside the executed proof.
+
+## Current findings and underlying mechanisms
 
 1. **Adoption:** RendererProvider hydration can select existing Griffel sheets
-   by bucket and priority without enforcing this demo's owner, salt, or marker.
-   Adopting an unmarked sheet does not apply the adopter's requested marker.
+   by bucket and priority. The main-snapshot Persona discards unapproved handles before
+   insertion and inserts its scoped rules into approved destinations. It does
+   not relabel the rejected sheet or prevent a later renderer from adopting its
+   approved sheets. The pinned-release scenarios demonstrate the unguarded failure.
 2. **Insertion permission:** the synthetic host checks destination metadata.
    A truthy `data-demo-allow-rules` permits insertion. Otherwise a Griffel bucket
    is blocked, except for the exact leading `/* demo-feedback */` prefix in
@@ -250,12 +333,11 @@ with a scenario below. Gallery links also preserve host and coverage settings.
 | Scenario ID | Question / expected signal |
 | --- | --- |
 | `persona-alone` | Persona creates marked sheets; all recorded scoped rules reach native CSSOM. No foreign selectors match the host. |
-| `unmarked-d-first` | Persona adopts the unmarked default sheet; its atomic rules are blocked and cached, while its reset rules insert into marked sheets. |
-| `raw-marked-first` | Prefixed, salted Feedback first: its rules are permitted; Persona adopts unmarked sheets and its unprefixed rules are blocked. Native parser rejection is recorded separately. |
+| `unmarked-d-first` | The release retains the unapproved handle and loses its atomic rules; the main snapshot inserts into approved destinations. The unrelated seed can still be blocked in either version. |
+| `raw-marked-first` | With the proposed prefix exception, Feedback's rules pass; release Persona is rejected, while the main snapshot inserts into approved destinations. Native parser rejections remain separate. |
 | `persona-first-raw` | Reverse order: both get insertion permission and retain shared handles. Persona's sheets are not exclusive; Feedback's accepted prefix does not require borrowed permission. |
-| `master-rejects-marker` | Host lacks prefix exception: both integrations have rejected rules. |
-| `marker-guard` | Persona drops unapproved adopted handles before inserting; it can still adopt another owner's approved sheet. |
-| `owner-guard` | Persona restricts adoption by owner and caches its renderer per owner/document; lifecycle probes verify recreation after sheet detachment. |
+| `master-rejects-marker` | Host main lacks prefix exception: Feedback has rejected rules in either version. Release Persona is also rejected; the main snapshot inserts successfully. |
+| `owner-guard` | Unmerged proposal control: restricts adoption by owner and caches per owner/document; lifecycle probes verify recreation after sheet detachment. |
 | `persona-first` | Unprefixed Feedback borrows permission in existing marked buckets but has 17 textarea rules blocked in its new unmarked buckets under extracted/minimal coverage. A shared runtime host can pre-create all destinations, eliminating that borrowed allowance. |
 | `precompiled-salted` | Salt changes custom runtime classes but cannot rename precompiled Fluent classes. |
 | `raw-unsalted` | Shared classes mask rejected rules; the winning host-avatar background declaration also changes in the extracted host. |
@@ -268,8 +350,9 @@ viewport and scaling; the causal assertions follow generated declarations,
 native insertion, CSSOM presence and cache state instead. Legacy avatar color
 snapshots use the initials slot, not the potentially transparent Avatar root.
 
-The gallery matrix is 14 scenarios x 2 host builds x 2 coverage profiles = 56:
-seven source-aligned primary scenarios and seven explanatory controls.
+The gallery has 13 cards, not a card per version. Its matrix is 5 primary
+scenarios x 2 LPC versions x 2 host builds x 2 coverage profiles, plus 8
+fixed-profile controls x 2 host builds x 2 coverage profiles = 72 combinations.
 The archived matrix adds 24.
 Tests also cover local interactions and presented
 evidence. This is not a full visual or accessibility audit.
@@ -322,20 +405,21 @@ host-policy blocks; they do not by themselves establish a visible mismatch.
 
 ### Reproduction contract and paired controls
 
-The historical Persona cases deliberately use unguarded adopted-sheet selection.
-The marker-guard and owner-guard cases explicitly model separate inspected
-revisions, not an assertion that either was deployed during the incident. No
-mitigation is silently applied to historical cases. The independently bundled renderers, actual
+Primary cases explicitly pair the pinned release with the guarded main snapshot.
+The release uses unguarded adopted-sheet selection; the owner guard remains an
+unmerged proposal control. None establishes an incident-time deployment. The independently bundled renderers, actual
 public Fluent components, extraction and native insertion are experimental
 inputs, not approximated styles.
 
 | Pair (same selected host build and coverage) | Changed input | Assertion in [test-three-actors.mjs](../test-three-actors.mjs) |
 | --- | --- | --- |
-| `persona-alone` / `unmarked-d-first` | Existing unmarked default sheet | Creator/destination changes; atomic insertion is blocked despite cached scoped rules. |
+| `persona-alone` / `unmarked-d-first` | Existing unmarked default sheet | Current Persona's rules insert into approved destinations in both cases; the unrelated seed can still be rejected. |
+| `unmarked-d-first`, change LPC version | Persona revision/profile only | Same generated scoped rule and host gate; main inserts while the release rule is rejected but cached. |
 | `feedback-first` / `no-policy` | Filter enabled/disabled | Adoption persists; rejection disappears only when filtering is disabled. Collision evidence stays independent. |
-| `raw-marked-first` / `persona-first-raw` | Integration arrival order | Unmarked rejection versus shared marked sheets; both creators and adopters disclose sharing. |
-| `raw-marked-first` / `master-rejects-marker` | Host prefix compatibility | Exact predicate assertions and actual per-rule decisions distinguish allowed prefix from rejection. |
-| `raw-marked-first` / `marker-guard` / `owner-guard` | Persona revision only | Historical rejection versus marker/owner-filtered destinations; bounded lifecycle probes distinguish their guarantees. |
+| `raw-marked-first` / `persona-first-raw` | Integration arrival order | Separate destinations versus shared marked sheets; current Persona inserts in both orders. |
+| `raw-marked-first` / `master-rejects-marker` | Host prefix compatibility | Feedback's permission changes; current Persona still inserts in both cases. |
+| `raw-marked-first`, change LPC version | Persona revision/profile only | Under the proposed host exception, Feedback's accepted prefix is unchanged; only the release loses its scoped rules. |
+| `raw-marked-first` / `owner-guard` | Current versus proposed Persona | Marker/owner-filtered destinations both insert; bounded lifecycle probes distinguish approval, ownership and cache reuse. |
 | `host-collision` / `host-collision-salted` | Class salt | Unsalted foreign rule matches the host. Salt removes matching; runtime shared-sheet writes can remain. |
 
 The guide connects container scoping, sheet markers, class salt and per-rule
@@ -353,7 +437,7 @@ is not needed for the missing scoped-rule reproduction.
 Recorded insertion attempts are not an exhaustive inventory of required
 component styles. Native parser rejections remain visible, and successful
 insertion does not prove all components, states or lifecycle paths correct.
-Regression tests cover all 56 gallery combinations, the two host declaration outcomes,
+Regression tests cover all 72 gallery combinations, the two host declaration outcomes,
 foreign matching versus storage, inbound sharing, borrowed permission,
 equivalent-rule replacement/removal, late attribution/cache refresh, unsupported
 probe conditions, and desktop/mobile/scaling disclosure behavior.

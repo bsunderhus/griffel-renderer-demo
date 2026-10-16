@@ -2,11 +2,13 @@ import React from "react";
 
 export function Introduction({ hostMode }) {
   return <>
-    <h1>How shared Griffel sheets break integrations</h1>
+    <h1>Versioned Griffel integrations: insertion and shared sheets</h1>
     <p>What happens when an application and two integrations add styles to the same page?
-      The main examples show how one integration can lose its styling. Additional explanatory
-      controls explore why this happens and how integration CSS can change the
-      application's appearance—even when each uses its own style renderer.</p>
+      The main examples compare <strong>LPC 1.20260927.13.2</strong>, pinned by the inspected
+      consumer bootstrapper, with <strong>LPC main snapshot (2026-10-16)</strong>, which adds
+      the marker guard. A source merge is not a consumer upgrade or proof of deployment.
+      Both versions show sheet sharing and host/Feedback filter compatibility; the owner
+      proposal and collision experiments remain collapsed controls.</p>
     <details className="intro-help">
     <summary>Who is on the page?</summary>
     <ul>
@@ -15,7 +17,9 @@ export function Introduction({ hostMode }) {
       <li><strong>Persona:</strong> a synthetic contact-card integration.
         Its style selectors include a parent class, so they only match elements inside the
         Persona container. This is what <strong>scoped</strong> means here—not a separate
-        document or a private stylesheet.</li>
+        document or a private stylesheet. The pinned release has no adopted-handle guard.
+        The upstream snapshot discards unapproved adopted handles before insertion;
+        it does not enforce exclusive ownership.</li>
       <li><strong>Feedback:</strong> a form loaded as a separate JavaScript bundle, with its own
         style renderer. This is what <strong>independently loaded</strong> means here.
         It still shares the page and can reuse the same style sheets as the other participants.</li>

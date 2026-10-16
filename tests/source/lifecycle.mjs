@@ -7,6 +7,7 @@ export async function assertSourceLifecycles(page, url) {
     define: { "process.env.NODE_ENV": '"production"' }, sourcemap: false,
   });
   for (const [profile, attributes, adopted, blocked] of [
+    ["default", {}, false, false],
     ["historical", {}, true, true],
     ["marker-guard", {}, false, false],
     ["marker-guard", { "data-demo-allow-rules": "true" }, true, false],
@@ -22,7 +23,7 @@ export async function assertSourceLifecycles(page, url) {
       const start = window.threeActorResult.events.length;
       const container = document.createElement("div");
       document.body.appendChild(container);
-      const mounted = window.personaActor.mount(container, { profile, owner: "test-owner" });
+      const mounted = window.personaActor.mount(container, profile === "default" ? undefined : { profile, owner: "test-owner" });
       const width = window.threeActorResult.events.slice(start).find(event => event.rule.includes("width:137px"));
       const result = {
         adopted: mounted.renderer.stylesheets.d0.element === seed,

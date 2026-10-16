@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { targets } from "../build/targets.mjs";
-import { experiments, sourceExperiments, sourceScenarioAliases } from "../src/experiments/scenarios.js";
-import { threeActorCases } from "../src/playground/scenarios.js";
+import { experiments, sourceExperiments, scenarioAliases, personaRevisions } from "../src/experiments/scenarios.js";
+import { threeActorCases, getThreeActorCases } from "../src/playground/scenarios.js";
 import { resolveExperiment, resolveHostSettings } from "../src/experiments/configuration.js";
 
 const allowedImports = {
@@ -34,32 +34,55 @@ await checkImports("src");
 assert.equal(targets.length, 8);
 assert.equal(new Set(targets.map(target => target.name)).size, 8);
 assert.deepEqual(experiments.map(({ id }) => id), threeActorCases.map(({ id }) => id));
-assert.equal(experiments.length, 14);
+assert.equal(experiments.length, 13);
 assert.equal(new Set(experiments.map(config => config.id)).size, experiments.length);
-assert.equal(sourceExperiments.length, 7);
+assert.equal(sourceExperiments.length, 6);
+assert.equal(threeActorCases.filter(config => config.primaryExample).length, 5);
+assert.equal(resolveHostSettings("").personaVersion, "1.20260927.13.2");
+for (const version of Object.keys(personaRevisions)) {
+  const cases = getThreeActorCases(version);
+  assert.deepEqual(cases.map(config => config.id), threeActorCases.map(config => config.id),
+    "Version selection must not add scenario cards");
+  for (const config of sourceExperiments.filter(config => config.personaRevision === "selected")) {
+    const resolved = resolveExperiment(config, `personaVersion=${version}`);
+    assert.equal(resolved.personaRevision, version);
+    assert.equal(resolved.personaProfile, personaRevisions[version].profile);
+    assert.ok(cases.find(item => item.id === config.id).title.startsWith(`${personaRevisions[version].label}:`));
+  }
+}
 for (const config of experiments) {
   assert.equal(config.title, undefined, "Runtime definitions do not contain presentation content");
   assert.equal(config.description, undefined);
   resolveExperiment(config, "");
   const content = threeActorCases.find(item => item.id === config.id);
   assert.ok(content.title && content.takeaway && content.description);
-  assert.equal(Boolean(content.primaryExample), config.hostContract === "production-extraction",
-    "Every primary scenario is source-aligned; only explanatory controls use diagnostic contracts");
+  assert.equal(Boolean(content.primaryExample),
+    config.hostContract === "production-extraction" && config.personaRevision === "selected",
+    "Both named revisions are primary; the unmerged owner proposal is a control");
   if (content.primaryExample) {
     assert.equal(config.feedbackProfile, "inspected");
-    assert.ok(config.personaProfile);
+    assert.equal(config.personaProfile, undefined, "Primary profiles come from the shared version selection");
+  } else if (config.hostContract === "production-extraction") {
+    assert.equal(content.controlKind, "proposal");
+  } else {
+    assert.equal(config.personaProfile, "historical", "Diagnostic baseline profiles must remain explicit");
   }
 }
-for (const id of Object.values(sourceScenarioAliases)) assert.ok(sourceExperiments.some(config => config.id === id));
+for (const id of Object.values(scenarioAliases)) assert.ok(sourceExperiments.some(config => config.id === id));
+assert.equal(resolveExperiment({ id: "default", policy: "off", order: ["persona"] }, "").personaProfile, "marker-guard");
 assert.throws(() => resolveHostSettings("?host=unknown"), /Unknown host mode/);
 assert.throws(() => resolveHostSettings("?coverage=unknown"), /Unknown host coverage/);
 assert.throws(() => resolveExperiment({ id: "bad", policy: "unknown", order: ["persona"] }, ""), /Unknown host policy/);
 assert.throws(() => resolveExperiment({ id: "bad", policy: "off", order: ["persona", "persona"] }, ""), /Invalid integration order/);
 assert.throws(() => resolveExperiment({ id: "bad", policy: "off", order: ["other"] }, ""), /Invalid integration order/);
 for (const [option, message] of [["hostContract", /Unknown host contract/],
-  ["personaProfile", /Unknown Persona renderer profile/], ["feedbackProfile", /Unknown Feedback renderer profile/]]) {
+  ["personaProfile", /Unknown Persona renderer profile/], ["feedbackProfile", /Unknown Feedback renderer profile/],
+  ["personaRevision", /Unknown or incompatible Persona revision/]]) {
   assert.throws(() => resolveExperiment({ ...sourceExperiments[0], [option]: "unknown" }, ""), message);
 }
+assert.throws(() => resolveExperiment({ ...sourceExperiments[0], personaProfile: "marker-guard" }, ""),
+  /Unknown or incompatible Persona revision/);
+assert.throws(() => resolveHostSettings("?personaVersion=unknown"), /Unknown LPC version/);
 assert.doesNotMatch(await readFile("src/experiments/run.js", "utf8"), /installHostPolicy|CSSStyleSheet/,
   "The harness must not install or implement the participant-owned insertion policy");
 

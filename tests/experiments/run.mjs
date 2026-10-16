@@ -8,7 +8,7 @@ import { createReproServer } from "../../server.mjs";
 import { threeActorCases } from "../../src/playground/scenarios.js";
 import { feedbackProfile } from "../../src/feedback/profile.js";
 
-const controlCases = threeActorCases.filter(config => !config.primaryExample);
+const controlCases = threeActorCases.filter(config => config.hostContract !== "production-extraction");
 const rawModules = JSON.parse(await readFile("dist/feedback-raw-modules.json", "utf8"));
 for (const module of ["useButtonStyles.styles.raw.js", "useAvatarStyles.styles.raw.js",
   "useTextareaStyles.styles.raw.js", "useFluentProviderStyles.styles.raw.js"]) {

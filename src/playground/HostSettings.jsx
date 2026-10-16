@@ -1,9 +1,23 @@
 import React from "react";
+import { personaRevisions } from "../experiments/scenarios.js";
 
-export function HostSettings({ hostMode, coverage, navigate, contract = "diagnostic" }) {
+export function HostSettings({ hostMode, coverage, personaVersion, navigate, contract = "diagnostic" }) {
   return (
-    <details className="host-settings" open={hostMode === "runtime" || coverage === "minimal"}>
+    <details className="host-settings" open={hostMode === "runtime" || coverage === "minimal" ||
+      (personaVersion && personaVersion !== "1.20260927.13.2")}>
       <summary>Advanced host control</summary>
+      {personaVersion && <>
+        <label htmlFor="persona-version">LPC version </label>
+        <select id="persona-version" value={personaVersion}
+          onChange={event => navigate({ personaVersion: event.target.value })}>
+          {Object.entries(personaRevisions).map(([value, revision]) =>
+            <option key={value} value={value}>{revision.label}</option>)}
+        </select>
+        <p>Rerun the same five primary scenarios with the consumer-pinned release or guarded
+          upstream snapshot. The selection is preserved in the URL and isolated examples.
+          Explicit explanatory controls keep their own renderer profiles.
+          A main-branch fix does not establish consumer adoption or deployment.</p>
+      </>}
       <label htmlFor="host-coverage">Host component coverage </label>
       <select id="host-coverage" value={coverage} onChange={event => navigate({ coverage: event.target.value })}>
         <option value="shared">Shared components (Avatar, Button, Label, Textarea)</option>

@@ -7,9 +7,10 @@ import { cases } from "./archived/mechanism-cases.js";
 import { extractionCases } from "./archived/extraction-cases.js";
 import { runCase } from "./archived/mechanisms.jsx";
 import { runExtractionCase } from "./archived/extraction.js";
-import { threeActorCases } from "./playground/scenarios.js";
+import { getThreeActorCases } from "./playground/scenarios.js";
 import { runThreeActorCase } from "./experiments/run.js";
-import { sourceScenarioAliases } from "./experiments/scenarios.js";
+import { scenarioAliases, scenarioAliasVersions } from "./experiments/scenarios.js";
+import { resolveHostSettings } from "./experiments/configuration.js";
 
 const { createRoot } = ReactDOMClient;
 window.React = React;
@@ -17,8 +18,10 @@ window.ReactDOM = ReactDOM;
 window.ReactDOMClient = ReactDOMClient;
 
 const fragment = location.hash.slice(1);
-if (Object.hasOwn(sourceScenarioAliases, fragment)) {
-  history.replaceState(null, "", `${location.pathname}${location.search}#${sourceScenarioAliases[fragment]}`);
+if (Object.hasOwn(scenarioAliases, fragment)) {
+  const params = new URLSearchParams(location.search);
+  if (Object.hasOwn(scenarioAliasVersions, fragment)) params.set("personaVersion", scenarioAliasVersions[fragment]);
+  history.replaceState(null, "", `${location.pathname}${params.size ? `?${params}` : ""}#${scenarioAliases[fragment]}`);
 }
 
 const caseId = new URLSearchParams(location.search).get("case");
@@ -26,7 +29,7 @@ const scenarioId = new URLSearchParams(location.search).get("scenario");
 const mode = location.pathname.slice(1) || "three-actors";
 if (!["three-actors", "extracted", "runtime", "mechanisms"].includes(mode)) throw new Error(`Unknown route: ${mode}`);
 if (scenarioId && mode === "three-actors") {
-  const config = threeActorCases.find(item => item.id === scenarioId);
+  const config = getThreeActorCases(resolveHostSettings(location.search).personaVersion).find(item => item.id === scenarioId);
   if (!config) throw new Error(`Unknown three-actor case: ${scenarioId}`);
   runThreeActorCase(config).catch(error => {
     console.error(error);
