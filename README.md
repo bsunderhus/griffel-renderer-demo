@@ -11,6 +11,11 @@ See [ROADMAP.md](ROADMAP.md) for publication gates, technique evaluation,
 solution experiments, and the planned multi-integration coexistence lab.
 This sanitized project is the only active implementation.
 
+Continuing in a new environment or with an AI assistant? Start with
+[AGENTS.md](AGENTS.md) and the self-contained
+[research handoff](docs/RESEARCH.md). They describe the architecture, measured
+behavior, design decisions, and next bounded task without requiring chat history.
+
 ## Setup
 
 Requires Node.js 20 or newer and npm. The demonstration was tested with
