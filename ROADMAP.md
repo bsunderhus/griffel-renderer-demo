@@ -14,7 +14,7 @@ provenance. The examples are synthetic experiments built with public libraries.
 4. Provide actionable options for library, host, and integration maintainers.
 5. Demonstrate a future where multiple independent integrations can coexist.
 
-## 1. Publication readiness - in progress
+## 1. Publication readiness - baseline published
 
 Keep the current failure examples as the baseline; publication does not depend
 on finding a complete solution.
@@ -33,10 +33,10 @@ on finding a complete solution.
 - [x] Obtain the user's explicit authorization to publish this sanitized source
   to their personal GitHub account. This is not an independent legal review.
 - [ ] Choose and add a license after ownership and authorization are confirmed.
-- [ ] Review the exact first-commit file list and repeat the disclosure scan.
-- [ ] Create a new Git history, review author metadata, and publish to an
+- [x] Review the exact first-commit file list and repeat the disclosure scan.
+- [x] Create a new Git history, review author metadata, and publish to an
   explicitly approved GitHub destination.
-- [ ] Observe the first hosted CI run passing.
+- [x] Observe the first hosted CI run passing.
 
 **Exit gate:** authorized destination and an explicit licensing status, reviewed source-only first
 commit, dependency advisories assessed, clean-install tests passing, and a
@@ -54,11 +54,17 @@ system libraries; CI explicitly installs them with `--with-deps`.
 
 The install reported eight moderate dependency advisories and a transitive
 Babel plugin deprecation warning. These were not silently fixed or treated as
-an external-release sign-off. The workflow has not yet run on GitHub.
+an external-release sign-off. The first hosted validation passed on 2026-10-16:
+[validation run](https://github.com/bsunderhus/griffel-renderer-demo/actions/runs/38928691644).
+It installed dependencies and Chromium system libraries, built the bundles,
+and passed all 72 cases.
 
 ### Initial publication decision
 
 The user requested public publication to their personal GitHub account.
+The baseline is published at
+[bsunderhus/griffel-renderer-demo](https://github.com/bsunderhus/griffel-renderer-demo),
+with fresh history and a GitHub noreply author email.
 The initial source release has no project license: source visibility alone
 does not grant reuse or redistribution rights. Selecting an authorized license
 remains open; do not imply Griffel's license automatically covers this project.

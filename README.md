@@ -130,8 +130,9 @@ and local-path disclosure when sharing a running preview.
 The [validation workflow](.github/workflows/validate.yml) runs a clean
 `npm ci`, installs Chromium with system dependencies, and runs `npm test` on
 Node.js 24 for pushes and pull requests. It does not publish the playground or
-upload generated evidence. Its first hosted run remains pending until an
-authorized repository is created.
+upload generated evidence. The
+[first hosted validation](https://github.com/bsunderhus/griffel-renderer-demo/actions/runs/38928691644)
+passed all 72 cases on 2026-10-16.
 
 A fresh source-only install and all 72 tests passed on Node.js 24.15.0.
 That install reported eight moderate dependency advisory entries, traced to
