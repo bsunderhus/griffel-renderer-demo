@@ -257,27 +257,90 @@ The five release/main pairs yield 20 direct comparisons from those
 same records; no test-only scenario override or duplicate primary gallery is needed.
 It also checks gate truth tables, filter
 idempotence, renderer/cache lifecycle and build boundaries.
+Vitest is the single runner for both unit and integration tests, configured in
+[vitest.config.js](vitest.config.js). The `unit` project runs pure logic and
+source-contract and HTTP redirect checks in Node without a build or browser.
+The `integration` project checks build artifacts.
+The `browser` project runs all browser integration, gallery, lifecycle and
+adoption tests in Vitest Browser Mode. Vitest owns Chromium, its Playwright
+provider, interactions and failure screenshots; tests do not launch browsers,
+create contexts or manage pages themselves.
+The [application helpers](tests/browser/application.mjs) create fresh same-origin
+application iframes and remove them after each test, including on failure.
+Application errors are recorded as Vitest soft assertions while the test runs,
+so native failure screenshots are captured before DOM cleanup.
+A [test-only Vite plugin](tests/browser/application-plugin.mjs) serves the actual
+independently compiled bundles through the standalone server's allowlisted
+request handler, not a Vitest-transformed replacement application.
+Only the adoption probes import a seed Griffel renderer through Vitest; that
+renderer stays separate from the compiled Persona renderer. No test invokes
+esbuild or injects a manually compiled seed script.
+Paired revisions and host/coverage comparisons remain
+in the same parameterized test so filtered runs do not depend on another test.
+The 96 matrix cases are grouped into named tests alongside UI and lifecycle
+checks; the Vitest test count is not the matrix-case count.
+Assertions use Vitest's `expect` matchers, with domain-specific checks in
+reusable helpers. Each browser test keeps its evidence local; there are no
+suite-wide result arrays or file-writing teardown hooks.
+UI checks use retryable `expect.element` assertions or fresh DOM queries inside
+`expect.poll` for nested frames. CSSOM and renderer snapshots retain strict
+comparisons. Gallery guide, actions, settings, live evidence, mobile resize,
+pointer/keyboard states and scaling have independently named tests.
+Browser setup resets the viewport and pointer between tests. Navigation targets
+the requested application iframe and listens to Vitest's test-abort signal.
+Most browser tests have a 15-second timeout; multi-navigation settings,
+multi-scale and optional full-baseline checks explicitly allow 30 seconds.
 Tests start ephemeral loopback servers and do not require a preview
 server. Expected blocked-insertion errors and red/amber cards are test evidence,
 not necessarily test failures. A failed assertion or build exits nonzero.
 
-After a build, rerun focused checks with:
+Run fast checks or watch them without rebuilding:
 
 ```sh
-node test-three-actors.mjs
-node test.mjs
+npm run test:unit
+npm run test:watch
 ```
 
-After a build, run only the source-aligned matrix and lifecycle checks with:
+Build and run integration checks, including the Browser Mode project:
 
 ```sh
-node tests/policy/host-contract.mjs
-node tests/source/run.mjs
+npm run test:integration
 ```
 
-Generated evidence is written to ignored `test-results/`. Builds and a
-module-name inventory used by the architecture checks are written to ignored
-`dist/`. Neither is needed in a source export; the inventory is not served.
+Generate standard Vitest JSON and replayable blob reports, including per-test
+research evidence and any failure artifacts:
+
+```sh
+npm run test:report
+```
+
+After a build, filter by file or test name without rebuilding:
+
+```sh
+npx vitest run tests/policy/host-contract.test.mjs
+npx vitest run tests/source/run.test.mjs
+npx vitest run tests/archived
+npx vitest run --project browser
+npx vitest run --project browser -t feedback-first
+```
+
+All test selection uses Vitest projects, file filters, or test names directly;
+there are no custom test launchers.
+
+Ordinary test runs do not export JSON or capture screenshots on success.
+On browser-test failure, Browser Mode writes a screenshot under
+`test-results/screenshots/`. `npm run test:report` also writes the replayable
+`test-results/blob/report.json` and `test-results/report.json` through
+Vitest's built-in reporters.
+Experiment results are in each JSON test's `meta.evidence` field;
+filtered reports include only the tests selected, not a complete matrix.
+The optional saved-baseline comparison is skipped unless `BASELINE_RESULTS` is
+set. It executes all 28 diagnostic combinations afresh against the current build,
+not a previously generated report; see the
+[research notes](docs/RESEARCH.md#build-boundaries-matter).
+Tests still read built files to verify extraction, dependency boundaries and raw
+Fluent modules. Builds and their unserved module-name inventory live in ignored
+`dist/`. Neither reports nor build output are needed in a source export.
 Source-map generation and serving are disabled to reduce accidental source
 and local-path disclosure when sharing a running preview.
 
@@ -293,6 +356,10 @@ That install reported eight moderate dependency advisory entries, traced to
 one development-only extraction-tool dependency advisory. See the
 [roadmap](ROADMAP.md#initial-publication-decision) for the chain, known risk,
 and decision to preserve the pinned baseline. This is not a clean security audit.
+The test-runner migration pins Vitest 4.1.12 and its Vite 6.4.4 peer to retain
+Node.js 20 compatibility without upgrading the experimental build dependencies.
+The Browser Mode Playwright provider is pinned to the same Vitest version.
+Vite is used by the test runner; webpack and esbuild still build the application.
 
 ## Troubleshooting
 
@@ -327,8 +394,8 @@ and decision to preserve the pinned baseline. This is not a clean security audit
   transforms; each target is compiled separately.
 - [build.mjs](build.mjs) / [server.mjs](server.mjs): build execution and loopback serving.
 - [tests/](tests/): policy, architecture, evidence, experiment, gallery and archived checks.
-- [test-three-actors.mjs](test-three-actors.mjs) / [test.mjs](test.mjs): stable focused test entry points.
-- [test.mjs](test.mjs): archived diagnostic coverage.
+- [vitest.config.js](vitest.config.js): unit/integration projects and browser-test timeouts.
+- [tests/archived/](tests/archived/): archived diagnostic coverage.
 
 ## Export boundary
 

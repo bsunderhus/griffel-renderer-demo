@@ -6,7 +6,11 @@
   "scripts": {
     "build": "node build.mjs",
     "start": "node server.mjs",
-    "test": "npm run build && node test.mjs && node test-three-actors.mjs"
+    "test": "npm run build && vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:integration": "npm run build && vitest run --project integration --project browser",
+    "test:report": "npm run build && vitest run --reporter=default --reporter=json --reporter=blob",
+    "test:watch": "vitest --project unit"
   },
   "dependencies": {
     "@fluentui/react-components": "9.74.9",
@@ -21,11 +25,14 @@
     "@babel/preset-react": "7.28.5",
     "@griffel/babel-preset": "1.9.1",
     "@griffel/webpack-extraction-plugin": "0.5.21",
+    "@vitest/browser-playwright": "4.1.12",
     "babel-loader": "9.2.1",
     "css-loader": "7.1.4",
     "esbuild": "0.25.12",
     "mini-css-extract-plugin": "2.9.4",
     "playwright": "1.58.2",
+    "vite": "6.4.4",
+    "vitest": "4.1.12",
     "webpack": "5.105.4"
   },
   "overrides": {

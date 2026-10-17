@@ -154,6 +154,20 @@ Validation covers 72 distinct gallery/renderer combinations and 24 archived case
 bounded lifecycle probes. The original source/diagnostic overlap is no longer
 counted twice. The 28 diagnostic-control records remain comparable to the
 historical diagnostic baseline; primary host contracts intentionally changed.
+Tests now use one [Vitest runner](vitest.config.js) with separate Node unit,
+Node artifact and real-Chromium Browser Mode projects. Parameterized checks preserve paired
+comparisons, independent compiled renderers and the expected baseline failures;
+this runner migration does not introduce a solution configuration.
+Assertions and spies use native Vitest APIs. Research evidence stays local to
+each test and can be exported through the built-in JSON reporter with
+`npm run test:report`; browser failures attach screenshots through Vitest.
+All browser suites use Vitest Browser Mode and its matching Playwright provider;
+there is no manually managed browser fixture or bundler invocation in test code.
+UI assertions retry against live elements, with regression checks for replaced
+evidence DOM. Gallery behaviors are independently named tests; browser setup
+resets pointer/viewport state and navigation supports test cancellation.
+The optional historical comparison executes fresh diagnostic combinations
+instead of trusting a previously generated report.
 See the
 [contract matrix](docs/RESEARCH.md#source-aligned-contract-matrix) for verified
 behavior and explicit limits; this is not incident-time deployment attribution

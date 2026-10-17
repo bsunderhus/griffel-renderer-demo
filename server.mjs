@@ -3,54 +3,56 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { scenarioAliases, scenarioAliasVersions } from "./src/experiments/scenarios.js";
 
-export function createReproServer() {
-  return createServer(async (request, response) => {
-    const requested = new URL(request.url, "http://localhost");
-    const pathname = requested.pathname;
-    const scenario = requested.searchParams.get("scenario");
-    const alias = Object.hasOwn(scenarioAliases, scenario);
-    if (pathname === "/source" || pathname === "/three-actors" || (pathname === "/" && alias)) {
-      if (alias) {
-        requested.searchParams.set("scenario", scenarioAliases[scenario]);
-        if (Object.hasOwn(scenarioAliasVersions, scenario)) {
-          requested.searchParams.set("personaVersion", scenarioAliasVersions[scenario]);
-        }
+export async function serveReproRequest(request, response) {
+  const requested = new URL(request.url, "http://localhost");
+  const pathname = requested.pathname;
+  const scenario = requested.searchParams.get("scenario");
+  const alias = Object.hasOwn(scenarioAliases, scenario);
+  if (pathname === "/source" || pathname === "/three-actors" || (pathname === "/" && alias)) {
+    if (alias) {
+      requested.searchParams.set("scenario", scenarioAliases[scenario]);
+      if (Object.hasOwn(scenarioAliasVersions, scenario)) {
+        requested.searchParams.set("personaVersion", scenarioAliasVersions[scenario]);
       }
-      response.writeHead(302, { Location: `/${requested.search}` }).end();
-      return;
     }
-    const files = {
-      "/": ["index.html", "text/html"],
-      "/extracted": ["index.html", "text/html"],
-      "/runtime": ["index.html", "text/html"],
-      "/mechanisms": ["index.html", "text/html"],
-      "/app.js": ["app.js", "text/javascript"],
-      "/host-extracted.js": ["host-extracted.js", "text/javascript"],
-      "/host-runtime.js": ["host-runtime.js", "text/javascript"],
-      "/integration.js": ["integration.js", "text/javascript"],
-      "/persona.js": ["persona.js", "text/javascript"],
-      "/feedback-standard.js": ["feedback-standard.js", "text/javascript"],
-      "/feedback-raw.js": ["feedback-raw.js", "text/javascript"],
-      "/feedback-raw-modules.json": ["feedback-raw-modules.json", "application/json"],
-      "/griffel.css": ["griffel.css", "text/css"],
-      "/shared/griffel.css": ["shared/griffel.css", "text/css"],
-      "/shared/host-extracted.js": ["shared/host-extracted.js", "text/javascript"],
-      "/shared/host-runtime.js": ["shared/host-runtime.js", "text/javascript"],
-    };
-    const file = files[pathname];
-    if (!file) {
-      response.writeHead(404).end("Not found");
-      return;
-    }
-    try {
-      const content = await readFile(new URL(`./dist/${file[0]}`, import.meta.url));
-      response.writeHead(200, { "Content-Type": file[1], "Cache-Control": "no-store" });
-      response.end(content);
-    } catch (error) {
-      console.error("Unable to serve reproduction:", error);
-      response.writeHead(500).end("Run npm run build before starting the server.");
-    }
-  });
+    response.writeHead(302, { Location: `/${requested.search}` }).end();
+    return;
+  }
+  const files = {
+    "/": ["index.html", "text/html"],
+    "/extracted": ["index.html", "text/html"],
+    "/runtime": ["index.html", "text/html"],
+    "/mechanisms": ["index.html", "text/html"],
+    "/app.js": ["app.js", "text/javascript"],
+    "/host-extracted.js": ["host-extracted.js", "text/javascript"],
+    "/host-runtime.js": ["host-runtime.js", "text/javascript"],
+    "/integration.js": ["integration.js", "text/javascript"],
+    "/persona.js": ["persona.js", "text/javascript"],
+    "/feedback-standard.js": ["feedback-standard.js", "text/javascript"],
+    "/feedback-raw.js": ["feedback-raw.js", "text/javascript"],
+    "/feedback-raw-modules.json": ["feedback-raw-modules.json", "application/json"],
+    "/griffel.css": ["griffel.css", "text/css"],
+    "/shared/griffel.css": ["shared/griffel.css", "text/css"],
+    "/shared/host-extracted.js": ["shared/host-extracted.js", "text/javascript"],
+    "/shared/host-runtime.js": ["shared/host-runtime.js", "text/javascript"],
+  };
+  const file = files[pathname];
+  if (!file) {
+    response.writeHead(404).end("Not found");
+    return;
+  }
+  try {
+    const content = await readFile(new URL(`./dist/${file[0]}`, import.meta.url));
+    response.writeHead(200, { "Content-Type": file[1], "Cache-Control": "no-store" });
+    response.end(content);
+  } catch (error) {
+    console.error("Unable to serve reproduction:", error);
+    response.writeHead(500).end("Run npm run build before starting the server.");
+  }
+}
+
+export function createReproServer() {
+  return createServer(serveReproRequest);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

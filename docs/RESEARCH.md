@@ -64,8 +64,59 @@ publication decisions are documented in the [roadmap](../ROADMAP.md).
 | Archived diagnostics | [archived/](../src/archived/) | Earlier mechanism and extraction routes, not dependencies of the main runner. |
 | Bundling | [targets.mjs](../build/targets.mjs), [webpack-config.mjs](../build/webpack-config.mjs) | Explicit independent targets and narrowly scoped extraction/raw-style transforms. |
 | Serving | [server.mjs](../server.mjs) | Allowlisted assets and routes, loopback only, no source maps. |
-| Primary tests | [test-three-actors.mjs](../test-three-actors.mjs), [tests/](../tests/) | Policy, architecture, pure analysis, 72 gallery combinations, evidence UI, interactions and navigation. |
-| Archived tests | [test.mjs](../test.mjs), [archived tests](../tests/archived/) | 24 extraction/runtime/adoption/cache diagnostics. |
+| Test configuration and primary tests | [vitest.config.js](../vitest.config.js), [tests/](../tests/) | Policy, architecture, pure analysis, 72 gallery combinations, evidence UI, interactions and navigation. |
+| Archived tests | [archived tests](../tests/archived/run.test.mjs) | 24 extraction/runtime/adoption/cache diagnostics. |
+
+### Test runner and browser boundary
+
+[Vitest](../vitest.config.js) runs Node unit/artifact checks and all browser
+integration suites. Vitest Browser Mode owns Chromium through its Playwright
+provider, including interactions, isolation and failure screenshots.
+There is no manually managed browser/context/page fixture. Each browser test
+uses a fresh application iframe with
+[application-specific helpers](../tests/browser/application.mjs); teardown removes
+it even on assertion failure, after Vitest's native screenshot capture.
+Application errors become soft assertions during the active test, not failures
+discovered after the screenshot hook. They do not use jsdom or let Vite combine the
+independently compiled participants. Servers bind ephemeral loopback ports.
+
+Revision pairs and diagnostic host/coverage comparisons are tested together,
+without depending on a previously executed test. Gallery evidence checks are
+parameterized by revision, host build and coverage. Live contracts, mobile resize,
+hover/pressed state and fractional scaling run in separate tests; guide,
+participant actions, scenario structure and settings also have separate tests.
+Each test starts from a fresh application rather than relying on earlier tests.
+Matrix-case totals describe experiment
+coverage, not the number of registered Vitest tests. See the
+[test commands](../README.md#tests) for build prerequisites and filtering.
+Assertions and spies use Vitest APIs. Test-local records are exposed through
+`task.meta.evidence`, not shared mutable suite state or custom JSON writers.
+`npm run test:report` uses the built-in JSON reporter to export those records.
+Passing tests do not write screenshots; Browser Mode captures failures.
+The [marker/owner adoption probes](../tests/browser/adoption.test.mjs) import the actual
+Griffel renderer through Vitest rather than compiling a seed driver with esbuild.
+A [test-only Vite plugin](../tests/browser/application-plugin.mjs) serves the
+existing application artifacts through the standalone server's allowlisted
+request handler. The application runs in a fresh same-origin iframe; its
+independently compiled renderers are not part of Vitest's module graph.
+Pre-bootstrap test instrumentation captures mount handles, native insertion
+identity, unexpected application errors, unhandled rejections and failed assets,
+including nested scenario frames and documents replaced during navigation.
+It does not change renderer policies or replace the built participant modules.
+Interactions use native Vitest locators. UI assertions use retryable
+`expect.element` matchers. Nested-frame UI assertions re-query the live DOM
+inside `expect.poll`: Vitest 4.1.12's local nested-frame queries use realm-specific iframe
+checks, although the Playwright provider supports nested-frame interactions.
+Evidence presentation replaces status/trace elements during refresh, so tests
+must not retain those DOM elements across awaited interactions. Regression tests
+verify that detached traces cannot hide incorrect live replacements.
+CSSOM and renderer snapshots still use strict comparisons, not appearance-based
+fallbacks. The viewport and pointer are reset before each browser test.
+Application navigation retains its own iframe and test-abort signal, cleans up
+load listeners on cancellation and waits for route-specific readiness.
+The browser default timeout is 15 seconds, with explicit 30-second limits for
+multi-navigation settings, multi-scale and full-baseline tests.
+Snapshots crossing iframe realms are cloned before strict equality comparisons.
 
 ### Build boundaries matter
 
@@ -121,7 +172,8 @@ Provider unmount alone does not uninstall the source-aligned document patch;
 the host exposes separate sandbox disposal. Each case still starts in a fresh
 iframe; lifecycle tests are bounded probes, not a complete coexistence matrix.
 
-[Architecture assertions](../tests/architecture.mjs) enforce participant import
+[Architecture assertions](../tests/architecture.test.mjs) and
+[build assertions](../tests/architecture-build.test.mjs) enforce participant import
 boundaries, private Griffel implementations in all eight bundles and absence
 of Button/Label/Textarea imports from minimal hosts. The build writes an ignored,
 unserved module-name inventory for these assertions. No dependency upgrade,
@@ -135,12 +187,21 @@ extracted ordering and the associated host background rule indices; browser
 tests still verify actual positions and both cascade controls. Primary scenarios
 intentionally changed to the source-aligned host contract and are covered by
 contract-specific assertions, not a claim that their old diagnostic behavior is
-unchanged. To compare the 28 control records with a
-saved pre-refactor result after a build and focused browser run:
+unchanged. To compare the 28 control records with a saved pre-refactor JSON
+result, rebuild and run the opt-in
+[baseline comparison](../tests/experiments/baseline.test.mjs):
 
 ```sh
-node tests/experiments/compare-baseline.mjs /path/to/baseline-results.json
+npm run build
+BASELINE_RESULTS=/path/to/baseline-results.json npx vitest run tests/experiments/baseline.test.mjs
 ```
+
+The test-only Vite plugin loads the explicitly supplied baseline as a virtual
+module. The browser test executes all 28 current diagnostic combinations,
+checks the full control count and compares fresh evidence with that baseline.
+It never reads a previous report, so a stale passing report cannot mask a
+regression in the current build. Ordinary runs skip this comparison because
+a portable checkout does not include an external pre-refactor capture.
 
 When extending the lab, put participant behavior inside its module, runtime
 inputs in experiment definitions, explanations in gallery content, and CSS
@@ -237,7 +298,7 @@ the host rejected its harmless seed rule. The event is recorded as unrelated;
 it is not misattributed to Persona. Unlike the old diagnostic seed setup, this
 seed runs under the already-active source-aligned gate.
 
-[Source browser tests](../tests/source/run.mjs) cover 5 primary cases x 2 versions
+[Source browser tests](../tests/source/run.test.mjs) cover 5 primary cases x 2 versions
 x 2 host modes x 2 coverage profiles, plus the fixed owner proposal x 2 host modes
 x 2 coverage profiles = 44 combinations: 20 pinned-release, 20 upstream-main and
 4 owner-proposal cases. They assert native rule/cache
@@ -252,7 +313,7 @@ also verify:
 - No-op host insertion, document-patch persistence after provider unmount,
   and separate sandbox disposal.
 
-[Gate tests](../tests/policy/host-contract.mjs) cover production, development
+[Gate tests](../tests/policy/host-contract.test.mjs) cover production, development
 and test environments with extraction both enabled and disabled, plus patch
 idempotence and explicit diagnostic overrides. Browser source cases run the
 actual production build. The complete suite has 96 matrix cases:
@@ -450,7 +511,7 @@ unmerged proposal control. None establishes an incident-time deployment. The ind
 public Fluent components, extraction and native insertion are experimental
 inputs, not approximated styles.
 
-| Pair (same selected host build and coverage) | Changed input | Assertion in [test-three-actors.mjs](../test-three-actors.mjs) |
+| Pair (same selected host build and coverage) | Changed input | Assertions in [source tests](../tests/source/run.test.mjs) and [diagnostic tests](../tests/experiments/run.test.mjs) |
 | --- | --- | --- |
 | `persona-alone` / `unmarked-d-first` | Existing unmarked default sheet | Current Persona's rules insert into approved destinations in both cases; the unrelated seed can still be rejected. |
 | `unmarked-d-first`, change Persona version | Persona revision/profile only | Same generated scoped rule and host gate; main inserts while the release rule is rejected but cached. |

@@ -1,291 +1,357 @@
-import assert from "node:assert/strict";
+import { navigateApplication, visible, waitForElement, waitForApplicationURL, applicationWindow, applicationFrame, refreshEvidence } from "../browser/application.mjs";
+import { page as browserPage, userEvent } from "vitest/browser";
+import { expect } from "vitest";
 import { threeActorCases, getThreeActorCases } from "../../src/playground/scenarios.js";
 import { personaRevisions } from "../../src/experiments/scenarios.js";
 import { assertPresentedEvidence } from "../evidence/assert-presented.mjs";
-
-export async function assertPlayground(page, url) {
-  await page.goto(`${url}/`);
-  assert.equal(await page.getByText("Who is on the page?", { exact: true }).count(), 0,
-    "Participant responsibilities belong in the integrated guide, not a duplicate introduction");
+export async function assertGalleryGuide(app, url) {
+  await navigateApplication(app, `${url}/`);
+  await expect.poll(() => app.getByText("Who is on the page?", {
+    exact: true
+  }).elements().length, {
+    message: "Participant responsibilities belong in the integrated guide, not a duplicate introduction"
+  }).toBe(0);
   for (const title of ["What should I look for?"]) {
-    const disclosure = page.locator(".intro-help").filter({ has: page.getByText(title, { exact: true }) });
-    assert.equal(await disclosure.evaluate(el => el.open), false);
-    await disclosure.locator("summary").click();
-    assert.equal(await disclosure.evaluate(el => el.open), true);
-    await disclosure.locator("summary").click();
+    const disclosure = app.getByCSS(".intro-help").filter({
+      hasText: title
+    });
+    await expect.element(disclosure).not.toHaveAttribute("open");
+    await disclosure.getByCSS("summary").click();
+    await expect.element(disclosure).toHaveAttribute("open");
+    await disclosure.getByCSS("summary").click();
   }
-  assert.equal(await page.getByText("Technical provenance and model limits", { exact: true })
-    .evaluate(el => el.parentElement.open), false);
-  const guide = page.locator(".conflict-guide");
-  assert.equal(await guide.isVisible(), true);
-  assert.equal(await guide.evaluate(element => element.open), false);
-  assert.equal(await guide.locator('[data-participant="host"]').isVisible(), false);
-  await guide.locator(":scope > summary").click();
-  assert.equal(await guide.evaluate(element => element.open), true);
-  assert.equal(await guide.getByRole("article").count(), 3);
+  await expect.poll(() => app.getByText("Technical provenance and model limits", {
+    exact: true
+  }).element().parentElement.open).toBe(false);
+  const guide = app.getByCSS(".conflict-guide");
+  await expect.element(guide).toBeVisible();
+  await expect.element(guide).not.toHaveAttribute("open");
+  await expect.element(guide.getByCSS('[data-participant="host"]')).not.toBeVisible();
+  await guide.getByCSS(":scope > summary").click();
+  await expect.element(guide).toHaveAttribute("open");
+  await expect.poll(() => guide.getByRole("article").elements().length).toBe(3);
   for (const participant of ["host", "persona", "feedback"]) {
-    assert.equal(await guide.locator(`[data-participant="${participant}"]`).isVisible(), true);
+    await expect.element(guide.getByCSS(`[data-participant="${participant}"]`)).toBeVisible();
   }
-  assert.match(await guide.locator('[data-participant="host"]').textContent(), /CSSStyleSheet.prototype.insertRule/);
-  assert.match(await guide.locator('[data-participant="persona"]').textContent(), /not a separate document or a private stylesheet/);
-  assert.match(await guide.locator('[data-participant="feedback"]').textContent(), /module-level renderer/);
-  assert.match(await guide.locator("[data-renderer-summary]").textContent(), /three active participant renderer roles/);
-  const walkthrough = guide.locator(".conflict-walkthrough");
-  assert.equal(await walkthrough.evaluate(el => el.open), false);
-  await walkthrough.locator(":scope > summary").click();
-  assert.equal(await guide.getByRole("list", { name: "Style rule journey" }).locator("li").count(), 4);
-  assert.equal(await guide.getByRole("list", { name: "Renderer counts" }).locator("li").count(), 3);
-  assert.match(await guide.textContent(), /data-enhanced-specificity="true"/);
-  assert.match(await guide.textContent(), /data-demo-allow-rules="true"/);
-  assert.match(await guide.textContent(), /attribute does not increase CSS specificity/);
-  assert.match(await guide.getByLabel("Missing Persona rule sequence").textContent(), /native insertion is skipped/);
-  const techniques = guide.getByText("Technique guarantees and the best paired reproductions", { exact: true });
+  await expect.element(app.getByCSS(".conflict-guide").getByCSS('[data-participant="host"]')).toHaveTextContent(/CSSStyleSheet.prototype.insertRule/);
+  await expect.element(app.getByCSS(".conflict-guide").getByCSS('[data-participant="persona"]')).toHaveTextContent(/not a separate document or a private stylesheet/);
+  await expect.element(app.getByCSS(".conflict-guide").getByCSS('[data-participant="feedback"]')).toHaveTextContent(/module-level renderer/);
+  await expect.element(app.getByCSS(".conflict-guide").getByCSS("[data-renderer-summary]")).toHaveTextContent(/three active participant renderer roles/);
+  const walkthrough = guide.getByCSS(".conflict-walkthrough");
+  await expect.element(app.getByCSS(".conflict-guide").getByCSS(".conflict-walkthrough")).not.toHaveAttribute("open");
+  await walkthrough.getByCSS(":scope > summary").click();
+  await expect.poll(() => guide.getByRole("list", {
+    name: "Style rule journey"
+  }).getByCSS("li").elements().length).toBe(4);
+  await expect.poll(() => guide.getByRole("list", {
+    name: "Renderer counts"
+  }).getByCSS("li").elements().length).toBe(3);
+  await expect.element(app.getByCSS(".conflict-guide")).toHaveTextContent(/data-enhanced-specificity="true"/);
+  await expect.element(app.getByCSS(".conflict-guide")).toHaveTextContent(/data-demo-allow-rules="true"/);
+  await expect.element(app.getByCSS(".conflict-guide")).toHaveTextContent(/attribute does not increase CSS specificity/);
+  await expect.element(guide.getByLabelText("Missing Persona rule sequence")).toHaveTextContent(/native insertion is skipped/);
+  const techniques = guide.getByText("Technique guarantees and the best paired reproductions", {
+    exact: true
+  });
   await techniques.click();
-  assert.equal(await guide.getByRole("table").count(), 4);
-  assert.equal(await guide.getByRole("table", { name: "Who writes or reads the sheet marker?" })
-    .getByRole("row").count(), 5);
-  assert.equal(await guide.getByRole("table", { name: "Width-rule outcomes with production extraction enabled" })
-    .getByRole("row").count(), 6);
-  for (const id of ["unmarked-d-first", "owner-guard", "persona-first", "precompiled-salted", "host-collision-salted",
-    "raw-marked-first", "master-rejects-marker", "no-policy"]) {
-    assert.ok(await guide.locator(`a[href="#${id}"]`).count(), `Guide links ${id} to a live reproduction`);
+  await expect.poll(() => guide.getByRole("table").elements().length).toBe(4);
+  await expect.poll(() => guide.getByRole("table", {
+    name: "Who writes or reads the sheet marker?"
+  }).getByRole("row").elements().length).toBe(5);
+  await expect.poll(() => guide.getByRole("table", {
+    name: "Width-rule outcomes with production extraction enabled"
+  }).getByRole("row").elements().length).toBe(6);
+  for (const id of ["unmarked-d-first", "owner-guard", "persona-first", "precompiled-salted", "host-collision-salted", "raw-marked-first", "master-rejects-marker", "no-policy"]) {
+    await expect.poll(() => Array.from(applicationWindow(app).document.querySelector(".conflict-guide").querySelectorAll(`a[href="#${id}"]`)).length, {
+      message: `Guide links ${id} to a live reproduction`
+    }).toBeTruthy();
   }
-  assert.match(await guide.textContent(), /None prevents sheet adoption/);
-  assert.match(await guide.getByLabel("Rejected rule cache sequence").textContent(), /absent from CSS, but present in renderer cache/);
+  await expect.element(app.getByCSS(".conflict-guide")).toHaveTextContent(/None prevents sheet adoption/);
+  await expect.element(guide.getByLabelText("Rejected rule cache sequence")).toHaveTextContent(/absent from CSS, but present in renderer cache/);
   for (const width of [375, 1400]) {
-    await page.setViewportSize({ width, height: 1800 });
-    const cards = await guide.getByRole("article").evaluateAll(elements => elements.map(element => {
-      const { left, right } = element.getBoundingClientRect();
-      return { left: Math.round(left), right: Math.round(right) };
-    }));
-    assert.equal(new Set(cards.map(card => card.left)).size, width === 375 ? 1 : 3);
-    assert.ok(cards.every(card => card.left >= 0 && card.right <= width),
-      "The responsibility overview fits mobile and desktop widths");
+    await browserPage.viewport(width, 1800);
+    const cards = guide.getByRole("article").elements().map(element => {
+      const {
+        left,
+        right
+      } = element.getBoundingClientRect();
+      return {
+        left: Math.round(left),
+        right: Math.round(right)
+      };
+    });
+    expect(new Set(cards.map(card => card.left)).size).toBe(width === 375 ? 1 : 3);
+    expect(cards.every(card => card.left >= 0 && card.right <= width), "The responsibility overview fits mobile and desktop widths").toBeTruthy();
   }
   await techniques.click();
-  await walkthrough.locator(":scope > summary").click();
-  await guide.locator(":scope > summary").click();
-  assert.equal(await guide.locator('[data-participant="host"]').isVisible(), false);
-  const working = page.frameLocator('#persona-alone iframe');
-  const guarded = page.frameLocator('#unmarked-d-first iframe');
-  await working.locator(".result").first().waitFor();
-  await guarded.locator(".result").first().waitFor();
-  assert.equal(await working.locator('[data-fluent-icon]').last().evaluate(el => getComputedStyle(el).width), "32px");
-  assert.equal(await guarded.locator("body").evaluate(() => window.threeActorResult.events
-    .find(event => event.actor === "persona" && event.rule.includes("width:137px")).blocked), true);
-  assert.equal(await guarded.locator('[data-actor-probe="persona"]').textContent(), "View profile");
-  assert.equal(await working.locator('[data-actor-probe="persona"]').evaluate(el => el.tagName), "BUTTON");
-  assert.equal(await working.locator(".probe").count(), 0);
-  await working.locator('[data-fluent-primary]').last().click();
-  assert.match(await working.locator('[data-fluent-owner="persona"] [role="status"]').textContent(), /Message requested/);
-  await working.locator('[data-actor-probe="persona"]').click();
-  assert.equal(await working.locator('[data-actor-probe="persona"]').getAttribute("aria-expanded"), "true");
-  assert.match(await working.locator('[data-fluent-owner="persona"]').textContent(), /accessible collaboration/);
-  await working.locator('[data-actor-probe="persona"]').click();
-  assert.equal(await working.locator('[data-actor-probe="persona"]').getAttribute("aria-expanded"), "false");
-  assert.equal(await page.locator(".advanced-scenarios").count(), 0);
-  assert.equal(await page.locator(".walkthrough").count(), threeActorCases.length);
-  assert.equal(await page.locator(".intended-reference").count(), 0);
-  assert.equal(await page.locator("iframe").count(), threeActorCases.length);
-  assert.equal(await page.locator(".explanatory-controls").evaluate(el => el.open), false);
-  assert.equal(await page.locator(".walkthrough:visible").count(), 5);
+  await walkthrough.getByCSS(":scope > summary").click();
+  await guide.getByCSS(":scope > summary").click();
+  await expect.poll(() => visible(applicationWindow(app).document.querySelector(".conflict-guide").querySelector('[data-participant="host"]'))).toBe(false);
+}
+export async function assertGalleryActions(app, url) {
+  await navigateApplication(app, `${url}/`);
+  const working = applicationFrame(app, '#persona-alone iframe');
+  const guarded = applicationFrame(app, '#unmarked-d-first iframe');
+  await waitForElement(() => Array.from(applicationWindow(working).document.querySelectorAll(".result")).at(0));
+  await waitForElement(() => Array.from(applicationWindow(guarded).document.querySelectorAll(".result")).at(0));
+  const phone = Array.from(applicationWindow(working).document.querySelectorAll("[data-fluent-icon]")).at(-1);
+  await expect.poll(() => applicationWindow(working).getComputedStyle(phone).width).toBe("32px");
+  await expect.poll(() => applicationWindow(guarded).threeActorResult.events.find(event => event.actor === "persona" && event.rule.includes("width:137px")).blocked).toBe(true);
+  await expect.poll(() => applicationWindow(guarded).document.querySelector('[data-actor-probe="persona"]').textContent).toBe("View profile");
+  await expect.poll(() => applicationWindow(working).document.querySelector('[data-actor-probe="persona"]').tagName).toBe("BUTTON");
+  await expect.poll(() => Array.from(applicationWindow(working).document.querySelectorAll(".probe")).length).toBe(0);
+  await working.getByCSS('[data-fluent-primary]').last().click();
+  await expect.poll(() => applicationWindow(working).document.querySelector('[data-fluent-owner="persona"] [role="status"]').textContent).toMatch(/Message requested/);
+  await working.getByCSS('[data-actor-probe="persona"]').click();
+  await expect.poll(() => applicationWindow(working).document.querySelector('[data-actor-probe="persona"]').getAttribute("aria-expanded")).toBe("true");
+  await expect.poll(() => applicationWindow(working).document.querySelector('[data-fluent-owner="persona"]').textContent).toMatch(/accessible collaboration/);
+  await working.getByCSS('[data-actor-probe="persona"]').click();
+  await expect.poll(() => applicationWindow(working).document.querySelector('[data-actor-probe="persona"]').getAttribute("aria-expanded")).toBe("false");
+}
+export async function assertGalleryStructure(app, url) {
+  await navigateApplication(app, `${url}/`);
+  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll(".advanced-scenarios")).length).toBe(0);
+  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll(".walkthrough")).length).toBe(threeActorCases.length);
+  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll(".intended-reference")).length).toBe(0);
+  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll("iframe")).length).toBe(threeActorCases.length);
+  await expect.element(app.getByCSS(".explanatory-controls")).not.toHaveAttribute("open");
+  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll(".walkthrough")).filter(visible).length).toBe(5);
   for (const config of threeActorCases) {
-    assert.equal(await page.locator(`#${config.id}`).isVisible(), Boolean(config.primaryExample));
-    assert.equal(await page.locator(`#${config.id}`).getAttribute("data-scenario-contract"),
-      config.hostContract === "production-extraction" ? "source-aligned" : "diagnostic");
-    assert.equal(await page.locator(`#${config.id}`).getAttribute("data-scenario-kind"),
-      config.primaryExample ? "release" : config.controlKind || "diagnostic");
+    await expect.poll(() => visible(applicationWindow(app).document.querySelector(`#${config.id}`))).toBe(Boolean(config.primaryExample));
+    await expect.poll(() => applicationWindow(app).document.querySelector(`#${config.id}`).getAttribute("data-scenario-contract")).toBe(config.hostContract === "production-extraction" ? "source-aligned" : "diagnostic");
+    await expect.poll(() => applicationWindow(app).document.querySelector(`#${config.id}`).getAttribute("data-scenario-kind")).toBe(config.primaryExample ? "release" : config.controlKind || "diagnostic");
     if (config.primaryExample) {
-      assert.match(await page.locator(`#${config.id} > .note`).textContent(),
-        /Pinned release renderer; deployment unverified/);
+      await expect.element(app.getByCSS(`#${config.id} > .note`)).toHaveTextContent(/Pinned release renderer; deployment unverified/);
     }
   }
-  await page.locator(".explanatory-controls > summary").click();
+  await app.getByCSS(".explanatory-controls > summary").click();
   for (const config of threeActorCases) {
-    assert.equal(await page.locator(`#${config.id}`).isVisible(), true);
-    const row = page.locator(`#${config.id}`);
-    assert.equal(await row.locator(".scenario-details").evaluate(el => el.open), false);
-    assert.equal(await row.locator(".scenario-details > summary").textContent(), "Technical details");
-    assert.deepEqual(await row.getByRole("list", { name: "Load order" }).locator("li").allTextContents(),
-      ["Host", ...(config.seed ? ["Unrelated style sheet"] : []),
-        ...config.order.map(actor => actor === "persona" ? "Persona" : "Feedback")]);
-    assert.equal(await row.locator(".scenario-takeaway").textContent(),
-      `What this demonstrates: ${config.takeaway}`);
-    const frame = page.frameLocator(`#${config.id} iframe`);
-    await frame.locator(".result").first().waitFor();
-    assert.equal(await frame.locator("body").evaluate(() => window.threeActorResult.id), config.id);
+    await expect.poll(() => visible(applicationWindow(app).document.querySelector(`#${config.id}`))).toBe(true);
+    const row = app.getByCSS(`#${config.id}`);
+    await expect.element(app.getByCSS(`#${config.id}`).getByCSS(".scenario-details")).not.toHaveAttribute("open");
+    await expect.poll(() => applicationWindow(app).document.querySelector(`#${config.id}`).querySelector(".scenario-details > summary").textContent).toBe("Technical details");
+    await expect.poll(() => row.getByRole("list", {
+      name: "Load order"
+    }).getByCSS("li").elements().map(element => element.textContent)).toStrictEqual(["Host", ...(config.seed ? ["Unrelated style sheet"] : []), ...config.order.map(actor => actor === "persona" ? "Persona" : "Feedback")]);
+    await expect.poll(() => applicationWindow(app).document.querySelector(`#${config.id}`).querySelector(".scenario-takeaway").textContent).toBe(`What this demonstrates: ${config.takeaway}`);
+    const frame = applicationFrame(app, `#${config.id} iframe`);
+    await waitForElement(() => Array.from(applicationWindow(frame).document.querySelectorAll(".result")).at(0));
+    await expect.poll(() => applicationWindow(frame).threeActorResult.id).toBe(config.id);
   }
-  await page.screenshot({ path: "test-results/walkthrough.png", fullPage: true });
-  await page.goto(`${url}/#host-collision`);
-  assert.equal(await page.locator(".explanatory-controls").evaluate(el => el.open), true,
-    "Direct links reveal explanatory scenarios");
-  assert.equal(await page.locator("#host-collision").isVisible(), true);
-  assert.equal(await page.locator('nav a[aria-current="page"]').getAttribute("href"), "/");
-  await page.locator(".host-settings > summary").click();
-  assert.equal(await page.getByLabel("Persona version", { exact: true }).inputValue(), "1.20260927.13.2");
-  await page.getByLabel("Persona version", { exact: true }).selectOption("main-2026-10-16");
-  await page.waitForURL(`${url}/?personaVersion=main-2026-10-16`);
-  assert.equal(await page.locator(".walkthrough").count(), threeActorCases.length);
-  assert.equal(await page.locator('[data-scenario-kind="main"]').count(), 5);
-  await page.frameLocator("#unmarked-d-first iframe").locator(".result").first().waitFor();
-  assert.equal(await page.frameLocator("#unmarked-d-first iframe").locator("body")
-    .evaluate(() => window.threeActorResult.simulation.persona), "marker-guard");
-  await page.reload();
-  assert.equal(await page.getByLabel("Persona version", { exact: true }).inputValue(), "main-2026-10-16");
-  await page.getByLabel("Host CSS", { exact: true }).selectOption("runtime");
-  await page.waitForURL(`${url}/?personaVersion=main-2026-10-16&host=runtime`);
-  await page.getByLabel("Host component coverage", { exact: true }).selectOption("minimal");
-  await page.waitForURL(`${url}/?personaVersion=main-2026-10-16&host=runtime&coverage=minimal`);
-  assert.equal(await page.getByLabel("Persona version", { exact: true }).inputValue(), "main-2026-10-16");
-  const isolated = new URL(await page.locator("#raw-marked-first .scenario-details a").getAttribute("href"), url);
-  assert.equal(isolated.searchParams.get("personaVersion"), "main-2026-10-16");
-  assert.equal(isolated.searchParams.get("host"), "runtime");
-  assert.equal(isolated.searchParams.get("coverage"), "minimal");
-  await page.getByLabel("Persona version", { exact: true }).selectOption("1.20260927.13.2");
-  await page.waitForURL(`${url}/?personaVersion=1.20260927.13.2&host=runtime&coverage=minimal`);
-  assert.equal(await page.locator(".walkthrough").count(), threeActorCases.length);
-  assert.equal(await page.locator('[data-scenario-kind="release"]').count(), 5);
-  await page.goto(`${url}/#host-collision`);
-  await page.locator(".host-settings > summary").click();
-  await page.getByLabel("Host CSS", { exact: true }).selectOption("runtime");
-  await page.waitForURL(`${url}/?host=runtime`);
-  await page.frameLocator("#persona-alone iframe").locator(".result").first().waitFor();
-  assert.equal(await page.locator("iframe").evaluateAll(frames =>
-    frames.every(frame => new URL(frame.src).searchParams.get("host") === "runtime")), true);
-  await page.reload();
-  assert.equal(await page.getByLabel("Host CSS", { exact: true }).inputValue(), "runtime");
-  await page.getByLabel("Host component coverage", { exact: true }).selectOption("minimal");
-  await page.frameLocator("#persona-alone iframe").locator(".result").first().waitFor();
-  assert.equal(await page.getByLabel("Host CSS", { exact: true }).inputValue(), "runtime");
-  assert.equal(await page.locator("iframe").evaluateAll(frames =>
-    frames.every(frame => new URL(frame.src).searchParams.get("coverage") === "minimal")), true);
-  await page.reload();
-  assert.equal(await page.getByLabel("Host component coverage", { exact: true }).inputValue(), "minimal");
-  await page.getByLabel("Host CSS", { exact: true }).selectOption("extracted");
-  await page.waitForURL(`${url}/?host=extracted&coverage=minimal`);
-  await page.frameLocator("#persona-alone iframe").locator(".result").first().waitFor();
-  await page.screenshot({ path: "test-results/three-actors.png", fullPage: true });
-  const galleries = Object.keys(personaRevisions).flatMap(personaVersion =>
-    ["extracted", "runtime"].map(hostMode => ({ personaVersion, hostMode })));
-  for (const { personaVersion, hostMode } of galleries) {
-    const versionCases = getThreeActorCases(personaVersion);
-    for (const coverage of ["shared", "minimal"]) {
-      await page.setViewportSize({ width: 1400, height: 1800 });
-      await page.mouse.move(0, 0);
-      await page.goto(`${url}/?host=${hostMode}&coverage=${coverage}&personaVersion=${personaVersion}`);
-      assert.match(await page.locator("[data-model-version]").textContent(),
-        new RegExp(personaRevisions[personaVersion].label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
-      assert.match(await page.locator("[data-renderer-summary]").textContent(),
-        hostMode === "extracted" ? /no-op; the other two are DOM renderers/ : /all three are DOM renderers/);
-      assert.equal(await page.locator("iframe").evaluateAll((frames, version) =>
-        frames.every(frame => new URL(frame.src).searchParams.get("personaVersion") === version), personaVersion), true);
-      const hiddenControl = page.frameLocator("#persona-first iframe");
-      await hiddenControl.locator("#actor-evidence").waitFor({ state: "attached" });
-      assert.equal(await hiddenControl.locator("body").evaluate(() => Boolean(window.threeActorResult)), false,
-        "Collapsed examples must not publish measurements without layout");
-      await page.locator(".explanatory-controls > summary").click();
-      for (const config of versionCases) {
-        const frame = page.frameLocator(`#${config.id} iframe`);
-        await frame.locator("[data-rule-trace]").first().waitFor();
-        const result = await frame.locator("body").evaluate(() => window.threeActorResult);
-        await assertPresentedEvidence(frame, result);
-        if (config.id === "persona-alone") {
-          assert.equal(result.actors.persona.measured.icon.width, "32px");
-          assert.equal(result.actors.persona.measured.probeWidth, "137px",
-            "The healthy reference inserts in both source-aligned host modes");
-        }
-        if (config.hostContract === "production-extraction") {
-          assert.equal(result.simulation.host.contract, "production-extraction");
-          assert.equal(result.simulation.host.installed, hostMode === "extracted");
-          const revision = config.primaryExample ? personaVersion : null;
-          const profile = config.primaryExample ? personaRevisions[personaVersion].profile : config.personaProfile;
-          assert.equal(result.simulation.persona, profile);
-          assert.equal(result.simulation.feedback, "inspected");
-          assert.equal(result.simulation.personaRevision, revision);
-          if (profile === "marker-guard") {
-            assert.equal(result.simulation.persona, "marker-guard");
-            assert.ok(result.events.filter(event => event.actor === "persona" && event.bucket)
-              .every(event => !event.blocked), "Current Persona must not inherit the historical failure verdict");
-          }
-        } else {
-          assert.equal(result.simulation, undefined, "Diagnostic controls cannot be presented as source-aligned");
+}
+export async function assertGallerySettings(app, url) {
+  await navigateApplication(app, `${url}/#host-collision`);
+  await expect.element(app.getByCSS(".explanatory-controls"), {
+    message: "Direct links reveal explanatory scenarios"
+  }).toHaveAttribute("open");
+  await expect.poll(() => visible(applicationWindow(app).document.querySelector("#host-collision"))).toBe(true);
+  await expect.poll(() => applicationWindow(app).document.querySelector('nav a[aria-current="page"]').getAttribute("href")).toBe("/");
+  await app.getByCSS(".host-settings > summary").click();
+  await expect.element(app.getByLabelText("Persona version", {
+    exact: true
+  })).toHaveValue("1.20260927.13.2");
+  await app.getByLabelText("Persona version", {
+    exact: true
+  }).selectOptions("main-2026-10-16");
+  await waitForApplicationURL(app, `${url}/?personaVersion=main-2026-10-16`);
+  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll(".walkthrough")).length).toBe(threeActorCases.length);
+  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-scenario-kind="main"]')).length).toBe(5);
+  await waitForElement(() => Array.from(applicationWindow(applicationFrame(app, "#unmarked-d-first iframe")).document.querySelectorAll(".result")).at(0));
+  await expect.poll(() => applicationWindow(applicationFrame(app, "#unmarked-d-first iframe")).threeActorResult.simulation.persona).toBe("marker-guard");
+  await navigateApplication(app, applicationWindow(app).location.href);
+  await expect.element(app.getByLabelText("Persona version", {
+    exact: true
+  })).toHaveValue("main-2026-10-16");
+  await app.getByLabelText("Host CSS", {
+    exact: true
+  }).selectOptions("runtime");
+  await waitForApplicationURL(app, `${url}/?personaVersion=main-2026-10-16&host=runtime`);
+  await app.getByLabelText("Host component coverage", {
+    exact: true
+  }).selectOptions("minimal");
+  await waitForApplicationURL(app, `${url}/?personaVersion=main-2026-10-16&host=runtime&coverage=minimal`);
+  await expect.element(app.getByLabelText("Persona version", {
+    exact: true
+  })).toHaveValue("main-2026-10-16");
+  const isolated = new URL(applicationWindow(app).document.querySelector("#raw-marked-first .scenario-details a").getAttribute("href"), url);
+  expect(isolated.searchParams.get("personaVersion")).toBe("main-2026-10-16");
+  expect(isolated.searchParams.get("host")).toBe("runtime");
+  expect(isolated.searchParams.get("coverage")).toBe("minimal");
+  await app.getByLabelText("Persona version", {
+    exact: true
+  }).selectOptions("1.20260927.13.2");
+  await waitForApplicationURL(app, `${url}/?personaVersion=1.20260927.13.2&host=runtime&coverage=minimal`);
+  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll(".walkthrough")).length).toBe(threeActorCases.length);
+  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-scenario-kind="release"]')).length).toBe(5);
+  await navigateApplication(app, `${url}/#host-collision`);
+  await app.getByCSS(".host-settings > summary").click();
+  await app.getByLabelText("Host CSS", {
+    exact: true
+  }).selectOptions("runtime");
+  await waitForApplicationURL(app, `${url}/?host=runtime`);
+  await waitForElement(() => Array.from(applicationWindow(applicationFrame(app, "#persona-alone iframe")).document.querySelectorAll(".result")).at(0));
+  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll("iframe")).every(frame => new URL(frame.src).searchParams.get("host") === "runtime")).toBe(true);
+  await navigateApplication(app, applicationWindow(app).location.href);
+  await expect.element(app.getByLabelText("Host CSS", {
+    exact: true
+  })).toHaveValue("runtime");
+  await app.getByLabelText("Host component coverage", {
+    exact: true
+  }).selectOptions("minimal");
+  await waitForApplicationURL(app, `${url}/?host=runtime&coverage=minimal`);
+  await waitForElement(() => Array.from(applicationWindow(applicationFrame(app, "#persona-alone iframe")).document.querySelectorAll(".result")).at(0));
+  await expect.element(app.getByLabelText("Host CSS", {
+    exact: true
+  })).toHaveValue("runtime");
+  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll("iframe")).every(frame => new URL(frame.src).searchParams.get("coverage") === "minimal")).toBe(true);
+  await navigateApplication(app, applicationWindow(app).location.href);
+  await expect.element(app.getByLabelText("Host component coverage", {
+    exact: true
+  })).toHaveValue("minimal");
+  await app.getByLabelText("Host CSS", {
+    exact: true
+  }).selectOptions("extracted");
+  await waitForApplicationURL(app, `${url}/?host=extracted&coverage=minimal`);
+  await waitForElement(() => Array.from(applicationWindow(applicationFrame(app, "#persona-alone iframe")).document.querySelectorAll(".result")).at(0));
+}
+export async function prepareGallery(app, url, {
+  personaVersion,
+  hostMode,
+  coverage
+}) {
+  const versionCases = getThreeActorCases(personaVersion);
+  await browserPage.viewport(1400, 1800);
+  await navigateApplication(app, `${url}/?host=${hostMode}&coverage=${coverage}&personaVersion=${personaVersion}`);
+  await expect.element(app.getByCSS("[data-model-version]")).toHaveTextContent(new RegExp(personaRevisions[personaVersion].label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  await expect.element(app.getByCSS("[data-renderer-summary]")).toHaveTextContent(hostMode === "extracted" ? /no-op; the other two are DOM renderers/ : /all three are DOM renderers/);
+  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll("iframe")).every(frame => new URL(frame.src).searchParams.get("personaVersion") === personaVersion)).toBe(true);
+  const hiddenControl = applicationFrame(app, "#persona-first iframe");
+  await waitForElement(() => applicationWindow(hiddenControl).document.querySelector("#actor-evidence"), {
+    state: "attached"
+  });
+  await expect.poll(() => Boolean(applicationWindow(hiddenControl).threeActorResult), {
+    message: "Collapsed examples must not publish measurements without layout"
+  }).toBe(false);
+  await app.getByCSS(".explanatory-controls > summary").click();
+  for (const config of versionCases) {
+    const frame = applicationFrame(app, `#${config.id} iframe`);
+    await waitForElement(() => applicationWindow(frame).document.querySelector("[data-rule-trace]"));
+  }
+  return versionCases;
+}
+export async function assertGalleryEvidence(app, url, configuration) {
+  const versionCases = await prepareGallery(app, url, configuration);
+  const {
+    personaVersion,
+    hostMode
+  } = configuration;
+  for (const config of versionCases) {
+    const frame = applicationFrame(app, `#${config.id} iframe`);
+    await waitForElement(() => Array.from(applicationWindow(frame).document.querySelectorAll("[data-rule-trace]")).at(0));
+    const result = applicationWindow(frame).threeActorResult;
+    await assertPresentedEvidence(frame, result);
+    if (config.id === "persona-alone") {
+      expect(result.actors.persona.measured.icon.width).toBe("32px");
+      expect(result.actors.persona.measured.probeWidth, "The healthy reference inserts in both source-aligned host modes").toBe("137px");
+    }
+    if (config.hostContract === "production-extraction") {
+      expect(result.simulation.host.contract).toBe("production-extraction");
+      expect(result.simulation.host.installed).toBe(hostMode === "extracted");
+      const revision = config.primaryExample ? personaVersion : null;
+      const profile = config.primaryExample ? personaRevisions[personaVersion].profile : config.personaProfile;
+      expect(result.simulation.persona).toBe(profile);
+      expect(result.simulation.feedback).toBe("inspected");
+      expect(result.simulation.personaRevision).toBe(revision);
+      if (profile === "marker-guard") {
+        expect(result.simulation.persona).toBe("marker-guard");
+        expect(result.events.filter(event => event.actor === "persona" && event.bucket).every(event => !event.blocked), "Current Persona must not inherit the historical failure verdict").toBeTruthy();
+      }
+    } else {
+      expect(result.simulation, "Diagnostic controls cannot be presented as source-aligned").toBeUndefined();
+    }
+  }
+}
+export async function assertGalleryResize(app, url, configuration) {
+  const versionCases = await prepareGallery(app, url, configuration);
+  const brokenFrame = applicationFrame(app, "#unmarked-d-first iframe");
+  await brokenFrame.getByCSS("[data-rule-trace] > summary").click();
+  await browserPage.viewport(375, 1800);
+  await new Promise(resolve => applicationWindow(app).requestAnimationFrame(resolve));
+  await expect.poll(() => applicationWindow(brokenFrame).document.querySelector("[data-rule-trace]").open, {
+    message: "Resizing preserves expanded rule evidence"
+  }).toBe(true);
+  await brokenFrame.getByCSS("[data-rule-trace] > summary").click();
+  for (const config of versionCases) {
+    const frame = applicationFrame(app, `#${config.id} iframe`);
+    await assertPresentedEvidence(frame, applicationWindow(frame).threeActorResult);
+  }
+}
+export async function assertGalleryInteractions(app, url, configuration) {
+  await prepareGallery(app, url, configuration);
+  const healthyFrame = applicationFrame(app, "#persona-alone iframe");
+  const ruleStatus = applicationWindow(healthyFrame).document.querySelector('[data-outcome="rules"]').textContent;
+  await healthyFrame.getByCSS('[data-fluent-owner="persona"] [data-fluent-primary]').hover();
+  await refreshEvidence(applicationWindow(healthyFrame));
+  await expect.poll(() => applicationWindow(healthyFrame).document.querySelector('[data-outcome="rules"]').textContent, {
+    message: "Hover does not change the generated-CSS verdict"
+  }).toBe(ruleStatus);
+  const primaryButton = applicationWindow(healthyFrame).document.querySelector('[data-fluent-owner="persona"] [data-fluent-primary]');
+  primaryButton.focus();
+  await userEvent.keyboard("[Space>]");
+  try {
+    await expect.poll(() => primaryButton.matches(":active"), {
+      message: "Keyboard interaction actually holds the button pressed"
+    }).toBe(true);
+    await refreshEvidence(applicationWindow(healthyFrame));
+    await expect.poll(() => applicationWindow(healthyFrame).document.querySelector('[data-outcome="rules"]').textContent, {
+      message: "Pressed state does not change the generated-CSS verdict"
+    }).toBe(ruleStatus);
+  } finally {
+    await userEvent.keyboard("[/Space]");
+  }
+  await userEvent.hover(browserPage.getByCSS('body'));
+  await browserPage.viewport(1400, 1800);
+}
+export async function assertGalleryScaling(app, url, configuration) {
+  const versionCases = await prepareGallery(app, url, configuration);
+  const {
+    personaVersion,
+    hostMode
+  } = configuration;
+  const insertionCounts = Object.fromEntries(Array.from(applicationWindow(app).document.querySelectorAll(".walkthrough iframe"), frame => [frame.contentWindow.threeActorResult.id, frame.contentWindow.threeActorResult.events.length]));
+  for (const zoom of [0.9, 1.1, 1.25]) {
+    for (const frame of applicationWindow(app).document.querySelectorAll(".walkthrough iframe")) {
+      frame.contentDocument.documentElement.style.zoom = String(zoom);
+      frame.contentWindow.dispatchEvent(new frame.contentWindow.Event("resize"));
+    }
+    await new Promise(resolve => applicationWindow(app).requestAnimationFrame(resolve));
+    for (const config of versionCases) {
+      const frame = applicationFrame(app, `#${config.id} iframe`);
+      const result = applicationWindow(frame).threeActorResult;
+      await assertPresentedEvidence(frame, result);
+      expect(result.events.length, "Scaling does not change rule insertion evidence").toBe(insertionCounts[config.id]);
+      if (hostMode === "extracted" && config.id === "persona-alone") {
+        const attempts = result.events.filter(event => event.actor === "persona" && event.bucket).length;
+        await expect.poll(() => applicationWindow(frame).document.querySelector('[data-outcome="rules"]').textContent, {
+          message: `First scenario reports its generated CSS at ${zoom * 100}% scaling`
+        }).toBe(`${attempts}/${attempts} recorded native rules present in destination CSSOM.`);
+        await expect.poll(() => applicationWindow(frame).document.querySelector('[data-actor-status="persona"]').classList.contains("missing")).toBe(false);
+        await expect.poll(() => applicationWindow(frame).document.querySelector("[data-rule-trace]").textContent).not.toContain("VISIBLE WIDTH MISMATCH");
+        if (zoom === 1.1) {
+          const window = applicationWindow(frame);
+          const provider = window.document.querySelector('[data-fluent-owner="persona"]');
+          const fractional = {
+            action: window.getComputedStyle(provider.querySelector("[data-actor-probe]")).width,
+            icon: window.getComputedStyle(provider.querySelector("[data-fluent-icon]")).width
+          };
+          expect(fractional.action, "Regression actually exercises the reported fractional action width").not.toBe("137px");
+          expect(fractional.icon, "Regression actually exercises the reported fractional phone width").not.toBe("32px");
         }
       }
-      const brokenFrame = page.frameLocator("#unmarked-d-first iframe");
-      await brokenFrame.locator("[data-rule-trace] > summary").click();
-      await page.setViewportSize({ width: 375, height: 1800 });
-      await page.evaluate(() => new Promise(requestAnimationFrame));
-      assert.equal(await brokenFrame.locator("[data-rule-trace]").evaluate(element => element.open), true,
-        "Resizing preserves expanded rule evidence");
-      await brokenFrame.locator("[data-rule-trace] > summary").click();
-      for (const config of versionCases) {
-        const frame = page.frameLocator(`#${config.id} iframe`);
-        await assertPresentedEvidence(frame, await frame.locator("body").evaluate(() => window.threeActorResult));
-      }
-      const healthyFrame = page.frameLocator("#persona-alone iframe");
-      const ruleStatus = await healthyFrame.locator('[data-outcome="rules"]').textContent();
-      await healthyFrame.locator('[data-fluent-owner="persona"] [data-fluent-primary]').hover();
-      await healthyFrame.locator("body").evaluate(() => {
-        window.dispatchEvent(new Event("resize"));
-        return new Promise(requestAnimationFrame);
-      });
-      assert.equal(await healthyFrame.locator('[data-outcome="rules"]').textContent(), ruleStatus,
-        "Hover does not change the generated-CSS verdict");
-      await page.mouse.down();
-      try {
-        await healthyFrame.locator("body").evaluate(() => {
-          window.dispatchEvent(new Event("resize"));
-          return new Promise(requestAnimationFrame);
-        });
-        assert.equal(await healthyFrame.locator('[data-outcome="rules"]').textContent(), ruleStatus,
-          "Pressed state does not change the generated-CSS verdict");
-      } finally {
-        await page.mouse.up();
-      }
-      await page.mouse.move(0, 0);
-      await page.setViewportSize({ width: 1400, height: 1800 });
-      const insertionCounts = await page.locator(".walkthrough iframe").evaluateAll(frames =>
-        Object.fromEntries(frames.map(frame => [
-          frame.contentWindow.threeActorResult.id, frame.contentWindow.threeActorResult.events.length,
-        ])));
-      for (const zoom of [0.9, 1.1, 1.25]) {
-        await page.locator(".walkthrough iframe").evaluateAll((frames, zoom) => {
-          for (const frame of frames) {
-            frame.contentDocument.documentElement.style.zoom = String(zoom);
-            frame.contentWindow.dispatchEvent(new Event("resize"));
-          }
-        }, zoom);
-        await page.evaluate(() => new Promise(requestAnimationFrame));
-        for (const config of versionCases) {
-          const frame = page.frameLocator(`#${config.id} iframe`);
-          const result = await frame.locator("body").evaluate(() => window.threeActorResult);
-          await assertPresentedEvidence(frame, result);
-          assert.equal(result.events.length, insertionCounts[config.id], "Scaling does not change rule insertion evidence");
-          if (hostMode === "extracted" && config.id === "persona-alone") {
-            const attempts = result.events.filter(event => event.actor === "persona" && event.bucket).length;
-            assert.equal(await frame.locator('[data-outcome="rules"]').textContent(),
-              `${attempts}/${attempts} recorded native rules present in destination CSSOM.`,
-              `First scenario reports its generated CSS at ${zoom * 100}% scaling`);
-            assert.equal(await frame.locator('[data-actor-status="persona"]').evaluate(element =>
-              element.classList.contains("missing")), false);
-            assert.ok(!(await frame.locator("[data-rule-trace]").textContent()).includes("VISIBLE WIDTH MISMATCH"));
-            if (zoom === 1.1) {
-              const fractional = await frame.locator('[data-fluent-owner="persona"]').evaluate(provider => ({
-                action: getComputedStyle(provider.querySelector("[data-actor-probe]")).width,
-                icon: getComputedStyle(provider.querySelector("[data-fluent-icon]")).width,
-              }));
-              assert.notEqual(fractional.action, "137px",
-                "Regression actually exercises the reported fractional action width");
-              assert.notEqual(fractional.icon, "32px",
-                "Regression actually exercises the reported fractional phone width");
-            }
-          }
-          if (hostMode === "extracted" && config.id === "unmarked-d-first") {
-            assert.equal(await frame.locator('[data-actor-status="persona"]').evaluate(element =>
-              element.classList.contains("missing")), personaVersion === "1.20260927.13.2",
-            "Rejected rules remain a CSSOM failure independently of scaling");
-          }
-        }
+      if (hostMode === "extracted" && config.id === "unmarked-d-first") {
+        await expect.poll(() => applicationWindow(frame).document.querySelector('[data-actor-status="persona"]').classList.contains("missing"), {
+          message: "Rejected rules remain a CSSOM failure independently of scaling"
+        }).toBe(personaVersion === "1.20260927.13.2");
       }
     }
   }
