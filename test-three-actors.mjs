@@ -1,3 +1,4 @@
+await import("./tests/public-naming.mjs");
 await import("./tests/policy/host-policy.mjs");
 await import("./tests/policy/host-contract.mjs");
 await import("./tests/architecture.mjs");

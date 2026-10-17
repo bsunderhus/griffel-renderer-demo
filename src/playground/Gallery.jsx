@@ -26,13 +26,13 @@ export function ThreeActorGallery() {
       compares the pinned release with a guarded upstream main snapshot. The prefix-aware host
       filter is an unmerged proposal, not inspected host main. These are sanitized mechanisms,
       not a full SDK or proof of an incident-time deployment.</p>
-    <Introduction hostMode={settings.hostMode} />
-    <MechanismGuide />
+    <Introduction />
+    <MechanismGuide hostMode={settings.hostMode} personaVersion={settings.personaVersion} />
     <HostSettings {...settings} contract="production-extraction" navigate={navigate} />
     <section aria-label="Primary integration examples">
       <h2 className="section-title">Primary integration examples</h2>
-      <p>Use <strong>LPC version</strong> in Advanced host control to switch these same five
-        scenarios between LPC 1.20260927.13.2 and LPC main snapshot (2026-10-16).
+      <p>Use <strong>Persona version</strong> in Advanced host control to switch these same five
+        scenarios between Persona 1.20260927.13.2 and Persona main snapshot (2026-10-16).
         Only Persona's renderer profile changes; no duplicate scenario cards are added.</p>
       {settings.hostMode === "runtime" && <p className="note">
         Extraction is disabled: primary scenarios use a DOM host renderer with no insertion filter.

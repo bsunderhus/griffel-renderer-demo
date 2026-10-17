@@ -7,7 +7,7 @@ export function HostSettings({ hostMode, coverage, personaVersion, navigate, con
       (personaVersion && personaVersion !== "1.20260927.13.2")}>
       <summary>Advanced host control</summary>
       {personaVersion && <>
-        <label htmlFor="persona-version">LPC version </label>
+        <label htmlFor="persona-version">Persona version </label>
         <select id="persona-version" value={personaVersion}
           onChange={event => navigate({ personaVersion: event.target.value })}>
           {Object.entries(personaRevisions).map(([value, revision]) =>

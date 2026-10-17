@@ -82,7 +82,7 @@ for (const [option, message] of [["hostContract", /Unknown host contract/],
 }
 assert.throws(() => resolveExperiment({ ...sourceExperiments[0], personaProfile: "marker-guard" }, ""),
   /Unknown or incompatible Persona revision/);
-assert.throws(() => resolveHostSettings("?personaVersion=unknown"), /Unknown LPC version/);
+assert.throws(() => resolveHostSettings("?personaVersion=unknown"), /Unknown Persona version/);
 assert.doesNotMatch(await readFile("src/experiments/run.js", "utf8"), /installHostPolicy|CSSStyleSheet/,
   "The harness must not install or implement the participant-owned insertion policy");
 

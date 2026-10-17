@@ -13,7 +13,7 @@ export function resolveHostSettings(search) {
   const personaVersion = params.get("personaVersion") || "1.20260927.13.2";
   if (!Object.hasOwn(HOST_BUILDS, hostMode)) throw new Error(`Unknown host mode: ${hostMode}`);
   if (!Object.hasOwn(HOST_BUILDS[hostMode], coverage)) throw new Error(`Unknown host coverage: ${coverage}`);
-  if (!Object.hasOwn(personaRevisions, personaVersion)) throw new Error(`Unknown LPC version: ${personaVersion}`);
+  if (!Object.hasOwn(personaRevisions, personaVersion)) throw new Error(`Unknown Persona version: ${personaVersion}`);
   const [script, stylesheet] = HOST_BUILDS[hostMode][coverage];
   return { hostMode, coverage, personaVersion, script, stylesheet, extracted: hostMode === "extracted",
     walkthrough: params.get("view") === "walkthrough" };

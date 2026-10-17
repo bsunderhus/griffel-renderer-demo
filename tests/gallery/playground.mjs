@@ -5,9 +5,9 @@ import { assertPresentedEvidence } from "../evidence/assert-presented.mjs";
 
 export async function assertPlayground(page, url) {
   await page.goto(`${url}/`);
-  assert.match(await page.locator(".intro-help ul").first().textContent(), /not a separate document or a private stylesheet/);
-  assert.match(await page.locator(".intro-help ul").first().textContent(), /still shares the page/);
-  for (const title of ["Who is on the page?", "What should I look for?"]) {
+  assert.equal(await page.getByText("Who is on the page?", { exact: true }).count(), 0,
+    "Participant responsibilities belong in the integrated guide, not a duplicate introduction");
+  for (const title of ["What should I look for?"]) {
     const disclosure = page.locator(".intro-help").filter({ has: page.getByText(title, { exact: true }) });
     assert.equal(await disclosure.evaluate(el => el.open), false);
     await disclosure.locator("summary").click();
@@ -17,17 +17,55 @@ export async function assertPlayground(page, url) {
   assert.equal(await page.getByText("Technical provenance and model limits", { exact: true })
     .evaluate(el => el.parentElement.open), false);
   const guide = page.locator(".conflict-guide");
-  assert.equal(await guide.evaluate(el => el.open), false);
-  await guide.locator("summary").click();
-  assert.equal(await guide.getByRole("list", { name: "Style rule journey" }).locator("li").count(), 3);
+  assert.equal(await guide.isVisible(), true);
+  assert.equal(await guide.evaluate(element => element.open), false);
+  assert.equal(await guide.locator('[data-participant="host"]').isVisible(), false);
+  await guide.locator(":scope > summary").click();
+  assert.equal(await guide.evaluate(element => element.open), true);
+  assert.equal(await guide.getByRole("article").count(), 3);
+  for (const participant of ["host", "persona", "feedback"]) {
+    assert.equal(await guide.locator(`[data-participant="${participant}"]`).isVisible(), true);
+  }
+  assert.match(await guide.locator('[data-participant="host"]').textContent(), /CSSStyleSheet.prototype.insertRule/);
+  assert.match(await guide.locator('[data-participant="persona"]').textContent(), /not a separate document or a private stylesheet/);
+  assert.match(await guide.locator('[data-participant="feedback"]').textContent(), /module-level renderer/);
+  assert.match(await guide.locator("[data-renderer-summary]").textContent(), /three active participant renderer roles/);
+  const walkthrough = guide.locator(".conflict-walkthrough");
+  assert.equal(await walkthrough.evaluate(el => el.open), false);
+  await walkthrough.locator(":scope > summary").click();
+  assert.equal(await guide.getByRole("list", { name: "Style rule journey" }).locator("li").count(), 4);
+  assert.equal(await guide.getByRole("list", { name: "Renderer counts" }).locator("li").count(), 3);
+  assert.match(await guide.textContent(), /data-enhanced-specificity="true"/);
+  assert.match(await guide.textContent(), /data-demo-allow-rules="true"/);
+  assert.match(await guide.textContent(), /attribute does not increase CSS specificity/);
+  assert.match(await guide.getByLabel("Missing Persona rule sequence").textContent(), /native insertion is skipped/);
+  const techniques = guide.getByText("Technique guarantees and the best paired reproductions", { exact: true });
+  await techniques.click();
   assert.equal(await guide.getByRole("table").count(), 4);
+  assert.equal(await guide.getByRole("table", { name: "Who writes or reads the sheet marker?" })
+    .getByRole("row").count(), 5);
+  assert.equal(await guide.getByRole("table", { name: "Width-rule outcomes with production extraction enabled" })
+    .getByRole("row").count(), 6);
   for (const id of ["unmarked-d-first", "owner-guard", "persona-first", "precompiled-salted", "host-collision-salted",
     "raw-marked-first", "master-rejects-marker", "no-policy"]) {
     assert.ok(await guide.locator(`a[href="#${id}"]`).count(), `Guide links ${id} to a live reproduction`);
   }
   assert.match(await guide.textContent(), /None prevents sheet adoption/);
   assert.match(await guide.getByLabel("Rejected rule cache sequence").textContent(), /absent from CSS, but present in renderer cache/);
-  await guide.locator("summary").click();
+  for (const width of [375, 1400]) {
+    await page.setViewportSize({ width, height: 1800 });
+    const cards = await guide.getByRole("article").evaluateAll(elements => elements.map(element => {
+      const { left, right } = element.getBoundingClientRect();
+      return { left: Math.round(left), right: Math.round(right) };
+    }));
+    assert.equal(new Set(cards.map(card => card.left)).size, width === 375 ? 1 : 3);
+    assert.ok(cards.every(card => card.left >= 0 && card.right <= width),
+      "The responsibility overview fits mobile and desktop widths");
+  }
+  await techniques.click();
+  await walkthrough.locator(":scope > summary").click();
+  await guide.locator(":scope > summary").click();
+  assert.equal(await guide.locator('[data-participant="host"]').isVisible(), false);
   const working = page.frameLocator('#persona-alone iframe');
   const guarded = page.frameLocator('#unmarked-d-first iframe');
   await working.locator(".result").first().waitFor();
@@ -84,8 +122,8 @@ export async function assertPlayground(page, url) {
   assert.equal(await page.locator("#host-collision").isVisible(), true);
   assert.equal(await page.locator('nav a[aria-current="page"]').getAttribute("href"), "/");
   await page.locator(".host-settings > summary").click();
-  assert.equal(await page.getByLabel("LPC version", { exact: true }).inputValue(), "1.20260927.13.2");
-  await page.getByLabel("LPC version", { exact: true }).selectOption("main-2026-10-16");
+  assert.equal(await page.getByLabel("Persona version", { exact: true }).inputValue(), "1.20260927.13.2");
+  await page.getByLabel("Persona version", { exact: true }).selectOption("main-2026-10-16");
   await page.waitForURL(`${url}/?personaVersion=main-2026-10-16`);
   assert.equal(await page.locator(".walkthrough").count(), threeActorCases.length);
   assert.equal(await page.locator('[data-scenario-kind="main"]').count(), 5);
@@ -93,17 +131,17 @@ export async function assertPlayground(page, url) {
   assert.equal(await page.frameLocator("#unmarked-d-first iframe").locator("body")
     .evaluate(() => window.threeActorResult.simulation.persona), "marker-guard");
   await page.reload();
-  assert.equal(await page.getByLabel("LPC version", { exact: true }).inputValue(), "main-2026-10-16");
+  assert.equal(await page.getByLabel("Persona version", { exact: true }).inputValue(), "main-2026-10-16");
   await page.getByLabel("Host CSS", { exact: true }).selectOption("runtime");
   await page.waitForURL(`${url}/?personaVersion=main-2026-10-16&host=runtime`);
   await page.getByLabel("Host component coverage", { exact: true }).selectOption("minimal");
   await page.waitForURL(`${url}/?personaVersion=main-2026-10-16&host=runtime&coverage=minimal`);
-  assert.equal(await page.getByLabel("LPC version", { exact: true }).inputValue(), "main-2026-10-16");
+  assert.equal(await page.getByLabel("Persona version", { exact: true }).inputValue(), "main-2026-10-16");
   const isolated = new URL(await page.locator("#raw-marked-first .scenario-details a").getAttribute("href"), url);
   assert.equal(isolated.searchParams.get("personaVersion"), "main-2026-10-16");
   assert.equal(isolated.searchParams.get("host"), "runtime");
   assert.equal(isolated.searchParams.get("coverage"), "minimal");
-  await page.getByLabel("LPC version", { exact: true }).selectOption("1.20260927.13.2");
+  await page.getByLabel("Persona version", { exact: true }).selectOption("1.20260927.13.2");
   await page.waitForURL(`${url}/?personaVersion=1.20260927.13.2&host=runtime&coverage=minimal`);
   assert.equal(await page.locator(".walkthrough").count(), threeActorCases.length);
   assert.equal(await page.locator('[data-scenario-kind="release"]').count(), 5);
@@ -135,6 +173,10 @@ export async function assertPlayground(page, url) {
       await page.setViewportSize({ width: 1400, height: 1800 });
       await page.mouse.move(0, 0);
       await page.goto(`${url}/?host=${hostMode}&coverage=${coverage}&personaVersion=${personaVersion}`);
+      assert.match(await page.locator("[data-model-version]").textContent(),
+        new RegExp(personaRevisions[personaVersion].label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+      assert.match(await page.locator("[data-renderer-summary]").textContent(),
+        hostMode === "extracted" ? /no-op; the other two are DOM renderers/ : /all three are DOM renderers/);
       assert.equal(await page.locator("iframe").evaluateAll((frames, version) =>
         frames.every(frame => new URL(frame.src).searchParams.get("personaVersion") === version), personaVersion), true);
       const hiddenControl = page.frameLocator("#persona-first iframe");

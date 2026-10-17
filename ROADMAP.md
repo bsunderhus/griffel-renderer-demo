@@ -116,6 +116,15 @@ scaling and pointer states must not change CSSOM-based outcomes.
 The host separately reports shared handles, native foreign writes, matching
 foreign rules, and the bounded avatar-background declaration cascade. Creators
 also report later adopters; sharing does not imply borrowed permission or damage.
+The integrated reader guide now explains participant responsibilities before
+following a rule through generation, sheet adoption, host filtering and native
+CSSOM presence. It distinguishes active renderer counts from sheet counts and
+maps the inspected enhanced-specificity attribute to the fictional live marker.
+Selector specificity, sheet approval, runtime salt and rule-prefix compatibility
+are separate mechanisms; the overview does not infer a deployed fix or private
+sheets from any of them.
+Public participant names are restricted to host, persona and feedback in source,
+UI, tests and documentation; an automated repository check guards that convention.
 All-rule ledgers distinguish host rejection, native parser rejection, exact
 native-rule retention, equivalent CSS, and cache state. The gallery's paired
 controls and [research contract](docs/RESEARCH.md#reproduction-contract-and-paired-controls)
@@ -134,8 +143,8 @@ One gallery at `/` now has five primary scenarios and eight
 collapsed explanatory controls. Primary cases model participant-owned
 production/extraction gating, a no-op extracted host renderer, document-lifetime
 filtering and the fixed inspected form profile. Five paired setups compare
-LPC 1.20260927.13.2 with LPC main snapshot (2026-10-16) through one shared
-LPC version control, without adding scenario cards. The pinned release is the
+Persona 1.20260927.13.2 with Persona main snapshot (2026-10-16) through one shared
+Persona version control, without adding scenario cards. The pinned release is the
 default; version, host build and coverage are independently retained in URLs.
 One control shows the unmerged owner proposal; seven retain explicit diagnostic
 profiles. Old `/source` and
@@ -154,7 +163,7 @@ The 2026-10-16 authorized source recheck confirmed marker-guard behavior in the
 inspected main branch; owner-filtered adoption and shared renderer caching remain
 an unmerged proposal, not a deployed default. The verified marker-guard setups
 are selectable in the five primary scenarios (20 host/coverage cases). The inspected consumer
-instead pins LPC 1.20260927.13.2 with version locking enabled in checked-in
+instead pins Persona 1.20260927.13.2 with version locking enabled in checked-in
 defaults; its release build has no adopted-handle guard. Its five scenarios
 use the same five cards. Twenty direct paired comparisons cover both versions.
 The duplicate marker-guard card redirects to the current Feedback-first case.

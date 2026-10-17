@@ -1,6 +1,8 @@
 import React from "react";
+import { personaRevisions } from "../experiments/scenarios.js";
 
-export function MechanismGuide() {
+export function MechanismGuide({ hostMode, personaVersion }) {
+  const revision = personaRevisions[personaVersion];
   function versionLink(id, version) {
     const params = new URLSearchParams(location.search);
     params.set("personaVersion", version);
@@ -8,153 +10,252 @@ export function MechanismGuide() {
   }
   return <>
     <details className="intro-help conflict-guide">
-      <summary>How they interfere with each other</summary>
-      <p><strong>Separate bundles and renderers do not guarantee separate style sheets.</strong>
-        There are three different boundaries to follow: where a rule goes, whether it is allowed
-        in, and which elements it affects.</p>
-      <ol className="mechanism-flow" aria-label="Style rule journey">
-        <li><strong>1. Choose a sheet</strong><span>Griffel reuses a matching bucket and priority.</span></li>
-        <li><strong>2. Check permission</strong><span>The host checks sheet markers and, when supported, the rule prefix.</span></li>
-        <li><strong>3. Apply CSS</strong><span>The browser matches selectors and resolves competing declarations.</span></li>
-      </ol>
-      <div className="table-scroll">
-        <table>
-          <caption>What each participant changes</caption>
-          <thead><tr><th scope="col">Participant</th><th scope="col">Contribution</th><th scope="col">Effect on others</th></tr></thead>
-          <tbody>
-            <tr><th scope="row">Host</th><td>Existing CSS and an insertion filter.</td>
-              <td>Can supply missing styles, block new rules, or be affected by matching integration CSS.</td></tr>
-            <tr><th scope="row">Versioned contact-card integration</th><td>Container-prefixed selectors and approval markers. Only the main snapshot adds an adopted-handle guard.</td>
-              <td>The pinned release retains incompatible destinations; the main snapshot rejects them. Both can leave approved sheets available to foreign renderers.</td></tr>
-            <tr><th scope="row">Form integration</th><td>In the inspected profile: salted generated classes and prefixed rules.</td>
-              <td>Creates unmarked sheets current Persona rejects, or reuses Persona's approved sheets. Neither salt nor a rule prefix makes a sheet private.</td></tr>
-          </tbody>
-        </table>
+      <summary>How Host, Persona and Feedback work and interfere</summary>
+      <p>The <strong>host</strong> loads two independently bundled integrations:
+        <strong> persona</strong>, a contact card, and <strong>feedback</strong>, a form.
+        These fictional actors simulate inspected styling contracts, not complete products.
+        The central conflict is that <strong>each integration owns a renderer, but the renderers
+        can reuse the same browser stylesheet</strong>.</p>
+      <div className="participant-responsibilities" aria-label="Participant responsibilities">
+        <article data-participant="host">
+          <h3>Host: build CSS and control insertion</h3>
+          <p>The host extracts its own component styles into a CSS file for the production/extracted
+            build. It supplies a <strong>no-op renderer</strong> so its components do not insert
+            those styles again. This does not extract the separately loaded integrations' CSS.</p>
+          <p>In a layout effect, it patches <code>CSSStyleSheet.prototype.insertRule</code> for
+            the document. That browser API is shared even when the callers have separate Griffel
+            bundles. The patch decides which runtime rules reach native insertion.</p>
+          <p>In the primary runtime-host control, the host instead uses a DOM renderer and
+            installs no filter. Shared versus minimal host coverage changes the CSS already
+            available, independently of this build-mode choice.</p>
+        </article>
+        <article data-participant="persona">
+          <h3>Persona: scope rules and request marked sheets</h3>
+          <p>Persona supplies its own renderer to <code>RendererProvider</code>. The pinned release
+            and main snapshot create one renderer per mounted provider. An adapter rewrites
+            rules under a parent selector and requests an approval attribute on newly created
+            style elements.</p>
+          <p><strong>Scoping</strong> limits which elements match a rule. It is not a separate
+            document or a private stylesheet. Requesting marked sheets does not make an
+            adopted, existing sheet acquire that marker.</p>
+          <p><strong>Persona 1.20260927.13.2</strong> retains incompatible adopted handles.
+            The <strong>main snapshot (2026-10-16)</strong> discards handles without the exact
+            approval value before insertion. That is not exclusive sheet ownership.</p>
+        </article>
+        <article data-participant="feedback">
+          <h3>Feedback: insert independently bundled runtime CSS</h3>
+          <p>The inspected profile uses its own <strong>module-level renderer</strong>, reused
+            across mounts of that module. It salts runtime-generated class names and prepends
+            a recognizable comment to its rules. It does not request Persona's sheet-approval
+            attribute.</p>
+          <p>The salt changes class names, not stylesheet selection. The comment identifies a
+            rule, not its destination sheet. Neither prevents adoption: Feedback still shares
+            the page and may reuse another renderer's sheets.</p>
+          <p>The inspected host main does not accept the Feedback prefix as an exception.
+            The prefix-aware host variant in this gallery is an <strong>unmerged proposal</strong>,
+            not a shipped-host claim. Salt also cannot rename precompiled component classes.</p>
+        </article>
       </div>
-      <h3>1. Where does the rule go?</h3>
-      <p>Griffel groups rules into <strong>buckets</strong> (such as ordinary rules or hover rules)
-        and ordering <strong>priorities</strong>. Hydration can find an existing sheet by that
-        key, without enforcing an integration owner or marker. LPC 1.20260927.13.2 retains those
-        handles; the main snapshot discards incompatible handles before insertion.</p>
-      <pre aria-label="Sheet adoption example">{`Feedback creates:  bucket d / priority 0 / unmarked
-LPC 1.20260927.13.2: retains the handle; host rejects its rule
-LPC main snapshot: rejects the unapproved handle before insertion
-                   -> creates an approved destination
-                   -> inserts its scoped rule
-                   -> does NOT relabel Feedback's sheet`}</pre>
-      <h3>2. Is the rule allowed in?</h3>
-      <p>The host filter checks the <strong>destination</strong>, not the identity of the caller.
-        A demo-approval marker permits insertion; the demonstration rule exception also
-        permits rules beginning with <code>/* demo-feedback */</code>. The inspected host main
-        does not recognize that prefix; the exception remains an unmerged host proposal.</p>
-      <div className="table-scroll">
-        <table>
-          <caption>Same integrations, different arrival order (with the Feedback exception)</caption>
-          <thead><tr><th scope="col">Arrival order</th><th scope="col">Sheet reused</th><th scope="col">Consequence</th></tr></thead>
-          <tbody>
-            <tr><th scope="row">Feedback → LPC 1.20260927.13.2</th><td>Persona retains Feedback's unmarked sheets.</td>
-              <td>Feedback's prefixed rules pass under the proposed exception; Persona's scoped rules are blocked.</td></tr>
-            <tr><th scope="row">Feedback → LPC main snapshot</th><td>Feedback keeps unmarked sheets; Persona creates approved destinations.</td>
-              <td>Feedback's prefixed rules pass under the proposed exception. Persona's scoped rules also insert.</td></tr>
-            <tr><th scope="row">Persona → Feedback</th><td>Persona's marked sheet.</td>
-              <td>Both can insert into that sheet. This is shared permission, not independent ownership.</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <p>Permission is <strong>per destination</strong>: if Feedback's textarea needs a bucket Persona
-        never created, its new sheet does not inherit Persona's marker. In the unprefixed
-        explanatory control, one renderer can therefore have both allowed and blocked rules.
-        The inspected Feedback prefix independently permits its rules when the host recognizes it.</p>
-      <h3>3. What does the browser show?</h3>
-      <p>Once a rule reaches CSS, bundle ownership is irrelevant: it applies wherever its selector
-        matches. This produces two different effects:</p>
-      <ul>
-        <li><strong>Masking:</strong> an existing matching rule from the host or another integration
-          supplies the styling, even though the current renderer's rule was blocked.</li>
-        <li><strong>Collision:</strong> competing declarations match the same element. In our
-          constructed avatar example, a late unsalted reset overrides the extracted host's green background.</li>
-      </ul>
-      <pre aria-label="Illustrative selector boundaries">{`/* Scoping: restrict which elements match */
-.demo-contact-scope .example { width: 137px; }
+      <p data-renderer-summary>With both integrations mounted, this fixture has <strong>three
+        active participant renderer roles</strong>: host, Persona and Feedback.
+        {hostMode === "extracted" ?
+          <> The extracted host's renderer is a no-op; the other two are DOM renderers.</> :
+          <> In runtime mode, all three are DOM renderers, and the primary host filter is off.</>}
+        {" "}This is a fixture count, not a claim about a complete application.</p>
+      <p data-model-version>Selected primary configuration: <strong>{revision.label}</strong>;
+        {" "}{hostMode === "extracted" ? "production/extracted host" : "runtime host"}.
+        Use Persona version in Advanced host control to rerun the same five scenarios.
+        The comparison below distinguishes both revisions rather than assuming the upstream fix
+        is deployed by the consuming host.</p>
+      <details className="conflict-walkthrough">
+        <summary>Follow the renderers, sheet markers and conflicts step by step</summary>
+        <h3>1. A renderer is not a stylesheet</h3>
+        <p>A renderer keeps insertion-cache state and handles to sheets for different Griffel
+          buckets and priorities. It can use many sheets; two renderers can retain the same
+          native <code>CSSStyleSheet</code>. <code>RendererProvider</code> supplies the chosen
+          renderer to components and hydrates compatible existing buckets. It does not make
+          those sheets private or create another independent renderer for each component.</p>
+        <ul aria-label="Renderer counts">
+          <li><strong>Persona alone:</strong> host + Persona = two active participant renderers.</li>
+          <li><strong>Persona and Feedback:</strong> host + Persona + Feedback = three.</li>
+          <li><strong>Unmarked seed first:</strong> host + unrelated seed + Persona = three;
+            Feedback is not mounted in that scenario.</li>
+        </ul>
+        <p>These counts include the extracted host's no-op renderer. Wrapping Persona's base
+          renderer to rewrite rules is not an additional independent Griffel renderer.
+          More mounted providers can create more Persona renderers; the unmerged owner-guard
+          control deliberately has a different owner/document cache lifetime.</p>
+        <h3>2. Follow one generated rule</h3>
+        <ol className="mechanism-flow" aria-label="Style rule journey">
+          <li><strong>Generate CSS</strong><span>Component styles produce class names and rules; Persona scopes its rules, while Feedback salts names and prefixes rules.</span></li>
+          <li><strong>Choose a sheet</strong><span>Existing hydrated handles or newly created sheets supply a bucket/priority destination.</span></li>
+          <li><strong>Check insertion</strong><span>The host patch checks the destination and optional prefix, then either skips or calls native insertion.</span></li>
+          <li><strong>Inspect the CSSOM</strong><span>Only rules the browser accepts are present; matching selectors determine which elements they can affect.</span></li>
+        </ol>
+        <p>Hydration may already have selected handles before the component renders. A key such
+          as <code>d0</code> means a default bucket at a priority; it is not an Persona or Feedback
+          ownership label. Adopting a handle points a renderer at the existing sheet: it does
+          not copy the rules, move the sheet, or apply the adopter's requested attributes.
+          The host's extracted CSS file can supply matching declarations, but is not an
+          unmarked runtime Griffel style bucket to adopt.</p>
+        <h3>3. Where does the enhanced-specificity attribute enter?</h3>
+        <p>The inspected contract calls the attribute <code>data-enhanced-specificity="true"</code>.
+          This playground uses the fictional equivalent <code>data-demo-allow-rules="true"</code>.
+          The browser gives neither name special behavior. <strong>The attribute does not
+          increase CSS specificity.</strong> Persona's extra parent selector does that; the
+          attribute becomes an insertion-permission signal only because the host reads it.</p>
+        <pre aria-label="Scoped rule and marked sheet example">{`Scoped selector (illustrative):
+  .demo-contact-scope .example { width: 137px; }
 
-/* Salt: change a runtime-generated class name */
-.example -> .differentGeneratedName
+New Persona bucket (local marker name):
+  <style data-make-styles-bucket="d"
+         data-demo-allow-rules="true">...</style>
 
-/* Prefix: identify a rule to a compatible host filter */
-/* demo-feedback */ .differentGeneratedName { width: 137px; }`}</pre>
-      <p>These selectors are illustrative. <strong>Scoping limits matches; salt separates generated
-        names; a prefix identifies rules.</strong> None prevents sheet adoption. The inspected main-branch
-        {" "}<a href={versionLink("raw-marked-first", "main-2026-10-16")}>marker guard</a> and proposed <a href="#owner-guard">owner guard</a> restrict
-        adopted handles instead; the marker guard still accepts another owner's approved sheet. Runtime salt also
-        does not rename Fluent classes already generated at build time.</p>
-      <h3>When a rule is rejected, why rerendering may not repair it</h3>
-      <p>This sequence remains relevant to independently rejected Feedback rules and the
-        {" "}<a href={versionLink("raw-marked-first", "1.20260927.13.2")}>LPC 1.20260927.13.2 scenario</a>.
-        It is not the outcome for the main-snapshot Persona scenarios.</p>
-      <pre aria-label="Rejected rule cache sequence">{`Griffel records rule in insertion cache
+Existing Feedback bucket:
+  <style data-make-styles-bucket="d">...</style>`}</pre>
+        <div className="table-scroll">
+          <table>
+            <caption>Who writes or reads the sheet marker?</caption>
+            <thead><tr><th scope="col">Step</th><th scope="col">Responsibility</th><th scope="col">What it does not establish</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Persona creates a sheet</th><td>Its renderer options request the approval attribute on that new style element.</td>
+                <td>Existing adopted sheets are not relabeled.</td></tr>
+              <tr><th scope="row">Griffel adopts a sheet</th><td>Hydration selects an existing bucket/priority handle.</td>
+                <td>The sheet's attributes do not authenticate the new writer.</td></tr>
+              <tr><th scope="row">Host checks an insertion</th><td>The patch reads the destination sheet's owner style element. Unmarked Griffel buckets are blocked unless an enabled exception accepts the rule.</td>
+                <td>The patch does not check which renderer generated that rule.</td></tr>
+              <tr><th scope="row">Persona main checks a handle</th><td>Before insertion, it drops handles whose recorded approval value is not exactly <code>"true"</code>.</td>
+                <td>It does not remove the foreign sheet, repair Feedback's rules, or stop later foreign adoption.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The host's marker test is truthiness-based, while the main snapshot requires the
+          exact string <code>"true"</code>. For example, the string <code>"false"</code> is
+          truthy to the host but fails Persona's guard. Neither check is an ownership or security boundary.</p>
+        <p>The inspected sheet-only filter blocks unmarked Griffel <code>STYLE</code> buckets,
+          not every style operation. Provider theme styles and non-bucket sheets are separate.
+          The proposed exception additionally recognizes an exact leading rule prefix, shown
+          here as <code>/* demo-feedback */</code>. A comment has no permission effect without
+          host code recognizing it.</p>
+        <h3>4. Evaluate the conflicts, not just the load order</h3>
+        <pre aria-label="Missing Persona rule sequence">{`Feedback creates an unmarked default bucket
+  -> Persona 1.20260927.13.2 adopts that handle
+  -> Persona attempts its own container-scoped atomic rule
+  -> Host sees the destination is still unmarked
+  -> native insertion is skipped
+  -> the element can keep its class, but the scoped rule is absent`}</pre>
+        <p>A prefix exception can permit Feedback's own rule without marking its sheet or
+          permitting Persona's unprefixed rule. The main-snapshot guard instead discards that
+          incompatible handle and lets Persona create an approved destination. It does not
+          silently approve the original sheet.</p>
+        <p><strong>Reverse direction:</strong> Persona creates an approved sheet first; Feedback
+          can adopt it and write into it. With a sheet-only filter, the sheet marker can
+          supply permission to a foreign writer. With the proposed prefix exception,
+          Feedback already has independent permission, so sharing that sheet is not proof
+          of a necessary bypass. New buckets Feedback creates still have no Persona marker.</p>
+        <div className="table-scroll">
+          <table>
+            <caption>Width-rule outcomes with production extraction enabled</caption>
+            <thead><tr><th scope="col">Existing scenario</th><th scope="col">Host filter</th><th scope="col">Feedback rule</th><th scope="col">Persona 1.20260927.13.2 rule</th><th scope="col">Persona main-snapshot rule</th></tr></thead>
+            <tbody>
+              <tr><th scope="row"><a href="#persona-alone">Persona alone</a></th><td>Sheet-only</td><td>Not mounted</td><td>Inserts into approved sheet</td><td>Inserts into approved sheet</td></tr>
+              <tr><th scope="row"><a href="#unmarked-d-first">Unmarked seed first</a></th><td>Sheet-only</td><td>Not mounted</td><td>Rejected in adopted sheet</td><td>Inserts into approved destination</td></tr>
+              <tr><th scope="row"><a href="#master-rejects-marker">Feedback first</a></th><td>Sheet-only (inspected host main)</td><td>Rejected</td><td>Rejected in adopted sheet</td><td>Inserts into approved destination</td></tr>
+              <tr><th scope="row"><a href="#raw-marked-first">Feedback first</a></th><td>Prefix exception (unmerged)</td><td>Inserts by prefix</td><td>Rejected in adopted sheet</td><td>Inserts into approved destination</td></tr>
+              <tr><th scope="row"><a href="#persona-first-raw">Persona first</a></th><td>Prefix exception (unmerged)</td><td>Inserts; shares approved sheets</td><td>Inserts</td><td>Inserts</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>This table follows the generated 137px width rule, not every rule a component needs.
+          An allowed call can still fail native parsing; parser errors are not host-policy
+          rejections. The unrelated seed's own rejection also stays separate from Persona's outcome.</p>
+        <p className="note">Runtime-host comparison: the primary production/extraction gate
+          disables filtering, and both Persona revisions insert the width rule in all five setups.
+          Adoption alone is not the missing-rule failure. Only explicitly labeled diagnostic
+          controls force filtering on a runtime host.</p>
+        <h3>5. Why can classes and cache survive a rejected rule?</h3>
+        <pre aria-label="Rejected rule cache sequence">{`Griffel records rule in insertion cache
   -> calls the sheet's insertRule
   -> host filter rejects it without throwing
   -> rule absent from CSS, but present in renderer cache
   -> a later insertion attempt may be skipped as already handled`}</pre>
-      <p>This is why each live example reports <strong>Insertion</strong>, <strong>Rules</strong>,
-        <strong>Ownership</strong>, <strong>Sharing</strong>, and <strong>Permission</strong> separately.
-        The selected width rule is one probe; expand all recorded attempts for blocked rules,
-        native parser rejections and exact native-rule presence. An identical surviving rule does
-        not prove that the recorded insertion still exists.</p>
-      <div className="table-scroll">
-        <table>
-          <caption>Technique guarantees and assumptions</caption>
-          <thead><tr><th scope="col">Technique</th><th scope="col">What it establishes</th><th scope="col">Required assumption / live evidence</th></tr></thead>
-          <tbody>
-            <tr><th scope="row">Container selectors</th><td>Limit which elements match inserted rules.</td>
-              <td>Elements must remain inside the scope; insertion must still be allowed.
-                {" "}<a href={versionLink("unmarked-d-first", "1.20260927.13.2")}>LPC 1.20260927.13.2 rejection</a> separates these facts;
-                {" "}<a href={versionLink("unmarked-d-first", "main-2026-10-16")}>LPC main snapshot</a> avoids the incompatible destination.</td></tr>
-            <tr><th scope="row">Sheet marker</th><td>Permits writes to a marked destination.</td>
-              <td>It does not identify the writer. <a href="#persona-first">Borrowed permission</a> records unprefixed foreign attempts.</td></tr>
-            <tr><th scope="row">Class salt</th><td>Changes runtime-generated names.</td>
-              <td>Component styles must still be generated at runtime; <a href="#precompiled-salted">precompiled classes</a> remain shared.
-                {" "}<a href="#host-collision-salted">Salted collision control</a> checks the host probe separately from sheet sharing.</td></tr>
-            <tr><th scope="row">Rule prefix</th><td>Identifies a rule to a compatible filter.</td>
-              <td>The host must accept that exact prefix. Compare <a href="#raw-marked-first">accepted</a> and
-                {" "}<a href="#master-rejects-marker">rejected</a>; neither provides private sheets.</td></tr>
-          </tbody>
-        </table>
-        <table>
-          <caption>Best paired reproductions: change one mechanism at a time</caption>
-          <thead><tr><th scope="col">Compare</th><th scope="col">Isolated question</th><th scope="col">Read the evidence</th></tr></thead>
-          <tbody>
-            <tr><td><a href="#persona-alone">Persona alone</a> / <a href="#unmarked-d-first">unmarked seed first</a></td>
-              <td>What does an existing unmarked sheet change?</td><td>The release loses its atomic rules; the main snapshot rejects the incompatible destination. The unrelated seed can still be blocked.</td></tr>
-            <tr><td><a href={versionLink("unmarked-d-first", "main-2026-10-16")}>LPC main snapshot</a> / <a href={versionLink("unmarked-d-first", "1.20260927.13.2")}>LPC 1.20260927.13.2</a></td>
-              <td>What did the verified fix change?</td><td>Only Persona's profile changes: present native rules versus rejected-but-cached rules.</td></tr>
-            <tr><td><a href="#feedback-first">Filter on</a> / <a href="#no-policy">filter off</a></td>
-              <td>Is adoption alone enough to lose rules?</td><td>Adoption remains; only filtering rejects insertion. Check collisions independently.</td></tr>
-            <tr><td><a href="#raw-marked-first">Feedback first</a> / <a href="#persona-first-raw">Persona first</a></td>
-              <td>What does arrival order change?</td><td>Separate destinations versus shared marked destinations; current Persona inserts in both orders.</td></tr>
-            <tr><td><a href="#raw-marked-first">Current Persona</a> / <a href="#owner-guard">proposed owner guard</a></td>
-              <td>What does the unmerged proposal add?</td><td>Marker approval is weaker than owner identity; lifecycle probes also compare renderer/cache reuse.</td></tr>
-            <tr><td><a href="#host-collision">Unsalted</a> / <a href="#host-collision-salted">salted</a></td>
-              <td>Can a foreign selector alter a host declaration?</td><td>Compare selector matches and the host CSSOM background trace in both host builds.</td></tr>
-          </tbody>
-        </table>
-      </div>
+        <p>The filter returns <code>0</code> without calling native insertion. Zero is also a
+          valid native insertion index: the return value alone cannot prove a rule exists.
+          This explains how assigned atomic classes and a populated cache can coexist with
+          missing scoped definitions. Compare the
+          {" "}<a href={versionLink("unmarked-d-first", "1.20260927.13.2")}>pinned release</a>
+          {" "}and <a href={versionLink("unmarked-d-first", "main-2026-10-16")}>main snapshot</a>
+          {" "}using the same seed, host build and coverage.</p>
+        <h3>6. Separate missing rules, sharing and host damage</h3>
+        <ul>
+          <li><strong>Missing rule:</strong> this actor's generated rule never reached its
+            destination CSSOM. Another actor's matching rule can mask that loss.</li>
+          <li><strong>Shared storage:</strong> different renderers retain the same sheet.
+            This does not by itself change a declaration or prove borrowed permission.</li>
+          <li><strong>Collision:</strong> a foreign selector matches host elements and changes
+            a winning declaration. The orange-avatar control deliberately constructs such a
+            reset collision; it is not required for the missing-Persona-rule mechanism.</li>
+        </ul>
+        <p>Read <strong>Insertion</strong> for host/native decisions, <strong>Rules</strong> for
+          destination CSSOM presence, <strong>Ownership</strong> and <strong>Sharing</strong>
+          for sheet relationships, and <strong>Permission</strong> for reliance on a foreign
+          sheet's marker. Host matching rules and its bounded declaration trace are independent
+          evidence. A normal-looking control never turns a blocked rule into a successful insertion.</p>
+        <details>
+          <summary>Technique guarantees and the best paired reproductions</summary>
+          <div className="table-scroll">
+            <table>
+              <caption>Technique guarantees and assumptions</caption>
+              <thead><tr><th scope="col">Technique</th><th scope="col">What it establishes</th><th scope="col">Required assumption / live evidence</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">Container selectors</th><td>Limit matches and add selector specificity.</td>
+                  <td>Elements must remain inside the scope, and insertion must be allowed. <a href={versionLink("unmarked-d-first", "1.20260927.13.2")}>Scoped but rejected</a> is still missing CSS.</td></tr>
+                <tr><th scope="row">Sheet marker</th><td>Permits a destination under the host patch.</td>
+                  <td>It does not identify its writer. <a href="#persona-first">Unprefixed borrowed-permission control</a> separates permission from shared storage.</td></tr>
+                <tr><th scope="row">Class salt</th><td>Changes runtime-generated names.</td>
+                  <td><a href="#precompiled-salted">Precompiled classes</a> stay fixed. <a href="#host-collision-salted">Salted collision control</a> checks matching independently.</td></tr>
+                <tr><th scope="row">Rule prefix</th><td>Identifies a rule to a compatible host filter.</td>
+                  <td>Compare <a href="#raw-marked-first">the proposed exception</a> with <a href="#master-rejects-marker">sheet-only rejection</a>.</td></tr>
+              </tbody>
+            </table>
+            <p><strong>None prevents sheet adoption.</strong> The
+              {" "}<a href={versionLink("raw-marked-first", "main-2026-10-16")}>main marker guard</a>
+              {" "}restricts the handles Persona uses, but accepts another owner's approved sheet.
+              The unmerged <a href="#owner-guard">owner guard</a> adds owner filtering and a
+              different renderer/cache lifetime, not a proven deployment or complete isolation.</p>
+            <table>
+              <caption>Best paired reproductions: change one mechanism at a time</caption>
+              <thead><tr><th scope="col">Compare</th><th scope="col">Isolated question</th><th scope="col">Read the evidence</th></tr></thead>
+              <tbody>
+                <tr><td><a href="#persona-alone">Persona alone</a> / <a href="#unmarked-d-first">seed first</a></td>
+                  <td>What does an unmarked destination change?</td><td>The release loses atomic rules; main rejects the incompatible handle. Read the seed's outcome separately.</td></tr>
+                <tr><td><a href={versionLink("unmarked-d-first", "1.20260927.13.2")}>Pinned release</a> / <a href={versionLink("unmarked-d-first", "main-2026-10-16")}>main snapshot</a></td>
+                  <td>What does the guard change?</td><td>Same scoped rule and host gate; only Persona's selected revision changes.</td></tr>
+                <tr><td><a href="#feedback-first">Filter on</a> / <a href="#no-policy">filter off</a></td>
+                  <td>Is adoption sufficient to lose rules?</td><td>Adoption persists; only filtering rejects insertion. Check collision evidence independently.</td></tr>
+                <tr><td><a href="#raw-marked-first">Feedback first</a> / <a href="#persona-first-raw">Persona first</a></td>
+                  <td>What changes with arrival order?</td><td>The release loses its width rule only in the first order. Main inserts in both; reverse order can share approved sheets in either revision.</td></tr>
+                <tr><td><a href={versionLink("raw-marked-first", "main-2026-10-16")}>Main snapshot</a> / <a href="#owner-guard">owner proposal</a></td>
+                  <td>What does owner filtering add?</td><td>Approval is weaker than owner identity; lifecycle probes also distinguish cache reuse.</td></tr>
+                <tr><td><a href="#host-collision">Unsalted</a> / <a href="#host-collision-salted">salted</a></td>
+                  <td>Can a foreign selector alter the host?</td><td>Compare selector matches and the host declaration trace, not just sheet membership.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </details>
     </details>
     <details className="note"><summary>Technical provenance and model limits</summary>
-    <p>These are synthetic local examples using public libraries. The inspected form profile
-      uses salt <code>demo-feedback</code>, a matching rule prefix, and raw component styles.
-      Configuration controls vary these settings to isolate their effects.
-      The styling contracts are source-aligned, not a full product integration or proof of an incident-time deployment.
-      Embedded SDK Griffel versions, host CSP/query sorting, theme/font customization and portals are outside this model.
-      Similar-looking controls can hide blocked rules, and
-      permission leakage does not necessarily cause visible damage.</p>
-    <p>The LPC version control switches the same five primary cases between LPC 1.20260927.13.2
-      and the guarded main snapshot (2026-10-16).
-      The inspected consumer pins the release with version locking enabled in checked-in defaults.
-      Effective runtime overrides and deployed assets remain unverified. The main snapshot has no
-      verified released version here; the owner guard is an unmerged proposal. The orange-avatar reset
-      is an explicitly constructed collision probe, separate from the adoption-plus-filter failure.
-      Recorded attempts are not an exhaustive inventory of all styles a component might require.</p>
+      <p>Each scenario uses a fresh iframe, public libraries and independently compiled
+        participants. The guide names the inspected roles; the live UI, scope, sheet marker,
+        salt and prefix remain fictional. No full proprietary provider or SDK runs here.
+        The inspected consumer pins Persona 1.20260927.13.2 with version locking enabled in
+        checked-in defaults. Effective runtime overrides and deployed assets remain unverified.</p>
+      <p>The main snapshot has no verified released version here; the owner guard and host
+        prefix exception are unmerged proposals. Full-product renderer counts, embedded SDK
+        Griffel versions, portals, CSP/query sorting and theme/font customization are outside
+        this model. Recorded attempts are not an exhaustive inventory of required styles,
+        and an unchanged host probe is not a whole-host correctness guarantee.</p>
     </details>
   </>;
 }

@@ -6,8 +6,8 @@ const sourceContract = {
 const historicalControl = { personaProfile: "historical" };
 
 export const personaRevisions = {
-  "1.20260927.13.2": { profile: "historical", kind: "release", label: "LPC 1.20260927.13.2" },
-  "main-2026-10-16": { profile: "marker-guard", kind: "main", label: "LPC main snapshot (2026-10-16)" },
+  "1.20260927.13.2": { profile: "historical", kind: "release", label: "Persona 1.20260927.13.2" },
+  "main-2026-10-16": { profile: "marker-guard", kind: "main", label: "Persona main snapshot (2026-10-16)" },
 };
 
 export const experiments = [

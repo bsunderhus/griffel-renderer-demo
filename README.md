@@ -10,6 +10,8 @@ contain or claim to reproduce a proprietary product, SDK, or incident.
 See [ROADMAP.md](ROADMAP.md) for publication gates, technique evaluation,
 solution experiments, and the planned multi-integration coexistence lab.
 This sanitized project is the only active implementation.
+Public source, UI, tests and documentation refer to the participants only as
+host, persona and feedback. A repository naming check guards that convention.
 
 Continuing in a new environment or with an AI assistant? Start with
 [AGENTS.md](AGENTS.md) and the self-contained
@@ -66,15 +68,44 @@ for this experiment. They are not security boundaries or recommended production
 policies. CSS scoping is not document isolation, and class-name salt does not
 provide private style sheets.
 
+### How the participants work and conflict
+
+The gallery combines responsibilities and conflict analysis in one section:
+**How Host, Persona and Feedback work and interfere**. The section is collapsed
+by default; its overview, detailed rule journey and technique comparisons expand
+in place.
+
+- **Host** builds its own extracted CSS, supplies a no-op host renderer
+  in extracted mode and installs a document-wide native-insertion filter.
+- **Persona** supplies a separate renderer, scopes its rules under a parent
+  selector and requests marked new sheets. Its pinned release and guarded main
+  snapshot differ in how they handle adopted unmarked destinations.
+- **Feedback** uses the inspected module-level renderer profile,
+  salted runtime names and prefixed rules, but requests no Persona approval marker.
+
+With both integrations mounted, the fixture has three active participant
+renderer roles, not three private sheets. The extracted host's role is a no-op;
+Persona and Feedback use DOM renderers. Persona-alone and unrelated-seed cases have
+different counts, explained in the guide; this is not a census of real-product
+renderers.
+
+The inspected `data-enhanced-specificity` attribute maps to the running demo's
+fictional `data-demo-allow-rules` marker. The attribute itself adds no CSS
+specificity: Persona's extra parent selector does that. The host turns the attribute
+into permission by reading the destination sheet. Adoption does not relabel
+that sheet, which explains both legitimate Persona rejection and foreign writes
+through Persona-marked sheets. The guide separates those mechanisms, the unmerged
+host-prefix exception, cache state, native parser rejection and host collisions.
+
 ## Playground
 
-The single gallery at `/` keeps five primary scenarios. **LPC version** in
+The single gallery at `/` keeps five primary scenarios. **Persona version** in
 Advanced host control reruns those same scenarios with either renderer revision,
 without adding duplicate cards:
 
-- **LPC 1.20260927.13.2:** the release pinned by the inspected consumer
+- **Persona 1.20260927.13.2:** the release pinned by the inspected consumer
   bootstrapper, using unguarded sheet adoption.
-- **LPC main snapshot (2026-10-16):** the upstream source containing the marker
+- **Persona main snapshot (2026-10-16):** the upstream source containing the marker
   guard. No published release containing that guard is established here.
 
 The consumer's checked-in defaults enable version locking. That is source
@@ -169,10 +200,11 @@ View profile and Clear status have a 137px customization. Rejected rules may
 make them expand. A green host avatar turning orange demonstrates the
 constructed class collision.
 
-**Advanced host control** offers two independent choices:
+**Advanced host control** offers three independent choices:
 
 | Choice | Values | Purpose |
 | --- | --- | --- |
+| Persona version | Pinned release / guarded main snapshot | Rerun the same scenarios with a different Persona adoption contract. |
 | Host CSS | Extracted / runtime | Compare build-time CSS with runtime insertion. |
 | Component coverage | Shared / minimal | Compare a host using form controls with one using only an avatar. |
 
@@ -218,7 +250,7 @@ administrator privileges.
 
 The full suite builds and runs 96 matrix cases: 72 distinct gallery/renderer
 combinations plus 24 archived diagnostics. There are only 13 gallery cards:
-5 primary scenarios × 2 LPC versions × 2 host builds × 2 coverage profiles = 40
+5 primary scenarios × 2 Persona versions × 2 host builds × 2 coverage profiles = 40
 primary combinations, plus 8 fixed-profile controls × 2 host builds × 2 coverage
 profiles = 32 control combinations.
 The five release/main pairs yield 20 direct comparisons from those

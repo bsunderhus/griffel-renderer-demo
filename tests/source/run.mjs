@@ -55,6 +55,13 @@ try {
           return window.threeActorResult;
         });
         const active = host === "extracted";
+        const renderers = await page.evaluate(() => {
+          const active = [window.testSourceHost, window.testSourcePersona, window.testSourceFeedback]
+            .filter(Boolean).map(mounted => mounted.renderer);
+          return { mounted: active.length, distinct: new Set(active).size };
+        });
+        assert.deepEqual(renderers, { mounted: 1 + config.order.length, distinct: 1 + config.order.length },
+          "The documented host/Persona/Feedback renderer roles use distinct active renderer instances");
         assert.equal(result.simulation.host.contract, "production-extraction");
         assert.equal(result.simulation.host.shouldInstall, active);
         assert.equal(result.simulation.host.installed, active);
