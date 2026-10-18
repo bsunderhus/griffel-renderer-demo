@@ -1,6 +1,49 @@
 import React from "react";
 import { personaRevisions } from "../experiments/scenarios.js";
 
+export function ParticipantResponsibilities() {
+  return <div className="participant-responsibilities" aria-label="Participant responsibilities">
+        <article data-participant="host">
+          <h3>The host: “My styles are already built”</h3>
+          <p>The host extracts its own component styles into a CSS file for the production/extracted
+            build. It supplies a <strong>no-op renderer</strong> so its components do not insert
+            those styles again. This does not extract the separately loaded integrations' CSS.</p>
+          <p>It patches <code>CSSStyleSheet.prototype.insertRule</code> for the document,
+            allowing runtime writes to approved Griffel sheets and blocking unmarked buckets.
+            Separate Griffel bundles still call that same browser API.</p>
+          <p>The prefix-aware variant adds a second route: allow a rule starting with Feedback's
+            comment. This inspected exception is an <strong>unmerged proposal</strong>,
+            not a shipped-host claim. The runtime-host control installs no filter.</p>
+        </article>
+        <article data-participant="persona">
+          <h3>Persona: “I need scoped runtime styles”</h3>
+          <p>Persona supplies its own renderer to <code>RendererProvider</code>. The pinned release
+            and main snapshot create one renderer per mounted provider. An adapter rewrites
+            rules under a parent selector and requests an approval attribute on newly created
+            style elements.</p>
+          <p>The parent selector increases specificity; the approval attribute does not.
+            Scoping is not a separate document or a private stylesheet. Requesting marked
+            sheets does not make an adopted, existing sheet acquire that marker.</p>
+          <p><strong>Persona 1.20260927.13.2</strong> retains incompatible adopted handles.
+            The <strong>main snapshot (2026-10-16)</strong> discards handles without the exact
+            approval value before insertion. That is not exclusive sheet ownership.</p>
+        </article>
+        <article data-participant="feedback">
+          <h3>Feedback: “I bring my own runtime styles”</h3>
+          <p>The inspected profile uses its own <strong>module-level renderer</strong>, reused
+            across mounts of that module. It salts runtime-generated class names and prepends
+            a recognizable comment to its rules. It does not request Persona's sheet-approval
+            attribute.</p>
+          <p>The salt changes class names, not stylesheet selection. The comment identifies a
+            rule, not its destination sheet. Neither prevents adoption: Feedback still shares
+            the page and may reuse another renderer's sheets.</p>
+          <p>The sheet-only host does not recognize that comment. The proposed host exception
+            does, but only for Feedback's own prefixed rules. Salt cannot rename precompiled
+            component classes.</p>
+        </article>
+      </div>;
+}
+
 export function MechanismGuide({ hostMode, personaVersion, expanded = false }) {
   const revision = personaRevisions[personaVersion];
   function scenarioLink(id) {
@@ -14,52 +57,7 @@ export function MechanismGuide({ hostMode, personaVersion, expanded = false }) {
   }
   return <>
     <details className="intro-help conflict-guide" open={expanded}>
-      <summary>How Host, Persona and Feedback work and interfere</summary>
-      <p>The <strong>host</strong> loads two independently bundled integrations:
-        <strong> persona</strong>, a contact card, and <strong>feedback</strong>, a form.
-        These fictional actors simulate inspected styling contracts, not complete products.
-        The central conflict is that <strong>each integration owns a renderer, but the renderers
-        can reuse the same browser stylesheet</strong>.</p>
-      <div className="participant-responsibilities" aria-label="Participant responsibilities">
-        <article data-participant="host">
-          <h3>Host: build CSS and control insertion</h3>
-          <p>The host extracts its own component styles into a CSS file for the production/extracted
-            build. It supplies a <strong>no-op renderer</strong> so its components do not insert
-            those styles again. This does not extract the separately loaded integrations' CSS.</p>
-          <p>In a layout effect, it patches <code>CSSStyleSheet.prototype.insertRule</code> for
-            the document. That browser API is shared even when the callers have separate Griffel
-            bundles. The patch decides which runtime rules reach native insertion.</p>
-          <p>In the primary runtime-host control, the host instead uses a DOM renderer and
-            installs no filter. Shared versus minimal host coverage changes the CSS already
-            available, independently of this build-mode choice.</p>
-        </article>
-        <article data-participant="persona">
-          <h3>Persona: scope rules and request marked sheets</h3>
-          <p>Persona supplies its own renderer to <code>RendererProvider</code>. The pinned release
-            and main snapshot create one renderer per mounted provider. An adapter rewrites
-            rules under a parent selector and requests an approval attribute on newly created
-            style elements.</p>
-          <p><strong>Scoping</strong> limits which elements match a rule. It is not a separate
-            document or a private stylesheet. Requesting marked sheets does not make an
-            adopted, existing sheet acquire that marker.</p>
-          <p><strong>Persona 1.20260927.13.2</strong> retains incompatible adopted handles.
-            The <strong>main snapshot (2026-10-16)</strong> discards handles without the exact
-            approval value before insertion. That is not exclusive sheet ownership.</p>
-        </article>
-        <article data-participant="feedback">
-          <h3>Feedback: insert independently bundled runtime CSS</h3>
-          <p>The inspected profile uses its own <strong>module-level renderer</strong>, reused
-            across mounts of that module. It salts runtime-generated class names and prepends
-            a recognizable comment to its rules. It does not request Persona's sheet-approval
-            attribute.</p>
-          <p>The salt changes class names, not stylesheet selection. The comment identifies a
-            rule, not its destination sheet. Neither prevents adoption: Feedback still shares
-            the page and may reuse another renderer's sheets.</p>
-          <p>The inspected host main does not accept the Feedback prefix as an exception.
-            The prefix-aware host variant in this gallery is an <strong>unmerged proposal</strong>,
-            not a shipped-host claim. Salt also cannot rename precompiled component classes.</p>
-        </article>
-      </div>
+      <summary>Technical reference: renderers, rules and evidence</summary>
       <p data-renderer-summary>With both integrations mounted, this fixture has <strong>three
         active participant renderer roles</strong>: host, Persona and Feedback.
         {hostMode === "extracted" ?

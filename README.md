@@ -72,10 +72,27 @@ provide private style sheets.
 
 ### How the participants work and conflict
 
-The separate [documentation page](/docs) explains **How Host, Persona and
-Feedback work and interfere**. Its participant overview is open on arrival; the
-step-by-step rule journey and technique comparisons expand on demand. The
-playground at `/` stays focused on settings, live examples, and evidence.
+The separate [documentation page](/docs) tells the story in order: meet the
+actors, follow their encounter, then draw the conclusion. The host checks a
+destination sheet or rule prefix, not the renderer writing the rule. An animated
+SVG explainer starts with Feedback first under the proposed prefix exception:
+Feedback inserts while the pinned Persona release is rejected in the same sheet.
+The next chapter changes only Persona to the main guard. Later chapters show Persona first under the
+historical sheet-only control (borrowed permission), Persona first with the
+prefix exception, and a runtime host without a filter. Each step draws ownership
+(which renderer created or adopted a sheet), permission (the host filter) and
+CSSOM insertion separately, and links to the matching playground configuration.
+The chapters are a declarative script in
+[conflict-story.js](src/playground/conflict-story.js); tests replay each linked
+configuration and assert that the final drawing matches recorded creator,
+marker, prefix, verdict, presence and cache evidence. The explainer honors
+reduced-motion preferences and supports keyboard stepping.
+
+The actors are introduced once, before the explainer. Below the conclusion, a
+collapsed **Technical reference: renderers, rules and evidence** retains the
+step-by-step rule journey, technique comparisons and limitations on demand.
+The playground at `/` stays focused on settings,
+live examples, and evidence.
 
 - **Host** builds its own extracted CSS, supplies a no-op host renderer
   in extracted mode and installs a document-wide native-insertion filter.
@@ -288,6 +305,11 @@ UI checks use retryable `expect.element` assertions or fresh DOM queries inside
 `expect.poll` for nested frames. CSSOM and renderer snapshots retain strict
 comparisons. Gallery guide, actions, settings, live evidence, mobile resize,
 pointer/keyboard states and scaling have independently named tests.
+[Explainer tests](tests/gallery/explainer.test.mjs) compare each chapter's
+final drawing with live evidence under both coverage profiles, then step the
+UI by button and keyboard and check mobile fit. A
+[unit check](tests/conflict-story.test.mjs) keeps the script consistent with
+scenario definitions and with its own drawn filter rule.
 Browser setup resets the viewport and pointer between tests. Navigation targets
 the requested application iframe and listens to Vitest's test-abort signal.
 Most browser tests have a 15-second timeout; multi-navigation settings,
@@ -362,6 +384,10 @@ The test-runner migration pins Vitest 4.1.12 and its Vite 6.4.4 peer to retain
 Node.js 20 compatibility without upgrading the experimental build dependencies.
 The Browser Mode Playwright provider is pinned to the same Vitest version.
 Vite is used by the test runner; webpack and esbuild still build the application.
+[Motion](https://motion.dev) 14.3.0 (MIT) is pinned for the documentation
+explainer's SVG transitions. esbuild bundles it only into the playground
+`app.js`; participant webpack bundles do not import it, and it does not change
+generated classes, adoption or insertion.
 
 ## Troubleshooting
 

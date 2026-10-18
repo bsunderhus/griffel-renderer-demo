@@ -51,7 +51,7 @@ publication decisions are documented in the [roadmap](../ROADMAP.md).
 | --- | --- | --- |
 | Browser entry | [browser-entry.jsx](../src/browser-entry.jsx) | React globals and route dispatch only. |
 | Playground | [playground/](../src/playground/) | Five primary examples with one release/main version control, eight collapsed proposal/diagnostic controls, URL settings. |
-| Documentation | [Documentation.jsx](../src/playground/Documentation.jsx), [MechanismGuide.jsx](../src/playground/MechanismGuide.jsx) | Participant responsibilities, rule walkthrough, technique guarantees, and links back to live examples at `/`. |
+| Documentation | [Documentation.jsx](../src/playground/Documentation.jsx), [ConflictExplainer.jsx](../src/playground/ConflictExplainer.jsx), [conflict-story.js](../src/playground/conflict-story.js), [MechanismGuide.jsx](../src/playground/MechanismGuide.jsx) | Actors, evidence-checked encounter and conclusion, followed by a collapsed technical reference and links back to live examples at `/`. |
 | Configuration | [scenarios.js](../src/experiments/scenarios.js), [configuration.js](../src/experiments/configuration.js) | Runtime inputs and validation, separate from gallery prose. |
 | Orchestration | [run.js](../src/experiments/run.js) | Host baseline, optional seed, policy, ordered mounts and evidence lifecycle. |
 | Bundle adapters | [participants.js](../src/experiments/participants.js) | Script/global boundary; no participant UI or renderer construction. |
@@ -68,6 +68,32 @@ publication decisions are documented in the [roadmap](../ROADMAP.md).
 | Serving | [server.mjs](../server.mjs) | Allowlisted assets and routes, loopback only, no source maps. |
 | Test configuration and primary tests | [vitest.config.js](../vitest.config.js), [tests/](../tests/) | Policy, architecture, pure analysis, 72 gallery combinations, evidence UI, interactions and navigation. |
 | Archived tests | [archived tests](../tests/archived/run.test.mjs) | 24 extraction/runtime/adoption/cache diagnostics. |
+
+### Documentation explainer
+
+The page introduces the actors before showing the conflict. Its opening pair uses
+the same Feedback-first, prefix-aware configuration: Feedback's rule inserts,
+the pinned Persona rule is rejected, and changing only Persona to the guard
+restores its insertion. The conclusion separates permission from ownership and
+containment. Detailed mechanisms remain in a collapsed reference rather than
+repeating the participant introduction.
+
+The explainer is a narrative summary, not a separate model. Each chapter
+names a scenario, host build and Persona version; its steps are declarative
+events (filter, create, adopt, discard, attempt) from which every drawing is
+derived. [Explainer tests](../tests/gallery/explainer.test.mjs) replay each
+configuration in both coverage profiles and require the final drawing to match
+the recorded width-rule creator, approval marker, Feedback prefix, verdict,
+CSSOM presence, renderer cache, effective policy, host renderer and discarded
+handles. The borrowed-permission chapter additionally asserts borrowed
+permission and remaining Feedback rejections; the prefix chapter asserts no
+borrowed permission. Limits: it draws one default bucket and one width rule per
+actor, so it omits other buckets and textarea rules (for example, Feedback's
+rejected rules in sheets Persona never created); it does not depict
+appearance, which remains playground evidence. Intermediate steps show causal
+order inferred from the arrival order and renderer profile; only final states
+are compared with evidence. Motion animates transitions and is
+limited to the playground bundle.
 
 ### Test runner and browser boundary
 

@@ -34,6 +34,7 @@ export async function assertGalleryGuide(app, url) {
     exact: true
   }).click();
   await waitForApplicationURL(app, `${url}/docs?host=runtime&personaVersion=main-2026-10-16`);
+  await app.getByCSS(".conflict-guide > summary").click();
   await expect.element(app.getByCSS("[data-model-version]")).toHaveTextContent(/main snapshot/);
   await expect.element(app.getByCSS("[data-renderer-summary]")).toHaveTextContent(/all three are DOM renderers/);
   await expect.element(app.getByRole("link", {
@@ -46,28 +47,22 @@ export async function assertGalleryGuide(app, url) {
   }).elements().length, {
     message: "Participant responsibilities belong in the integrated guide, not a duplicate introduction"
   }).toBe(0);
-  for (const title of ["What should I look for?"]) {
-    const disclosure = app.getByCSS(".intro-help").filter({
-      hasText: title
-    });
-    await expect.element(disclosure).not.toHaveAttribute("open");
-    await disclosure.getByCSS("summary").click();
-    await expect.element(disclosure).toHaveAttribute("open");
-    await disclosure.getByCSS("summary").click();
-  }
   await expect.poll(() => app.getByText("Technical provenance and model limits", {
     exact: true
   }).element().parentElement.open).toBe(false);
   const guide = app.getByCSS(".conflict-guide");
   await expect.element(guide).toBeVisible();
-  await expect.element(guide).toHaveAttribute("open");
-  await expect.poll(() => guide.getByRole("article").elements().length).toBe(3);
+  await expect.element(guide).not.toHaveAttribute("open");
+  const actors = app.getByCSS(".participant-responsibilities");
+  await expect.poll(() => actors.getByRole("article").elements().length).toBe(3);
   for (const participant of ["host", "persona", "feedback"]) {
-    await expect.element(guide.getByCSS(`[data-participant="${participant}"]`)).toBeVisible();
+    await expect.element(actors.getByCSS(`[data-participant="${participant}"]`)).toBeVisible();
   }
-  await expect.element(app.getByCSS(".conflict-guide").getByCSS('[data-participant="host"]')).toHaveTextContent(/CSSStyleSheet.prototype.insertRule/);
-  await expect.element(app.getByCSS(".conflict-guide").getByCSS('[data-participant="persona"]')).toHaveTextContent(/not a separate document or a private stylesheet/);
-  await expect.element(app.getByCSS(".conflict-guide").getByCSS('[data-participant="feedback"]')).toHaveTextContent(/module-level renderer/);
+  await expect.element(actors.getByCSS('[data-participant="host"]')).toHaveTextContent(/CSSStyleSheet.prototype.insertRule/);
+  await expect.element(actors.getByCSS('[data-participant="persona"]')).toHaveTextContent(/not a separate document or a private stylesheet/);
+  await expect.element(actors.getByCSS('[data-participant="feedback"]')).toHaveTextContent(/module-level renderer/);
+  await guide.getByCSS(":scope > summary").click();
+  await expect.element(guide).toHaveAttribute("open");
   await expect.element(app.getByCSS(".conflict-guide").getByCSS("[data-renderer-summary]")).toHaveTextContent(/three active participant renderer roles/);
   const walkthrough = guide.getByCSS(".conflict-walkthrough");
   await expect.element(app.getByCSS(".conflict-guide").getByCSS(".conflict-walkthrough")).not.toHaveAttribute("open");
@@ -102,7 +97,7 @@ export async function assertGalleryGuide(app, url) {
   await expect.element(guide.getByLabelText("Rejected rule cache sequence")).toHaveTextContent(/absent from CSS, but present in renderer cache/);
   for (const width of [375, 1400]) {
     await browserPage.viewport(width, 1800);
-    const cards = guide.getByRole("article").elements().map(element => {
+    const cards = actors.getByRole("article").elements().map(element => {
       const {
         left,
         right
@@ -118,7 +113,8 @@ export async function assertGalleryGuide(app, url) {
   await techniques.click();
   await walkthrough.getByCSS(":scope > summary").click();
   await guide.getByCSS(":scope > summary").click();
-  await expect.poll(() => visible(applicationWindow(app).document.querySelector(".conflict-guide").querySelector('[data-participant="host"]'))).toBe(false);
+  await expect.element(guide).not.toHaveAttribute("open");
+  await expect.element(actors.getByCSS('[data-participant="host"]')).toBeVisible();
 }
 export async function assertGalleryActions(app, url) {
   await navigateApplication(app, `${url}/`);

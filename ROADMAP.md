@@ -102,6 +102,10 @@ integration is solely responsible.
 - [x] Separate observed behavior, interpretation, and remaining uncertainty.
 - [x] Describe the combined failure: shared-sheet adoption plus
   destination-based permission, independently of class collision.
+- [x] Narrate the three-actor conflict visually: the documentation explainer
+  steps through five chapters whose final drawings are asserted against live
+  creator, marker, prefix, verdict, presence and cache evidence in both
+  coverage profiles.
 
 **Exit gate:** every conclusion links to a reproducible configuration and an
 assertion. Do not infer isolation from appearance or blame from load order.
