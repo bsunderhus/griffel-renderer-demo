@@ -1,5 +1,6 @@
 import { createDOMRenderer } from "@griffel/core";
 import { loadScript } from "../experiments/assets.js";
+import { sitePath } from "../site.js";
 
 function inspect(element) {
   const style = getComputedStyle(element);
@@ -40,7 +41,7 @@ export async function runExtractionCase(config, mode) {
   if (extracted) {
     link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = "/griffel.css";
+    link.href = sitePath("griffel.css");
     await new Promise((resolve, reject) => {
       link.onload = resolve;
       link.onerror = () => reject(new Error("Unable to load extracted CSS"));

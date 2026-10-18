@@ -41,7 +41,8 @@ on finding a complete solution.
 **Exit gate:** authorized destination and an explicit licensing status, reviewed source-only first
 commit, dependency advisories assessed, clean-install tests passing, and a
 passing hosted CI run.
-No automated publication, deployment, or evidence upload is configured.
+A GitHub Pages workflow deploys the static playground after `npm test`
+passes on `main`; no evidence upload is configured.
 
 ### Verified starting point
 
@@ -81,7 +82,8 @@ The audit offers no complete automatic fix for the direct extraction dependency.
 The pinned baseline is retained for reproducibility; this is a known build-tool
 risk, not a clean audit. Do not process untrusted source/configuration locally
 with this toolchain. CI has read-only repository permissions, does not persist
-checkout credentials, and does not publish artifacts.
+checkout credentials, and does not publish artifacts. The separate Pages
+workflow grants `pages: write` and `id-token: write` only to its deploy job.
 
 ## 2. Evaluate the techniques, not the labels
 

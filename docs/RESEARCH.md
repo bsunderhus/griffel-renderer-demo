@@ -41,7 +41,13 @@ remote forwarding, troubleshooting, and focused test commands.
 On 2026-10-16 a fresh installation and hosted CI passed all 72 baseline cases.
 The [recorded CI run](https://github.com/bsunderhus/griffel-renderer-demo/actions/runs/38928691644)
 is evidence for that baseline, not proof that every future revision passes.
-The source is published; an interactive website has not been deployed.
+The source is published and a static build is deployed with GitHub Pages at
+<https://bsunderhus.github.io/griffel-renderer-demo/> by
+[deploy-pages.yml](../.github/workflows/deploy-pages.yml), gated on `npm test`.
+`src/site.js` derives the base path from the `app.js` URL, and
+`src/legacy-routes.js` mirrors the server's legacy redirects in the client.
+The hosted site is a convenience view of the same experiment, not separate
+evidence, and it cannot set the local server's `no-store` headers.
 Licensing is still undecided. The known build-only dependency advisory and
 publication decisions are documented in the [roadmap](../ROADMAP.md).
 

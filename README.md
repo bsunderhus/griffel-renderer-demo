@@ -13,6 +13,10 @@ This sanitized project is the only active implementation.
 Public source, UI, tests and documentation refer to the participants only as
 host, persona and feedback. A repository naming check guards that convention.
 
+A static build of the playground and documentation is published with GitHub
+Pages at <https://bsunderhus.github.io/griffel-renderer-demo/>. Everything runs in
+the visitor's browser; it has no backend, network submission, or telemetry.
+
 Continuing in a new environment or with an AI assistant? Start with
 [AGENTS.md](AGENTS.md) and the self-contained
 [research handoff](docs/RESEARCH.md). They describe the architecture, measured
@@ -371,7 +375,21 @@ and local-path disclosure when sharing a running preview.
 The [validation workflow](.github/workflows/validate.yml) runs a clean
 `npm ci`, installs Chromium with system dependencies, and runs `npm test` on
 Node.js 24 for pushes and pull requests. It does not publish the playground or
-upload generated evidence. The
+upload generated evidence.
+
+The [Pages workflow](.github/workflows/deploy-pages.yml) repeats that validation
+on pushes to `main` and only then deploys `dist/pages/` with the
+`pages: write` and `id-token: write` permissions scoped to its deploy job.
+`npm run build` generates that artifact from the same allowlist the local
+server uses (`SITE_FILES` in `server.mjs`). Each route becomes an `.html` file,
+so `/docs` keeps its query string. The application derives its base path from
+the `app.js` URL, so the same build runs at `/` locally and at
+`/griffel-renderer-demo/` on Pages. A browser suite
+(`tests/browser/pages.test.mjs`) serves the artifact under a sub-path and checks
+that results match the root build and every link and asset keeps the base.
+Pages cannot send the local server's `302` redirects or `no-store` headers.
+Legacy routes and scenario aliases are normalized in the client instead, and
+hosted assets may be cached. The
 [first hosted validation](https://github.com/bsunderhus/griffel-renderer-demo/actions/runs/38928691644)
 passed all 72 cases on 2026-10-16.
 
@@ -417,10 +435,13 @@ generated classes, adoption or insertion.
   presentation content; it does not own participant behavior.
 - [src/archived/](src/archived/): earlier diagnostics and their integration fixture.
 - [src/browser-entry.jsx](src/browser-entry.jsx): browser globals and route dispatch.
+- [src/site.js](src/site.js) / [src/legacy-routes.js](src/legacy-routes.js): base-path
+  links for sub-path hosting and client-side legacy route normalization.
 - [build/targets.mjs](build/targets.mjs): explicit eight-target build manifest.
 - [build/webpack-config.mjs](build/webpack-config.mjs): extraction and raw-style
   transforms; each target is compiled separately.
-- [build.mjs](build.mjs) / [server.mjs](server.mjs): build execution and loopback serving.
+- [build.mjs](build.mjs) / [server.mjs](server.mjs): build execution, the `dist/pages/`
+  static artifact and loopback serving.
 - [tests/](tests/): policy, architecture, evidence, experiment, gallery and archived checks.
 - [vitest.config.js](vitest.config.js): unit/integration projects and browser-test timeouts.
 - [tests/archived/](tests/archived/): archived diagnostic coverage.

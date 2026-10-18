@@ -10,7 +10,8 @@ import { runCase } from "./archived/mechanisms.jsx";
 import { runExtractionCase } from "./archived/extraction.js";
 import { getThreeActorCases } from "./playground/scenarios.js";
 import { runThreeActorCase } from "./experiments/run.js";
-import { scenarioAliases, scenarioAliasVersions } from "./experiments/scenarios.js";
+import { normalizeLegacyLocation } from "./legacy-routes.js";
+import { siteRoute } from "./site.js";
 import { resolveHostSettings } from "./experiments/configuration.js";
 
 const { createRoot } = ReactDOMClient;
@@ -18,16 +19,12 @@ window.React = React;
 window.ReactDOM = ReactDOM;
 window.ReactDOMClient = ReactDOMClient;
 
-const fragment = location.hash.slice(1);
-if (Object.hasOwn(scenarioAliases, fragment)) {
-  const params = new URLSearchParams(location.search);
-  if (Object.hasOwn(scenarioAliasVersions, fragment)) params.set("personaVersion", scenarioAliasVersions[fragment]);
-  history.replaceState(null, "", `${location.pathname}${params.size ? `?${params}` : ""}#${scenarioAliases[fragment]}`);
-}
+const legacy = normalizeLegacyLocation(location);
+if (legacy) history.replaceState(null, "", legacy);
 
 const caseId = new URLSearchParams(location.search).get("case");
 const scenarioId = new URLSearchParams(location.search).get("scenario");
-const mode = location.pathname.slice(1) || "three-actors";
+const mode = siteRoute(location.pathname) || "three-actors";
 if (!["three-actors", "docs", "extracted", "runtime", "mechanisms"].includes(mode)) throw new Error(`Unknown route: ${mode}`);
 if (scenarioId && mode === "three-actors") {
   const config = getThreeActorCases(resolveHostSettings(location.search).personaVersion).find(item => item.id === scenarioId);

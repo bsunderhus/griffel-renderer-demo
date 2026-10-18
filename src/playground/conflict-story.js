@@ -1,3 +1,5 @@
+import { sitePath } from "../site.js";
+
 // Declarative script for the documentation explainer. Every chapter names the live
 // configuration it summarizes; tests replay that configuration and compare the final
 // visual state with recorded insertion, ownership, and permission evidence.
@@ -162,7 +164,7 @@ export function chapterLink(chapter, search) {
   const params = new URLSearchParams(search);
   params.set("host", chapter.host);
   params.set("personaVersion", chapter.personaVersion);
-  return `/?${params}#${chapter.scenario}`;
+  return sitePath(`?${params}#${chapter.scenario}`);
 }
 
 export function scenarioRunParams(chapter, coverage) {

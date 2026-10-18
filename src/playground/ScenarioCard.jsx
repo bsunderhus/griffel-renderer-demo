@@ -1,9 +1,10 @@
 import React from "react";
 import { describeScenario } from "./describe-scenario.js";
 import { personaRevisions } from "../experiments/scenarios.js";
+import { sitePath } from "../site.js";
 
 export function ScenarioCard({ config, index, hostMode, coverage, personaVersion }) {
-  const url = `/?scenario=${config.id}&host=${hostMode}&coverage=${coverage}&personaVersion=${personaVersion}`;
+  const url = sitePath(`?scenario=${config.id}&host=${hostMode}&coverage=${coverage}&personaVersion=${personaVersion}`);
   const sourceAligned = config.hostContract === "production-extraction";
   const revision = personaRevisions[config.personaRevision === "selected" ? personaVersion : config.personaRevision];
   const loadOrder = ["Host", ...(config.seed ? ["Unrelated style sheet"] : []),

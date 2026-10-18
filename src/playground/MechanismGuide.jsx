@@ -1,5 +1,6 @@
 import React from "react";
 import { personaRevisions } from "../experiments/scenarios.js";
+import { sitePath } from "../site.js";
 
 export function ParticipantResponsibilities() {
   return <div className="participant-responsibilities" aria-label="Participant responsibilities">
@@ -48,12 +49,12 @@ export function MechanismGuide({ hostMode, personaVersion, expanded = false }) {
   const revision = personaRevisions[personaVersion];
   function scenarioLink(id) {
     const params = new URLSearchParams(location.search);
-    return `/${params.size ? `?${params}` : ""}#${id}`;
+    return sitePath(`${params.size ? `?${params}` : ""}#${id}`);
   }
   function versionLink(id, version) {
     const params = new URLSearchParams(location.search);
     params.set("personaVersion", version);
-    return `/?${params}#${id}`;
+    return sitePath(`?${params}#${id}`);
   }
   return <>
     <details className="intro-help conflict-guide" open={expanded}>

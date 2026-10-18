@@ -3,6 +3,7 @@ import { resolveHostSettings } from "../experiments/configuration.js";
 import { ConflictExplainer } from "./ConflictExplainer.jsx";
 import { MechanismGuide, ParticipantResponsibilities } from "./MechanismGuide.jsx";
 import { Navigation } from "./Navigation.jsx";
+import { sitePath } from "../site.js";
 
 export function Documentation() {
   const settings = resolveHostSettings(location.search);
@@ -14,7 +15,7 @@ export function Documentation() {
       <p>A host loads a contact card and a feedback form. Each brings its own styling decisions.
         They meet in one document, where separate renderers can end up writing into the same sheet.
         Follow how those reasonable decisions become an incompatible contract.</p>
-      <a className="text-link" href={`/${location.search}`}>Explore the playground <span aria-hidden="true">→</span></a>
+      <a className="text-link" href={sitePath(location.search)}>Explore the playground <span aria-hidden="true">→</span></a>
     </header>
     <section className="conflict-summary" aria-labelledby="conflict-summary-heading">
       <h2 id="conflict-summary-heading">1. Meet the actors</h2>

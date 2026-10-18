@@ -4,6 +4,7 @@ import { ScenarioCard } from "./ScenarioCard.jsx";
 import { Navigation } from "./Navigation.jsx";
 import { getThreeActorCases } from "./scenarios.js";
 import { resolveHostSettings } from "../experiments/configuration.js";
+import { sitePath } from "../site.js";
 
 export function ThreeActorGallery() {
   const settings = resolveHostSettings(location.search);
@@ -15,7 +16,7 @@ export function ThreeActorGallery() {
   function navigate(changes) {
     const next = new URLSearchParams(location.search);
     for (const [key, value] of Object.entries(changes)) next.set(key, value);
-    location.assign(`/?${next}`);
+    location.assign(sitePath(`?${next}`));
   }
   return <main>
     <Navigation mode="three-actors" />
@@ -24,7 +25,7 @@ export function ThreeActorGallery() {
       <h1>Explore Griffel style sharing</h1>
       <p>Run local examples of independently bundled integrations sharing browser stylesheets.
         Compare insertion evidence, sheet ownership, and appearance without changing the experiment.</p>
-      <a className="text-link" href={`/docs${location.search}`}>Read the documentation <span aria-hidden="true">→</span></a>
+      <a className="text-link" href={sitePath(`docs${location.search}`)}>Read the documentation <span aria-hidden="true">→</span></a>
     </header>
     <p className="note">Primary scenarios use inspected styling contracts: the host owns its
       production/extraction gate, Feedback uses its inspected renderer profile, and Persona

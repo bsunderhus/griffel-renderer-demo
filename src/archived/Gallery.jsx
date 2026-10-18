@@ -2,6 +2,7 @@ import React from "react";
 import { Navigation } from "../playground/Navigation.jsx";
 import { cases } from "./mechanism-cases.js";
 import { extractionCases } from "./extraction-cases.js";
+import { sitePath } from "../site.js";
 
 export function Gallery({ mode }) {
   const mechanisms = mode === "mechanisms";
@@ -18,13 +19,13 @@ export function Gallery({ mode }) {
     {mechanisms ?
     <div className="grid">{cases.map(config => <section className="card" key={config.id}>
       <h2>{config.title}</h2><p><strong>The story: </strong>{config.description}</p>
-      <iframe title={config.title} src={`/mechanisms?case=${config.id}`} />
+      <iframe title={config.title} src={sitePath(`mechanisms?case=${config.id}`)} />
     </section>)}</div> :
     <section id="comparison-section">
     <h2 className="section-title">{mode === "extracted" ? "Extracted" : "Non-extracted"} host + runtime integration</h2>
     <p>Both pages use the same host source, integration bundle, scenarios, and presentation.
       Only the host build changes: {mode === "extracted" ?
-        <>Griffel extracts the host styles into a <a href="/griffel.css">generated stylesheet</a>.</> :
+        <>Griffel extracts the host styles into a <a href={sitePath("griffel.css")}>generated stylesheet</a>.</> :
         <>the host inserts its styles at runtime.</>}
       {" "}The simulated filter is enabled per scenario on both pages, not automatically by extraction.
       Different outcomes are evidence, not differences in the fixture.</p>
@@ -36,7 +37,7 @@ export function Gallery({ mode }) {
       Blocked runtime insertion does not necessarily remove styles already supplied by the host.</p>
     <div className="grid">{extractionCases.map(config => <section className="card" key={config.id}>
       <h2>{config.title}</h2><p><strong>The story: </strong>{config.description}</p>
-      <iframe className="extraction-frame" title={config.title} src={`/${mode}?scenario=${config.id}`} />
+      <iframe className="extraction-frame" title={config.title} src={sitePath(`${mode}?scenario=${config.id}`)} />
     </section>)}</div>
     </section>}
   </main>;
