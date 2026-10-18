@@ -5,6 +5,8 @@ const script = typeof document !== "undefined" ? document.currentScript : null;
 
 export const SITE_BASE = script?.src ? new URL(".", script.src).pathname : "/";
 
+export const REPOSITORY_URL = "https://github.com/bsunderhus/griffel-renderer-demo";
+
 export function sitePath(path = "") {
   return SITE_BASE + path.replace(/^\//, "");
 }

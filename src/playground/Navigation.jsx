@@ -1,5 +1,5 @@
 import React from "react";
-import { sitePath } from "../site.js";
+import { REPOSITORY_URL, sitePath } from "../site.js";
 
 export function Navigation({ mode }) {
   const settings = location.search;
@@ -10,5 +10,8 @@ export function Navigation({ mode }) {
       <a href={sitePath(`docs${settings}`)} aria-current={mode === "docs" ? "page" : undefined}>Documentation</a>
     </nav>
     {!["three-actors", "docs"].includes(mode) && <span className="nav-context">Archived diagnostic: {mode}</span>}
+    <a className="site-source" href={REPOSITORY_URL} target="_blank" rel="noopener noreferrer">
+      Source on GitHub <span aria-hidden="true">↗</span>
+    </a>
   </header>;
 }

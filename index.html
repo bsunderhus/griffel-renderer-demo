@@ -33,6 +33,11 @@
       .site-header nav a:hover, .site-header nav a:focus-visible { color: #173a72; background: #f0f4fa; }
       .site-header nav a[aria-current="page"] { color: #173a72; background: #eaf1fc; font-weight: 650; }
       .nav-context { margin-left: auto; color: #6b778b; font-size: 13px; }
+      .site-source { margin-left: auto; padding: 8px 12px; border: 1px solid #d9e0eb; border-radius: 8px; color: #53637b; font-size: 14px; text-decoration: none; white-space: nowrap; }
+      .nav-context + .site-source { margin-left: 0; }
+      .site-source:hover, .site-source:focus-visible { color: #173a72; background: #f0f4fa; }
+      .hero-links { display: flex; flex-wrap: wrap; column-gap: 28px; }
+      .hero-links .text-link { display: inline-block; }
       .page-hero { margin: 0 0 22px; padding: clamp(24px, 5vw, 48px); border: 1px solid #dce4f0; border-radius: 18px; background: linear-gradient(125deg, #fff 28%, #edf3fc 100%); box-shadow: 0 8px 26px #1e33500a; }
       .page-hero p:not(.eyebrow) { max-width: 74ch; margin: 14px 0 0; color: #52627a; font-size: 16px; }
       .eyebrow { margin: 0 0 10px; color: #315d9c; font-size: 12px; font-weight: 750; letter-spacing: .11em; text-transform: uppercase; }
@@ -147,7 +152,7 @@
         .actor-grid, .actor-grid:has(> section[hidden]) { grid-template-columns: 1fr; }
         .walkthrough-frame { height: 1800px; }
         .site-header { gap: 12px; flex-wrap: wrap; padding: 12px 14px; }
-        .nav-context { margin-left: 0; }
+        .nav-context, .site-source { margin-left: 0; }
       }
       @media (max-width: 500px) { .grid { grid-template-columns: 1fr; } body { padding: 12px; } .site-header nav { width: 100%; } }
     </style>

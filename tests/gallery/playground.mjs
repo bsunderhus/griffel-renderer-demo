@@ -18,6 +18,11 @@ export async function assertGalleryGuide(app, url) {
     name: "Explore the playground",
     exact: false
   })).toHaveAttribute("href", "/");
+  for (const name of ["Source on GitHub", "Read the source, tests and research notes on GitHub"]) {
+    const repository = app.getByRole("link", { name, exact: false });
+    await expect.element(repository).toHaveAttribute("href", "https://github.com/bsunderhus/griffel-renderer-demo");
+    await expect.element(repository).toHaveAttribute("rel", "noopener noreferrer");
+  }
   await app.getByRole("link", {
     name: "Playground",
     exact: true

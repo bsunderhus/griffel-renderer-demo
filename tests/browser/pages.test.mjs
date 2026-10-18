@@ -23,8 +23,8 @@ test("Pages navigation keeps the base for the playground and documentation", asy
   const app = await openApplication({ signal });
   await navigateApplication(app, `${base}docs?coverage=shared`);
   const document = applicationWindow(app).document;
-  const links = Array.from(document.querySelectorAll("a[href]"), link => new URL(link.href).pathname)
-    .filter(pathname => !pathname.startsWith("http"));
+  const links = Array.from(document.querySelectorAll("a[href]"), link => new URL(link.href))
+    .filter(url => url.origin === location.origin).map(url => url.pathname);
   expect(links.length).toBeGreaterThan(0);
   expect(links.filter(pathname => !pathname.startsWith(base))).toEqual([]);
   await navigateApplication(app, base);
