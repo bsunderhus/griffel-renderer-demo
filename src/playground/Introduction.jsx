@@ -2,7 +2,7 @@ import React from "react";
 
 export function Introduction() {
   return <>
-    <h1>Versioned Griffel integrations: insertion and shared sheets</h1>
+    <h2>Versioned Griffel integrations: insertion and shared sheets</h2>
     <p>What happens when an application and two integrations add styles to the same page?
       The main examples compare <strong>Persona 1.20260927.13.2</strong>, pinned by the inspected
       consumer bootstrapper, with <strong>Persona main snapshot (2026-10-16)</strong>, which adds

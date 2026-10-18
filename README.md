@@ -29,9 +29,11 @@ npm run build
 npm start
 ```
 
-Open http://127.0.0.1:4173. The server binds to loopback. Forward that port
-when working remotely. No credentials, private registry, backend, or SDK are
-required. After source changes, rebuild and refresh: there is no watcher.
+Open http://127.0.0.1:4173 for the playground or
+http://127.0.0.1:4173/docs for the research guide. The server binds to loopback.
+Forward that port when working remotely. No credentials, private registry,
+backend, or SDK are required. After source changes, rebuild and refresh: there
+is no watcher.
 
 To use another port:
 
@@ -70,10 +72,10 @@ provide private style sheets.
 
 ### How the participants work and conflict
 
-The gallery combines responsibilities and conflict analysis in one section:
-**How Host, Persona and Feedback work and interfere**. The section is collapsed
-by default; its overview, detailed rule journey and technique comparisons expand
-in place.
+The separate [documentation page](/docs) explains **How Host, Persona and
+Feedback work and interfere**. Its participant overview is open on arrival; the
+step-by-step rule journey and technique comparisons expand on demand. The
+playground at `/` stays focused on settings, live examples, and evidence.
 
 - **Host** builds its own extracted CSS, supplies a no-op host renderer
   in extracted mode and installs a document-wide native-insertion filter.
@@ -99,7 +101,7 @@ host-prefix exception, cache state, native parser rejection and host collisions.
 
 ## Playground
 
-The single gallery at `/` keeps five primary scenarios. **Persona version** in
+The playground at `/` keeps five primary scenarios. **Persona version** in
 Advanced host control reruns those same scenarios with either renderer revision,
 without adding duplicate cards:
 

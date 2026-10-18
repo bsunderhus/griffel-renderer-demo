@@ -20,10 +20,10 @@ test.for(["extracted", "runtime"])("%s: eight archived extraction cases, layout,
     return frames.length === 8 && frames.every(frame => frame.contentWindow.extractionResult || frame.contentWindow.extractionError);
   }).toBeTruthy();
   await expect.poll(() => app.getByRole("link", {
-    name: "Integration playground",
+    name: "Playground",
     exact: true
   }).element().getAttribute("href")).toBe("/");
-  await expect.element(app.getByCSS("nav")).toHaveTextContent(new RegExp(`Archived diagnostic: ${mode}`));
+  await expect.element(app.getByCSS(".site-header")).toHaveTextContent(new RegExp(`Archived diagnostic: ${mode}`));
   const rows = Array.from(applicationWindow(app).document.querySelectorAll(".grid > .card")).map(card => {
     const rect = card.getBoundingClientRect();
     return {
@@ -174,13 +174,13 @@ test("eight archived mechanism cases and navigation back to the gallery", async 
     if (config.retry) expect(result.beforeRetry).toBe(result.rules);
   }
   expect(mechanisms.find(item => item.id === "salt").className).not.toBe(mechanisms.find(item => item.id === "blocked").className);
-  // Archived diagnostics link back to the single gallery.
+  // Archived diagnostics link back to the playground.
   await app.getByRole("link", {
-    name: "Integration playground",
+    name: "Playground",
     exact: true
   }).click();
   await waitForApplicationURL(app, `${url}/`);
-  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll("nav a")).map(link => link.getAttribute("href"))).toStrictEqual(["/"]);
+  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll("nav a")).map(link => link.getAttribute("href"))).toStrictEqual(["/", "/docs"]);
   await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll(".walkthrough")).length).toBe(13);
   task.meta.evidence = {
     kind: "archived-mechanism",

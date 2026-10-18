@@ -1,15 +1,19 @@
 import React from "react";
 import { personaRevisions } from "../experiments/scenarios.js";
 
-export function MechanismGuide({ hostMode, personaVersion }) {
+export function MechanismGuide({ hostMode, personaVersion, expanded = false }) {
   const revision = personaRevisions[personaVersion];
+  function scenarioLink(id) {
+    const params = new URLSearchParams(location.search);
+    return `/${params.size ? `?${params}` : ""}#${id}`;
+  }
   function versionLink(id, version) {
     const params = new URLSearchParams(location.search);
     params.set("personaVersion", version);
     return `/?${params}#${id}`;
   }
   return <>
-    <details className="intro-help conflict-guide">
+    <details className="intro-help conflict-guide" open={expanded}>
       <summary>How Host, Persona and Feedback work and interfere</summary>
       <p>The <strong>host</strong> loads two independently bundled integrations:
         <strong> persona</strong>, a contact card, and <strong>feedback</strong>, a form.
@@ -158,11 +162,11 @@ Existing Feedback bucket:
             <caption>Width-rule outcomes with production extraction enabled</caption>
             <thead><tr><th scope="col">Existing scenario</th><th scope="col">Host filter</th><th scope="col">Feedback rule</th><th scope="col">Persona 1.20260927.13.2 rule</th><th scope="col">Persona main-snapshot rule</th></tr></thead>
             <tbody>
-              <tr><th scope="row"><a href="#persona-alone">Persona alone</a></th><td>Sheet-only</td><td>Not mounted</td><td>Inserts into approved sheet</td><td>Inserts into approved sheet</td></tr>
-              <tr><th scope="row"><a href="#unmarked-d-first">Unmarked seed first</a></th><td>Sheet-only</td><td>Not mounted</td><td>Rejected in adopted sheet</td><td>Inserts into approved destination</td></tr>
-              <tr><th scope="row"><a href="#master-rejects-marker">Feedback first</a></th><td>Sheet-only (inspected host main)</td><td>Rejected</td><td>Rejected in adopted sheet</td><td>Inserts into approved destination</td></tr>
-              <tr><th scope="row"><a href="#raw-marked-first">Feedback first</a></th><td>Prefix exception (unmerged)</td><td>Inserts by prefix</td><td>Rejected in adopted sheet</td><td>Inserts into approved destination</td></tr>
-              <tr><th scope="row"><a href="#persona-first-raw">Persona first</a></th><td>Prefix exception (unmerged)</td><td>Inserts; shares approved sheets</td><td>Inserts</td><td>Inserts</td></tr>
+              <tr><th scope="row"><a href={scenarioLink("persona-alone")}>Persona alone</a></th><td>Sheet-only</td><td>Not mounted</td><td>Inserts into approved sheet</td><td>Inserts into approved sheet</td></tr>
+              <tr><th scope="row"><a href={scenarioLink("unmarked-d-first")}>Unmarked seed first</a></th><td>Sheet-only</td><td>Not mounted</td><td>Rejected in adopted sheet</td><td>Inserts into approved destination</td></tr>
+              <tr><th scope="row"><a href={scenarioLink("master-rejects-marker")}>Feedback first</a></th><td>Sheet-only (inspected host main)</td><td>Rejected</td><td>Rejected in adopted sheet</td><td>Inserts into approved destination</td></tr>
+              <tr><th scope="row"><a href={scenarioLink("raw-marked-first")}>Feedback first</a></th><td>Prefix exception (unmerged)</td><td>Inserts by prefix</td><td>Rejected in adopted sheet</td><td>Inserts into approved destination</td></tr>
+              <tr><th scope="row"><a href={scenarioLink("persona-first-raw")}>Persona first</a></th><td>Prefix exception (unmerged)</td><td>Inserts; shares approved sheets</td><td>Inserts</td><td>Inserts</td></tr>
             </tbody>
           </table>
         </div>
@@ -211,33 +215,33 @@ Existing Feedback bucket:
                 <tr><th scope="row">Container selectors</th><td>Limit matches and add selector specificity.</td>
                   <td>Elements must remain inside the scope, and insertion must be allowed. <a href={versionLink("unmarked-d-first", "1.20260927.13.2")}>Scoped but rejected</a> is still missing CSS.</td></tr>
                 <tr><th scope="row">Sheet marker</th><td>Permits a destination under the host patch.</td>
-                  <td>It does not identify its writer. <a href="#persona-first">Unprefixed borrowed-permission control</a> separates permission from shared storage.</td></tr>
+                  <td>It does not identify its writer. <a href={scenarioLink("persona-first")}>Unprefixed borrowed-permission control</a> separates permission from shared storage.</td></tr>
                 <tr><th scope="row">Class salt</th><td>Changes runtime-generated names.</td>
-                  <td><a href="#precompiled-salted">Precompiled classes</a> stay fixed. <a href="#host-collision-salted">Salted collision control</a> checks matching independently.</td></tr>
+                  <td><a href={scenarioLink("precompiled-salted")}>Precompiled classes</a> stay fixed. <a href={scenarioLink("host-collision-salted")}>Salted collision control</a> checks matching independently.</td></tr>
                 <tr><th scope="row">Rule prefix</th><td>Identifies a rule to a compatible host filter.</td>
-                  <td>Compare <a href="#raw-marked-first">the proposed exception</a> with <a href="#master-rejects-marker">sheet-only rejection</a>.</td></tr>
+                  <td>Compare <a href={scenarioLink("raw-marked-first")}>the proposed exception</a> with <a href={scenarioLink("master-rejects-marker")}>sheet-only rejection</a>.</td></tr>
               </tbody>
             </table>
             <p><strong>None prevents sheet adoption.</strong> The
               {" "}<a href={versionLink("raw-marked-first", "main-2026-10-16")}>main marker guard</a>
               {" "}restricts the handles Persona uses, but accepts another owner's approved sheet.
-              The unmerged <a href="#owner-guard">owner guard</a> adds owner filtering and a
+              The unmerged <a href={scenarioLink("owner-guard")}>owner guard</a> adds owner filtering and a
               different renderer/cache lifetime, not a proven deployment or complete isolation.</p>
             <table>
               <caption>Best paired reproductions: change one mechanism at a time</caption>
               <thead><tr><th scope="col">Compare</th><th scope="col">Isolated question</th><th scope="col">Read the evidence</th></tr></thead>
               <tbody>
-                <tr><td><a href="#persona-alone">Persona alone</a> / <a href="#unmarked-d-first">seed first</a></td>
+                <tr><td><a href={scenarioLink("persona-alone")}>Persona alone</a> / <a href={scenarioLink("unmarked-d-first")}>seed first</a></td>
                   <td>What does an unmarked destination change?</td><td>The release loses atomic rules; main rejects the incompatible handle. Read the seed's outcome separately.</td></tr>
                 <tr><td><a href={versionLink("unmarked-d-first", "1.20260927.13.2")}>Pinned release</a> / <a href={versionLink("unmarked-d-first", "main-2026-10-16")}>main snapshot</a></td>
                   <td>What does the guard change?</td><td>Same scoped rule and host gate; only Persona's selected revision changes.</td></tr>
-                <tr><td><a href="#feedback-first">Filter on</a> / <a href="#no-policy">filter off</a></td>
+                <tr><td><a href={scenarioLink("feedback-first")}>Filter on</a> / <a href={scenarioLink("no-policy")}>filter off</a></td>
                   <td>Is adoption sufficient to lose rules?</td><td>Adoption persists; only filtering rejects insertion. Check collision evidence independently.</td></tr>
-                <tr><td><a href="#raw-marked-first">Feedback first</a> / <a href="#persona-first-raw">Persona first</a></td>
+                <tr><td><a href={scenarioLink("raw-marked-first")}>Feedback first</a> / <a href={scenarioLink("persona-first-raw")}>Persona first</a></td>
                   <td>What changes with arrival order?</td><td>The release loses its width rule only in the first order. Main inserts in both; reverse order can share approved sheets in either revision.</td></tr>
-                <tr><td><a href={versionLink("raw-marked-first", "main-2026-10-16")}>Main snapshot</a> / <a href="#owner-guard">owner proposal</a></td>
+                <tr><td><a href={versionLink("raw-marked-first", "main-2026-10-16")}>Main snapshot</a> / <a href={scenarioLink("owner-guard")}>owner proposal</a></td>
                   <td>What does owner filtering add?</td><td>Approval is weaker than owner identity; lifecycle probes also distinguish cache reuse.</td></tr>
-                <tr><td><a href="#host-collision">Unsalted</a> / <a href="#host-collision-salted">salted</a></td>
+                <tr><td><a href={scenarioLink("host-collision")}>Unsalted</a> / <a href={scenarioLink("host-collision-salted")}>salted</a></td>
                   <td>Can a foreign selector alter the host?</td><td>Compare selector matches and the host declaration trace, not just sheet membership.</td></tr>
               </tbody>
             </table>

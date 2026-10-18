@@ -100,7 +100,8 @@ async function waitForApplicationReady(app) {
       return Boolean(window.threeActorResult);
     }).toBe(true);
   } else {
-    const selector = current.pathname === "/" ? ".walkthrough iframe" : ".grid > .card iframe";
+    const selector = current.pathname === "/" ? ".walkthrough iframe" :
+      current.pathname === "/docs" ? ".conflict-guide" : ".grid > .card iframe";
     await expect.poll(() => applicationWindow(app).document.querySelectorAll(selector).length).toBeGreaterThan(0);
   }
 }

@@ -32,7 +32,8 @@ npm test
 npm start
 ```
 
-Open http://127.0.0.1:4173. Linux environments without browser libraries may
+Open http://127.0.0.1:4173 for the playground or
+http://127.0.0.1:4173/docs for the research guide. Linux environments without browser libraries may
 need `npx playwright install --with-deps chromium`. No credentials or backend
 are needed to run the experiments. See [README](../README.md) for ports,
 remote forwarding, troubleshooting, and focused test commands.
@@ -49,7 +50,8 @@ publication decisions are documented in the [roadmap](../ROADMAP.md).
 | Surface | Entry point | Responsibility |
 | --- | --- | --- |
 | Browser entry | [browser-entry.jsx](../src/browser-entry.jsx) | React globals and route dispatch only. |
-| Gallery | [playground/](../src/playground/) | Five primary examples with one release/main version control, eight collapsed proposal/diagnostic controls, URL settings. |
+| Playground | [playground/](../src/playground/) | Five primary examples with one release/main version control, eight collapsed proposal/diagnostic controls, URL settings. |
+| Documentation | [Documentation.jsx](../src/playground/Documentation.jsx), [MechanismGuide.jsx](../src/playground/MechanismGuide.jsx) | Participant responsibilities, rule walkthrough, technique guarantees, and links back to live examples at `/`. |
 | Configuration | [scenarios.js](../src/experiments/scenarios.js), [configuration.js](../src/experiments/configuration.js) | Runtime inputs and validation, separate from gallery prose. |
 | Orchestration | [run.js](../src/experiments/run.js) | Host baseline, optional seed, policy, ordered mounts and evidence lifecycle. |
 | Bundle adapters | [participants.js](../src/experiments/participants.js) | Script/global boundary; no participant UI or renderer construction. |
@@ -253,7 +255,7 @@ explanation and desktop/mobile responsibility layout.
 
 ## Source-aligned contract matrix
 
-The single gallery at `/` has five primary cases and eight
+The playground at `/` has five primary cases and eight
 collapsed explanatory controls, all defined in one
 [runtime registry](../src/experiments/scenarios.js). Every primary case uses the
 production/extraction host contract and the inspected form profile (when mounted).

@@ -112,8 +112,8 @@ test("unified gallery, host selection, and legacy redirects", async ({
   });
   const url = location.origin;
   await navigateApplication(app, `${url}/?coverage=minimal`);
-  await expect.poll(() => applicationWindow(app).document.querySelector('nav a[aria-current="page"]').getAttribute("href")).toBe("/");
-  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll("nav a")).length).toBe(1);
+  await expect.poll(() => applicationWindow(app).document.querySelector('nav a[aria-current="page"]').getAttribute("href")).toBe("/?coverage=minimal");
+  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll("nav a")).length).toBe(2);
   await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-scenario-contract="source-aligned"]')).length).toBe(sourceExperiments.length);
   await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-scenario-contract="diagnostic"]')).length).toBe(7);
   await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-scenario-kind="main"]')).length).toBe(0);

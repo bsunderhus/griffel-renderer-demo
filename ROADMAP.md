@@ -139,7 +139,7 @@ See the [module contracts](docs/RESEARCH.md#module-contracts-and-dependency-dire
 before extending the lab. This structural refactor does not enable a solution
 experiment or change the baseline failure mechanisms.
 
-One gallery at `/` now has five primary scenarios and eight
+The playground at `/` now has five primary scenarios and eight
 collapsed explanatory controls. Primary cases model participant-owned
 production/extraction gating, a no-op extracted host renderer, document-lifetime
 filtering and the fixed inspected form profile. Five paired setups compare

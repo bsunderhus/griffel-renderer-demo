@@ -5,7 +5,42 @@ import { threeActorCases, getThreeActorCases } from "../../src/playground/scenar
 import { personaRevisions } from "../../src/experiments/scenarios.js";
 import { assertPresentedEvidence } from "../evidence/assert-presented.mjs";
 export async function assertGalleryGuide(app, url) {
-  await navigateApplication(app, `${url}/`);
+  await navigateApplication(app, `${url}/docs`);
+  await expect.element(app.getByRole("link", {
+    name: "Documentation",
+    exact: true
+  })).toHaveAttribute("aria-current", "page");
+  await expect.element(app.getByRole("heading", {
+    name: "How independent Griffel integrations interact",
+    exact: true
+  })).toBeVisible();
+  await expect.element(app.getByRole("link", {
+    name: "Explore the playground",
+    exact: false
+  })).toHaveAttribute("href", "/");
+  await app.getByRole("link", {
+    name: "Playground",
+    exact: true
+  }).click();
+  await expect.element(app.getByRole("link", {
+    name: "Playground",
+    exact: true
+  })).toHaveAttribute("aria-current", "page");
+  await expect.poll(() => app.getByCSS(".conflict-guide").elements().length).toBe(0);
+  const configuredGallery = `${url}/?host=runtime&personaVersion=main-2026-10-16`;
+  await navigateApplication(app, configuredGallery);
+  await app.getByRole("link", {
+    name: "Documentation",
+    exact: true
+  }).click();
+  await waitForApplicationURL(app, `${url}/docs?host=runtime&personaVersion=main-2026-10-16`);
+  await expect.element(app.getByCSS("[data-model-version]")).toHaveTextContent(/main snapshot/);
+  await expect.element(app.getByCSS("[data-renderer-summary]")).toHaveTextContent(/all three are DOM renderers/);
+  await expect.element(app.getByRole("link", {
+    name: "Playground",
+    exact: true
+  })).toHaveAttribute("href", "/?host=runtime&personaVersion=main-2026-10-16");
+  await navigateApplication(app, `${url}/docs`);
   await expect.poll(() => app.getByText("Who is on the page?", {
     exact: true
   }).elements().length, {
@@ -25,9 +60,6 @@ export async function assertGalleryGuide(app, url) {
   }).element().parentElement.open).toBe(false);
   const guide = app.getByCSS(".conflict-guide");
   await expect.element(guide).toBeVisible();
-  await expect.element(guide).not.toHaveAttribute("open");
-  await expect.element(guide.getByCSS('[data-participant="host"]')).not.toBeVisible();
-  await guide.getByCSS(":scope > summary").click();
   await expect.element(guide).toHaveAttribute("open");
   await expect.poll(() => guide.getByRole("article").elements().length).toBe(3);
   for (const participant of ["host", "persona", "feedback"]) {
@@ -62,7 +94,7 @@ export async function assertGalleryGuide(app, url) {
     name: "Width-rule outcomes with production extraction enabled"
   }).getByRole("row").elements().length).toBe(6);
   for (const id of ["unmarked-d-first", "owner-guard", "persona-first", "precompiled-salted", "host-collision-salted", "raw-marked-first", "master-rejects-marker", "no-policy"]) {
-    await expect.poll(() => Array.from(applicationWindow(app).document.querySelector(".conflict-guide").querySelectorAll(`a[href="#${id}"]`)).length, {
+    await expect.poll(() => Array.from(applicationWindow(app).document.querySelector(".conflict-guide").querySelectorAll(`a[href*="#${id}"]`)).length, {
       message: `Guide links ${id} to a live reproduction`
     }).toBeTruthy();
   }
@@ -222,8 +254,6 @@ export async function prepareGallery(app, url, {
   const versionCases = getThreeActorCases(personaVersion);
   await browserPage.viewport(1400, 1800);
   await navigateApplication(app, `${url}/?host=${hostMode}&coverage=${coverage}&personaVersion=${personaVersion}`);
-  await expect.element(app.getByCSS("[data-model-version]")).toHaveTextContent(new RegExp(personaRevisions[personaVersion].label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
-  await expect.element(app.getByCSS("[data-renderer-summary]")).toHaveTextContent(hostMode === "extracted" ? /no-op; the other two are DOM renderers/ : /all three are DOM renderers/);
   await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll("iframe")).every(frame => new URL(frame.src).searchParams.get("personaVersion") === personaVersion)).toBe(true);
   const hiddenControl = applicationFrame(app, "#persona-first iframe");
   await waitForElement(() => applicationWindow(hiddenControl).document.querySelector("#actor-evidence"), {

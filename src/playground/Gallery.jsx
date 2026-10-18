@@ -1,6 +1,4 @@
 import React from "react";
-import { Introduction } from "./Introduction.jsx";
-import { MechanismGuide } from "./MechanismGuide.jsx";
 import { HostSettings } from "./HostSettings.jsx";
 import { ScenarioCard } from "./ScenarioCard.jsx";
 import { Navigation } from "./Navigation.jsx";
@@ -21,13 +19,18 @@ export function ThreeActorGallery() {
   }
   return <main>
     <Navigation mode="three-actors" />
+    <header className="page-hero playground-hero">
+      <p className="eyebrow">Interactive research playground</p>
+      <h1>Explore Griffel style sharing</h1>
+      <p>Run local examples of independently bundled integrations sharing browser stylesheets.
+        Compare insertion evidence, sheet ownership, and appearance without changing the experiment.</p>
+      <a className="text-link" href={`/docs${location.search}`}>Read the documentation <span aria-hidden="true">→</span></a>
+    </header>
     <p className="note">Primary scenarios use inspected styling contracts: the host owns its
       production/extraction gate, Feedback uses its inspected renderer profile, and Persona
       compares the pinned release with a guarded upstream main snapshot. The prefix-aware host
       filter is an unmerged proposal, not inspected host main. These are sanitized mechanisms,
       not a full SDK or proof of an incident-time deployment.</p>
-    <Introduction />
-    <MechanismGuide hostMode={settings.hostMode} personaVersion={settings.personaVersion} />
     <HostSettings {...settings} contract="production-extraction" navigate={navigate} />
     <section aria-label="Primary integration examples">
       <h2 className="section-title">Primary integration examples</h2>

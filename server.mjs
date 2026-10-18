@@ -20,6 +20,7 @@ export async function serveReproRequest(request, response) {
   }
   const files = {
     "/": ["index.html", "text/html"],
+    "/docs": ["index.html", "text/html"],
     "/extracted": ["index.html", "text/html"],
     "/runtime": ["index.html", "text/html"],
     "/mechanisms": ["index.html", "text/html"],

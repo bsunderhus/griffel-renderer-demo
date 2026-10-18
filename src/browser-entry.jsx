@@ -2,6 +2,7 @@ import React from "react";
 import * as ReactDOMClient from "react-dom/client";
 import * as ReactDOM from "react-dom";
 import { ThreeActorGallery } from "./playground/Gallery.jsx";
+import { Documentation } from "./playground/Documentation.jsx";
 import { Gallery } from "./archived/Gallery.jsx";
 import { cases } from "./archived/mechanism-cases.js";
 import { extractionCases } from "./archived/extraction-cases.js";
@@ -27,7 +28,7 @@ if (Object.hasOwn(scenarioAliases, fragment)) {
 const caseId = new URLSearchParams(location.search).get("case");
 const scenarioId = new URLSearchParams(location.search).get("scenario");
 const mode = location.pathname.slice(1) || "three-actors";
-if (!["three-actors", "extracted", "runtime", "mechanisms"].includes(mode)) throw new Error(`Unknown route: ${mode}`);
+if (!["three-actors", "docs", "extracted", "runtime", "mechanisms"].includes(mode)) throw new Error(`Unknown route: ${mode}`);
 if (scenarioId && mode === "three-actors") {
   const config = getThreeActorCases(resolveHostSettings(location.search).personaVersion).find(item => item.id === scenarioId);
   if (!config) throw new Error(`Unknown three-actor case: ${scenarioId}`);
@@ -38,6 +39,9 @@ if (scenarioId && mode === "three-actors") {
   });
 } else if (mode === "three-actors") {
   createRoot(document.getElementById("root")).render(<ThreeActorGallery />);
+} else if (mode === "docs") {
+  document.title = "Documentation | Griffel integration lab";
+  createRoot(document.getElementById("root")).render(<Documentation />);
 } else if (scenarioId && mode !== "mechanisms") {
   const config = extractionCases.find(item => item.id === scenarioId);
   if (!config) throw new Error(`Unknown scenario: ${scenarioId}`);

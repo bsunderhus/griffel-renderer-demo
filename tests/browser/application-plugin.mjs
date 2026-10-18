@@ -25,7 +25,7 @@ export function applicationPlugin() {
           response.writeHead(200, { "Content-Type": "text/javascript" }).end(instrumentation);
           return;
         }
-        const htmlRoute = ["/", "/extracted", "/runtime", "/mechanisms"].includes(url.pathname);
+        const htmlRoute = ["/", "/docs", "/extracted", "/runtime", "/mechanisms"].includes(url.pathname);
         if (htmlRoute && !Object.hasOwn(scenarioAliases, url.searchParams.get("scenario"))) {
           response.writeHead(200, { "Content-Type": "text/html", "Cache-Control": "no-store" }).end(html);
         } else if (["/source", "/three-actors"].includes(url.pathname) || htmlRoute ||
