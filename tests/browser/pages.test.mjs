@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { applicationWindow, navigateApplication, openApplication, waitForApplicationURL } from "./application.mjs";
+import { applicationWindow, navigateApplication, openApplication } from "./application.mjs";
 
 // The GitHub Pages artifact is served under a sub-path. These checks load dist/pages
 // through a Pages-like static server to catch root-relative links and assets.
@@ -34,19 +34,9 @@ test("Pages navigation keeps the base for the playground and documentation", asy
   }
 });
 
-test("Pages resolves legacy routes and aliases without server redirects", async ({ signal }) => {
-  const app = await openApplication({ signal });
-  const origin = location.origin;
-  await navigateApplication(app, `${base}source?coverage=minimal`);
-  await waitForApplicationURL(app, `${origin}${base}?coverage=minimal`);
-  await navigateApplication(app, `${base}?scenario=marker-guard&coverage=minimal`);
-  await waitForApplicationURL(app,
-    `${origin}${base}?scenario=raw-marked-first&coverage=minimal&personaVersion=main-2026-10-16&hostPolicy=feedback-exception`);
-  expect(applicationWindow(app).threeActorResult.id).toBe("raw-marked-first");
-});
-
-test("Pages omits the retired diagnostic routes and bundle", async () => {
-  for (const route of ["extracted", "runtime", "mechanisms", "integration.js", "feedback-standard.js"]) {
+test("Pages omits retired routes, compatibility pages and bundles", async () => {
+  for (const route of ["source", "source.html", "three-actors", "three-actors.html",
+    "extracted", "runtime", "mechanisms", "integration.js", "feedback-standard.js"]) {
     expect((await fetch(`${base}${route}`)).status).toBe(404);
   }
 });

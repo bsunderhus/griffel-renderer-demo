@@ -178,15 +178,15 @@ permissions. No research-evidence upload is configured.
 
 The same artifact runs at `/` locally and `/griffel-renderer-demo/` on Pages.
 Routes become `.html` files; the app derives its base path from `app.js`.
-Pages cannot supply the local server's redirects or `no-store` headers:
-compatibility normalization runs in the client, and hosted assets may be cached.
+Pages cannot supply the local server's `no-store` headers; hosted assets may be cached.
 [Pages tests](tests/browser/pages.test.mjs) check sub-path assets, navigation,
 and result parity.
 
-`/source`, `/three-actors`, and aliases for retained schedules remain compatible.
-Retired counterfactual IDs are not aliases for superficially similar baselines.
-The retired `/extracted`, `/runtime`, `/mechanisms`, `/integration.js`, and
-`/feedback-standard.js` return 404. The
+Only `/` and `/docs` are application routes. The old `/source` and `/three-actors`
+routes and all scenario aliases are retired; use the current schedule IDs and
+explicit query settings. Old route URLs return 404, and old scenario IDs are
+not remapped. The retired `/extracted`, `/runtime`, `/mechanisms`,
+`/integration.js`, and `/feedback-standard.js` also return 404. The
 [coverage map](docs/RESEARCH.md#single-runner-and-retained-mechanism-coverage)
 distinguishes retained assertions from removed comparisons.
 
@@ -196,6 +196,7 @@ distinguishes retained assertions from removed comparisons.
 | --- | --- |
 | Installation fails | Check Node/npm versions and public registry access; preserve the lockfile. |
 | Missing assets or stale UI | Rebuild and refresh; do not open HTML directly. |
+| Startup shows an `ERROR` alert | Check the current scenario ID and query settings. The original error is logged in the browser console; invalid settings do not fall back to another configuration. |
 | Port occupied or remote page unreachable | Choose another `PORT`, keep your server running, and forward its loopback port. |
 | Missing Chromium or browser libraries | Use the installation commands under [Tests](#tests). |
 

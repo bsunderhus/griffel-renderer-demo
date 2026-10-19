@@ -1,6 +1,14 @@
 window.testSourceNativeInsert = CSSStyleSheet.prototype.insertRule;
 window.testNativeInsertRule = CSSStyleSheet.prototype.insertRule;
 window.testAppearanceStages = [];
+window.testConsoleErrors = [];
+const failurePoint = new URLSearchParams(location.search).get("testFailure");
+window.testCleanupCalls = [];
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  window.testConsoleErrors.push(args);
+  originalConsoleError.apply(console, args);
+};
 function testMeasureAppearance(owner) {
   const provider = document.querySelector(`[data-fluent-owner="${owner}"]`);
   if (!provider) return null;
@@ -55,6 +63,54 @@ for (const [name, key] of [["reproHost", "Host"], ["personaActor", "Persona"], [
           phase: key.toLowerCase(), host: testMeasureAppearance("host"),
           persona: testMeasureAppearance("persona"), feedback: testMeasureAppearance("feedback"),
         });
+        if (failurePoint) {
+          for (const action of ["unmount", "dispose"]) {
+            if (!mounted[action]) continue;
+            const original = mounted[action];
+            mounted[action] = () => {
+              window.testCleanupCalls.push(`${key}:${action}`);
+              return original();
+            };
+          }
+          const fail = () => {
+            const error = new Error(`Injected ${failurePoint} failure`);
+            window.testInjectedError = error;
+            throw error;
+          };
+          if (key === "Host" && failurePoint === "baseline") {
+            const query = document.querySelector;
+            document.querySelector = function (selector) {
+              if (selector === '[data-fluent-owner="host"]') {
+                document.querySelector = query;
+                fail();
+              }
+              return query.call(this, selector);
+            };
+          }
+          if (key === "Persona") {
+            window.testOriginalPersonaInsert = mounted.renderer.insertCSSRules;
+            if (failurePoint === "renderer-observation") {
+              const descriptor = Object.getOwnPropertyDescriptor(mounted.renderer, "insertCSSRules");
+              Object.defineProperty(mounted.renderer, "insertCSSRules", {
+                configurable: true,
+                get() {
+                  Object.defineProperty(mounted.renderer, "insertCSSRules", descriptor);
+                  fail();
+                },
+              });
+            }
+            if (failurePoint === "sheet-registration") {
+              const query = document.querySelectorAll;
+              document.querySelectorAll = function (selector) {
+                if (selector === "[data-make-styles-bucket]") {
+                  document.querySelectorAll = query;
+                  fail();
+                }
+                return query.call(this, selector);
+              };
+            }
+          }
+        }
         return mounted;
       };
     },

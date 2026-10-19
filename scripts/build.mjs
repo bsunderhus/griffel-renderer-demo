@@ -46,6 +46,5 @@ for (const [route, [file, type]] of Object.entries(SITE_FILES)) {
   await mkdir(dirname(join(pagesDir, target)), { recursive: true });
   await copyFile(join("dist", file), join(pagesDir, target));
 }
-for (const legacy of ["source", "three-actors"]) await copyFile("dist/index.html", join(pagesDir, `${legacy}.html`));
 await writeFile(join(pagesDir, ".nojekyll"), "");
 console.log("pages: artifact complete");

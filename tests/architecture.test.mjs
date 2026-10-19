@@ -1,8 +1,8 @@
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { targets } from "../build/targets.mjs";
-import { baselineExperiments, experiments, sourceExperiments, scenarioAliases, personaRevisions } from "../src/experiments/scenarios.js";
-import { threeActorCases, getThreeActorCases } from "../src/playground/scenarios.js";
+import { experiments, personaRevisions } from "../src/experiments/scenarios.js";
+import { getThreeActorCases } from "../src/playground/scenarios.js";
 import { resolveExperiment, resolveHostSettings, validateSchedule } from "../src/experiments/configuration.js";
 import { expect, test } from "vitest";
 
@@ -35,12 +35,12 @@ test("participant imports respect module boundaries", async () => {
 });
 
 test("scenario definitions and configuration validation preserve the research contract", async () => {
+  const threeActorCases = getThreeActorCases();
   expect(targets).toHaveLength(6);
   expect(new Set(targets.map(target => target.name)).size).toBe(6);
   expect(experiments.map(({ id }) => id)).toStrictEqual(threeActorCases.map(({ id }) => id));
   expect(experiments).toHaveLength(8);
   expect(new Set(experiments.map(config => config.id)).size).toBe(experiments.length);
-  expect(sourceExperiments).toHaveLength(8);
   expect(threeActorCases).toHaveLength(8);
   expect(resolveHostSettings("").hostPolicy).toBe("master");
   expect(resolveHostSettings("").personaVersion).toBe("1.20260927.13.2");
@@ -50,7 +50,7 @@ test("scenario definitions and configuration validation preserve the research co
       cases.map(config => config.id),
       "Version selection must not add scenario cards",
     ).toStrictEqual(threeActorCases.map(config => config.id));
-    for (const config of sourceExperiments.filter(config => config.personaRevision === "selected")) {
+    for (const config of experiments) {
       const resolved = resolveExperiment(config, `personaVersion=${version}`);
       expect(resolved.personaRevision).toBe(version);
       expect(resolved.personaProfile).toBe(personaRevisions[version].profile);
@@ -69,11 +69,10 @@ test("scenario definitions and configuration validation preserve the research co
     expect(config.feedbackProfile).toBe("inspected");
     expect(config.personaProfile, "Profiles come from the shared version selection").toBeUndefined();
   }
-  for (const id of Object.values(scenarioAliases)) expect(experiments.some(config => config.id === id)).toBeTruthy();
   expect(() => resolveHostSettings("?host=unknown")).toThrow(/Unknown host mode/);
   expect(() => resolveHostSettings("?coverage=unknown")).toThrow(/Unknown host coverage/);
   expect(
-    () => resolveExperiment({ ...sourceExperiments[0], policy: "unknown" }, ""),
+    () => resolveExperiment({ ...experiments[0], policy: "unknown" }, ""),
   ).toThrow(/Baseline actors cannot be overridden/);
   expect(
     () => resolveExperiment({ id: "bad", policy: "off", order: ["persona", "persona"] }, ""),
@@ -82,15 +81,23 @@ test("scenario definitions and configuration validation preserve the research co
     () => resolveExperiment({ id: "bad", policy: "off", order: ["other"] }, ""),
   ).toThrow(/Invalid integration order/);
   for (const option of ["hostContract", "personaProfile", "feedbackProfile", "personaRevision"]) {
-    expect(() => resolveExperiment({ ...sourceExperiments[0], [option]: "unknown" }, ""))
+    expect(() => resolveExperiment({ ...experiments[0], [option]: "unknown" }, ""))
       .toThrow(/Baseline actors cannot be overridden/);
   }
   expect(
-    () => resolveExperiment({ ...sourceExperiments[0], personaProfile: "marker-guard" }, ""),
+    () => resolveExperiment({ ...experiments[0], personaProfile: "marker-guard" }, ""),
   ).toThrow(/Baseline actors cannot be overridden/);
   expect(() => resolveHostSettings("?personaVersion=unknown")).toThrow(/Unknown Persona version/);
   expect(() => resolveHostSettings("?hostPolicy=unknown")).toThrow(/Unknown host filter revision/);
   expect(await readFile("src/experiments/run.js", "utf8"), "The harness must not install or implement the participant-owned insertion policy").not.toMatch(/installHostPolicy|CSSStyleSheet/);
+  const entry = await readFile("src/browser-entry.jsx", "utf8");
+  expect(entry, "Execution uses the registry, never gallery-decorated configurations")
+    .toContain('import { experiments } from "./experiments/scenarios.js"');
+  expect(entry).not.toContain("./playground/scenarios.js");
+  for (const version of Object.keys(personaRevisions)) {
+    expect(getThreeActorCases(version).every(config => !Object.hasOwn(config, "personaProfile")),
+      "Presentation does not inject runtime actor overrides").toBe(true);
+  }
 });
 
 test("baseline schedules freeze actors and cannot enable counterfactual overrides", () => {
@@ -99,7 +106,7 @@ test("baseline schedules freeze actors and cannot enable counterfactual override
       for (const host of ["extracted", "runtime"]) {
         for (const coverage of ["minimal", "shared"]) {
           const query = new URLSearchParams({ personaVersion, hostPolicy, host, coverage }).toString();
-          const resolved = baselineExperiments.map(config => resolveExperiment(config, query));
+          const resolved = experiments.map(config => resolveExperiment(config, query));
           const actorConfiguration = settings => ({
             hostContract: settings.hostContract, policy: settings.policy,
             script: settings.script, stylesheet: settings.stylesheet,
@@ -121,7 +128,7 @@ test("baseline schedules freeze actors and cannot enable counterfactual override
     { personaProfile: "owner-guard", personaRevision: null },
     { kind: "diagnostic" }, { diagnostic: true }, { seed: false },
   ]) {
-    expect(() => resolveExperiment({ ...baselineExperiments[0], ...overrides }, ""))
+    expect(() => resolveExperiment({ ...experiments[0], ...overrides }, ""))
       .toThrow(/Baseline actors cannot be overridden/);
   }
   expect(experiments.every(config => config.kind === "baseline")).toBe(true);
@@ -137,7 +144,7 @@ test("schedules reject impossible lifecycle events instead of silently changing 
     [{ action: "load", actor: "persona" }, { action: "mount", actor: "persona" }, { action: "unmount", actor: "persona" }],
   ]) expect(() => validateSchedule(schedule, ["persona"])).toThrow();
   for (const schedule of [null, false, "persona", []]) {
-    expect(() => resolveExperiment({ ...baselineExperiments[0], schedule }, ""))
+    expect(() => resolveExperiment({ ...experiments[0], schedule }, ""))
       .toThrow(/Schedule must contain events/);
   }
 });

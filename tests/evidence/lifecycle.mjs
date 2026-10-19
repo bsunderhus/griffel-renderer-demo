@@ -2,7 +2,7 @@ import { expect } from "vitest";
 import { navigateApplication, applicationWindow, refreshEvidence } from "../browser/application.mjs";
 
 export async function assertEvidenceLifecycle(app, url) {
-  await navigateApplication(app, `${url}/three-actors?scenario=persona-alone&coverage=minimal`);
+  await navigateApplication(app, `${url}/?scenario=persona-alone&coverage=minimal`);
   const window = applicationWindow(app);
   const document = window.document;
   const result = window.threeActorResult;

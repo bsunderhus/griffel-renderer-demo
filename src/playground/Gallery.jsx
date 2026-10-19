@@ -3,11 +3,9 @@ import { HostSettings } from "./HostSettings.jsx";
 import { ScenarioCard } from "./ScenarioCard.jsx";
 import { Navigation } from "./Navigation.jsx";
 import { getThreeActorCases } from "./scenarios.js";
-import { resolveHostSettings } from "../experiments/configuration.js";
 import { sitePath } from "../site.js";
 
-export function ThreeActorGallery() {
-  const settings = resolveHostSettings(location.search);
+export function ThreeActorGallery({ settings }) {
   const threeActorCases = getThreeActorCases(settings.personaVersion);
   const cards = configs => configs.map((config, index) =>
     <ScenarioCard key={config.id} config={config} index={index} {...settings} />);
@@ -17,7 +15,7 @@ export function ThreeActorGallery() {
     location.assign(sitePath(`?${next}`));
   }
   return <main>
-    <Navigation mode="three-actors" />
+    <Navigation mode="playground" />
     <header className="page-hero playground-hero">
       <p className="eyebrow">Interactive research playground</p>
       <h1>Explore Griffel style sharing</h1>

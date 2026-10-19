@@ -88,12 +88,20 @@ See the [dated source recheck](docs/RESEARCH.md#current-source-recheck-2026-10-1
 for corroboration and deployment limits.
 
 The fidelity pass leaves one runner, eight schedules and six participant build
-targets. All 193 Vitest tests pass across 18 files, without skips. It removes
+targets. All 226 Vitest tests pass across 19 files, without skips. It removes
 precompiled/unsalted Feedback, the extra seed actor, forced host filtering,
 the proposed owner cache, constructed collisions and measurement declarations.
 Cache replay now exercises the actual candidate Feedback renderer. Native Fluent
 rules supply the evidence; appearance measurements remain test-only.
 The removed comparisons are no longer findings. This is not a solution sign-off.
+Legacy routes and scenario aliases are also retired. One experiment registry
+now feeds execution directly; gallery prose does not configure actor behavior.
+Only canonical URLs are supported, including Pages sub-path hosting.
+Bootstrap checks cover visible startup failures for unknown routes/scenarios
+and invalid settings before page rendering or actor loading.
+Partial-startup checks additionally cover acquired actor/observer cleanup,
+restoration of insertion hooks and preservation of the original failure even
+when cleanup itself fails. These are lifecycle checks, not new scenarios.
 
 ## 3. Compare solution experiments
 

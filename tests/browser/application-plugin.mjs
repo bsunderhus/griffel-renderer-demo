@@ -1,7 +1,6 @@
 import { serveReproRequest } from "../../scripts/server.mjs";
 import { readFile } from "node:fs/promises";
 import { extname } from "node:path";
-import { scenarioAliases } from "../../src/experiments/scenarios.js";
 
 export const PAGES_PREVIEW = "/pages-preview";
 
@@ -44,9 +43,10 @@ export function applicationPlugin() {
           return;
         }
         const htmlRoute = ["/", "/docs"].includes(url.pathname);
-        if (htmlRoute && !Object.hasOwn(scenarioAliases, url.searchParams.get("scenario"))) {
+        // Exercise client-side route validation when a static host falls back to HTML.
+        if (htmlRoute || url.pathname === "/unknown-route") {
           response.writeHead(200, { "Content-Type": "text/html", "Cache-Control": "no-store" }).end(html);
-        } else if (["/source", "/three-actors"].includes(url.pathname) || htmlRoute ||
+        } else if (["/source", "/three-actors"].includes(url.pathname) ||
           /^\/(?:shared\/)?(?:app|host-extracted|host-runtime|persona|feedback-raw)\.js$/.test(url.pathname) ||
           /^\/(?:shared\/)?griffel\.css$/.test(url.pathname)) {
           serveReproRequest(request, response).catch(next);

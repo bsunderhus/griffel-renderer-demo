@@ -8,27 +8,40 @@ import { integrations, loadIntegration, mountHost, mountIntegration } from "./pa
 export async function runThreeActorCase(config) {
   const settings = resolveExperiment(config, location.search);
   await prepareExperiment(settings);
-  const host = await mountHost(settings, document.getElementById("host-mount"));
-  const observation = createObservation(document, host.stylesheet);
-  const baseline = captureHostBaseline(document, observation);
-  const hostBuckets = document.querySelectorAll("[data-make-styles-bucket]").length;
+  let host;
+  let observation;
   const actors = {};
   const execution = [];
   const previousRenderers = new Map();
   const mountCounts = new Map();
-  const rendererIds = new Map([[host.renderer, "host-1"]]);
+  const rendererIds = new Map();
   let controller;
   let disposed = false;
   function dispose() {
     if (disposed) return;
     disposed = true;
-    controller?.dispose();
-    observation.dispose();
-    for (const actor of Object.values(actors).reverse()) actor.unmount();
-    host.dispose();
-    window.removeEventListener("pagehide", dispose);
+    const errors = [];
+    for (const cleanup of [
+      () => controller?.dispose(),
+      () => observation?.dispose(),
+      ...Object.values(actors).reverse().map(actor => () => actor.unmount()),
+      () => host?.dispose(),
+      () => window.removeEventListener("pagehide", dispose),
+    ]) {
+      try {
+        cleanup();
+      } catch (error) {
+        errors.push(error);
+      }
+    }
+    if (errors.length) throw new AggregateError(errors, "Experiment cleanup failed");
   }
   try {
+    host = await mountHost(settings, document.getElementById("host-mount"));
+    observation = createObservation(document, host.stylesheet);
+    const baseline = captureHostBaseline(document, observation);
+    const hostBuckets = document.querySelectorAll("[data-make-styles-bucket]").length;
+    rendererIds.set(host.renderer, "host-1");
     observation.connectHost(host);
     for (const { action, actor } of settings.schedule) {
       if (action === "load") {
@@ -62,7 +75,6 @@ export async function runThreeActorCase(config) {
         persona: { script: integrations.persona.script(), profile: settings.personaProfile, revision: settings.personaRevision },
         feedback: { script: integrations.feedback.script(), profile: settings.feedbackProfile,
           ...settings.feedback },
-        workload: "canonical",
       },
       hostRuntimeCalls: host.runtimeCalls(), hostBuckets, actors: actorEvidence, events: observation.events,
       staticCSS: host.stylesheet ? Array.from(host.stylesheet.sheet.cssRules, rule => rule.cssText) : [],
@@ -78,7 +90,12 @@ export async function runThreeActorCase(config) {
     window.addEventListener("pagehide", dispose);
     return { result, dispose };
   } catch (error) {
-    dispose();
+    try {
+      dispose();
+    } catch (cleanupError) {
+      console.error("Experiment cleanup failed", cleanupError);
+    }
+    host?.stylesheet?.remove();
     throw error;
   }
 }

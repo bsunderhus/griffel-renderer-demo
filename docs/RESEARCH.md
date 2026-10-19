@@ -14,7 +14,7 @@ Historical source observations below do not establish deployed product behavior.
 
 | Surface | Entry point | Responsibility |
 | --- | --- | --- |
-| Browser/site | [browser-entry.jsx](../src/browser-entry.jsx), [site.js](../src/site.js), [legacy-routes.js](../src/legacy-routes.js) | React globals, route dispatch, sub-path links and compatibility normalization. |
+| Browser/site | [browser-entry.jsx](../src/browser-entry.jsx), [site.js](../src/site.js) | React globals, canonical route dispatch and sub-path links. |
 | Playground | [playground/](../src/playground/) | Settings, scenario prose, live frames and the visual documentation guide; no participant policy. |
 | Configuration | [scenarios.js](../src/experiments/scenarios.js), [configuration.js](../src/experiments/configuration.js) | Fixed schedules, explicit controls, validation and resolved actor inputs. |
 | Orchestration | [run.js](../src/experiments/run.js), [participants.js](../src/experiments/participants.js) | Bundle loading, mount/unmount execution, attribution and disposal. |
@@ -45,8 +45,10 @@ available. Feedback has no precompiled or unsalted variant in this experiment.
 Motion 14.3.0 (MIT) is limited to the esbuild app's documentation transitions;
 it does not enter participant bundles or affect class generation.
 
-Keep behavior inside participants, schedules in experiment definitions, prose in
-gallery content, and interpretation in evidence analysis. Never branch actor
+Keep behavior inside participants, schedules in the single `experiments` registry,
+prose in gallery content, and interpretation in evidence analysis. The entry
+point executes undecorated registry definitions; gallery decoration never
+injects runtime actor options. Never branch actor
 code by scenario ID or introduce altered workloads to manufacture an outcome.
 
 ## Source-aligned contract matrix
@@ -102,17 +104,25 @@ comparisons, constructed collision prevention, or a proposed ownership fix.
 Native provider theme rules are distinct from Griffel rules; not all CSS in a
 mount carries renderer bucket metadata or the Feedback prefix.
 
-### Compatibility
+### Canonical navigation
 
-`/source` and `/three-actors` redirect to the unified gallery. Ten scenario
-aliases preserve known policy/version settings through server redirects and
-client normalization, including Pages sub-path hosting. Their authoritative maps
-are in [scenarios.js](../src/experiments/scenarios.js).
-For example, `master-rejects-marker` selects Feedback-first with the sheet-only
-policy, and `marker-guard` selects the main snapshot with the candidate exception.
-Former arrival aliases select the faithful baseline.
-Counterfactual IDs and `no-policy` are not remapped. Retained aliases are navigation
-compatibility, not claims that old and new actor code is equivalent.
+The only application routes are `/` and `/docs`. `/source`, `/three-actors`,
+their generated compatibility pages, and all scenario aliases are retired.
+Old routes return 404; unknown scenario IDs are rejected, not remapped.
+Use the eight IDs in [scenarios.js](../src/experiments/scenarios.js), with
+explicit host policy and Persona revision settings. For example, the former
+`marker-guard` alias is now
+`/?scenario=raw-marked-first&personaVersion=main-2026-10-16&hostPolicy=feedback-exception`.
+Root and Pages sub-path hosting remain supported.
+
+Startup dispatches canonical routes separately from experiment selection.
+Page settings are validated before React renders; scenario settings are validated
+before actor loading. Route, scenario and configuration failures use one visible
+alert in the existing application root, log the original error and set
+`window.threeActorError`. Reporting does not depend on an experiment layout
+having been created, and invalid inputs do not silently select another setup.
+[Startup regressions](../tests/browser/application.test.mjs) assert the alert,
+original logged error, absent actor mounts and unchanged native insertion.
 
 ## Current findings and underlying mechanisms
 
@@ -203,6 +213,14 @@ sheet handles and CSSOM together. Late renderer calls retain attribution;
 expanded traces/ledgers remain open. Disposal cancels refreshes, removes
 observers/wrappers, unmounts actors and restores native insertion, idempotently.
 Provider unmount alone does not remove the host's document-lifetime policy.
+Initialization is also cleanup-protected: failures during observation creation,
+baseline capture, actor loading or evidence setup release acquired handles.
+An integration that mounts but fails adapter observation setup is unmounted
+before its error escapes. Failed asset elements and host extraction links
+acquired by failed startup are removed. Normal disposal still retains the
+document's Griffel sheets; failure cleanup does not change remount/cache behavior.
+Cleanup attempts continue if one fails, with cleanup errors reported separately
+so they do not replace the original initialization error.
 
 Computed appearance snapshots live only in
 [test instrumentation](../tests/browser/instrumentation.js), after each
@@ -280,6 +298,11 @@ iframes, wait for readiness and honor test cancellation. Instrumentation capture
 mount handles, appearance, native identity and unexpected errors before cleanup;
 it neither changes participant policy nor substitutes bundles. Evidence stays
 test-local in `task.meta.evidence`; report commands are in the [README](../README.md#tests).
+Test-only failure injections exercise actual actors in both host build modes,
+including baseline capture and post-mount renderer/sheet observation failures.
+They are not application controls or additional research scenarios.
+[Initialization unit checks](../tests/initialization.test.mjs) also cover failed
+loads, later actor failures and cleanup exceptions.
 
 Use retryable `expect.element` assertions or fresh nested-frame queries inside
 `expect.poll`; evidence DOM is replaced on refresh. Vitest 4.1.12's local

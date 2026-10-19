@@ -19,7 +19,7 @@ const mount = actor => ({ action: "mount", actor });
 const unmount = actor => ({ action: "unmount", actor });
 const arrival = actor => [load(actor), mount(actor)];
 
-export const baselineExperiments = [
+export const experiments = [
   { id: "persona-alone", order: ["persona"], schedule: arrival("persona") },
   { id: "feedback-alone", order: ["feedback"], schedule: arrival("feedback") },
   { id: "raw-marked-first", order: ["feedback", "persona"],
@@ -35,39 +35,3 @@ export const baselineExperiments = [
   { id: "persona-remounted", order: ["feedback", "persona"],
     schedule: [...arrival("feedback"), ...arrival("persona"), unmount("persona"), mount("persona")] },
 ].map(config => ({ ...sourceContract, ...config, kind: "baseline", policy: "selected" }));
-
-export const experiments = baselineExperiments;
-export const sourceExperiments = baselineExperiments;
-
-export const scenarioAliases = {
-  "feedback-first": "raw-marked-first",
-  "persona-first": "persona-first-raw",
-  "master-rejects-marker": "raw-marked-first",
-  "source-persona-alone": "persona-alone",
-  "source-feedback-first": "raw-marked-first",
-  "source-persona-first": "persona-first-raw",
-  "source-prefix-unrecognized": "raw-marked-first",
-  "source-marker-guard": "raw-marked-first",
-  "marker-guard": "raw-marked-first",
-  "historical-feedback-first": "raw-marked-first",
-};
-
-export const scenarioAliasPolicies = {
-  "feedback-first": "master",
-  "persona-first": "master",
-  "master-rejects-marker": "master",
-  "source-prefix-unrecognized": "master",
-  "source-feedback-first": "feedback-exception",
-  "source-persona-first": "feedback-exception",
-  "source-marker-guard": "feedback-exception",
-  "marker-guard": "feedback-exception",
-  "historical-feedback-first": "feedback-exception",
-};
-
-export const scenarioAliasVersions = {
-  "feedback-first": "1.20260927.13.2",
-  "persona-first": "1.20260927.13.2",
-  "source-marker-guard": "main-2026-10-16",
-  "marker-guard": "main-2026-10-16",
-  "historical-feedback-first": "1.20260927.13.2",
-};

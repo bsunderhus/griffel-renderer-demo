@@ -50,7 +50,7 @@ export async function openApplication({ signal }) {
   return locator;
 }
 
-export async function navigateApplication(app, url) {
+export async function navigateApplication(app, url, { expectStartupError = false } = {}) {
   const application = applications.get(app);
   if (!application) throw new Error("Unknown application frame");
   const frame = application.frame();
@@ -88,10 +88,10 @@ export async function navigateApplication(app, url) {
   // Force a fresh application document even for fragment-only navigation.
   await load("about:blank");
   await load(url);
-  await waitForApplicationReady(app);
+  await waitForApplicationReady(app, expectStartupError);
 }
 
-async function waitForApplicationReady(app) {
+async function waitForApplicationReady(app, expectStartupError = false) {
   const window = applicationWindow(app);
   const { signal } = applications.get(app);
   if (window.document.readyState !== "complete") {
@@ -115,6 +115,10 @@ async function waitForApplicationReady(app) {
       window.addEventListener("load", loaded);
       signal.addEventListener("abort", aborted, { once: true });
     });
+  }
+  if (expectStartupError) {
+    await expect.poll(() => Boolean(applicationWindow(app).threeActorError)).toBe(true);
+    return;
   }
   const current = new URL(applicationWindow(app).location.href);
   if (current.searchParams.has("scenario")) {

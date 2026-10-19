@@ -31,7 +31,7 @@ export function resolveExperiment(config, search) {
   const personaProfile = personaRevisions[personaRevision].profile;
   if (config.kind !== "baseline" || config.hostContract !== "production-extraction" ||
       config.feedbackProfile !== "inspected" || config.personaRevision !== "selected" ||
-      config.personaProfile && config.personaProfile !== personaProfile || config.policy !== "selected" ||
+      config.policy !== "selected" || Object.hasOwn(config, "personaProfile") ||
       ["raw", "salt", "marker", "seed", "diagnostic"].some(key => Object.hasOwn(config, key))) {
     throw new Error(`Baseline actors cannot be overridden: ${config.id}`);
   }

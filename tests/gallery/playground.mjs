@@ -1,9 +1,10 @@
 import { navigateApplication, visible, waitForElement, waitForApplicationURL, applicationWindow, applicationFrame, refreshEvidence } from "../browser/application.mjs";
 import { page as browserPage, userEvent } from "vitest/browser";
 import { expect } from "vitest";
-import { threeActorCases, getThreeActorCases } from "../../src/playground/scenarios.js";
-import { personaRevisions, scenarioAliases } from "../../src/experiments/scenarios.js";
+import { getThreeActorCases } from "../../src/playground/scenarios.js";
+import { personaRevisions } from "../../src/experiments/scenarios.js";
 import { assertPresentedEvidence } from "../evidence/assert-presented.mjs";
+const threeActorCases = getThreeActorCases();
 export async function assertGalleryGuide(app, url) {
   await navigateApplication(app, `${url}/docs`);
   await expect.element(app.getByRole("link", {
@@ -93,14 +94,14 @@ export async function assertGalleryGuide(app, url) {
   await expect.poll(() => guide.getByRole("table", {
     name: "Fluent-rule outcomes with production extraction enabled"
   }).getByRole("row").elements().length).toBe(6);
-  for (const id of ["persona-alone", "persona-first-raw", "raw-marked-first", "master-rejects-marker"]) {
+  for (const id of ["persona-alone", "persona-first-raw", "raw-marked-first"]) {
     await expect.poll(() => Array.from(applicationWindow(app).document.querySelector(".conflict-guide").querySelectorAll(`a[href*="#${id}"]`)).length, {
       message: `Guide links ${id} to a live reproduction`
     }).toBeTruthy();
   }
   for (const link of guide.getByCSS('a[href*="#"]').elements()) {
     const id = new URL(link.href).hash.slice(1);
-    expect(threeActorCases.some(config => config.id === (scenarioAliases[id] || id)),
+    expect(threeActorCases.some(config => config.id === id),
       `Guide endpoint ${id} resolves to an actual schedule`).toBe(true);
   }
   await expect.element(app.getByCSS(".conflict-guide")).toHaveTextContent(/None prevents sheet adoption/);

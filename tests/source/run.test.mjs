@@ -1,13 +1,13 @@
 import { openApplication, runExperiment, applicationWindow, navigateApplication, waitForElement, waitForApplicationURL, visible, applicationFrame } from "../browser/application.mjs";
 import { expect, test } from "vitest";
-import { sourceExperiments, personaRevisions } from "../../src/experiments/scenarios.js";
+import { experiments, personaRevisions } from "../../src/experiments/scenarios.js";
 import { resolveExperiment } from "../../src/experiments/configuration.js";
 import { assertPresentedEvidence } from "../evidence/assert-presented.mjs";
 import { assertSourceLifecycles } from "./lifecycle.mjs";
 import { assertCurrentMainComparisons } from "./current-main.mjs";
 import { analyzeEvidence } from "../../src/evidence/analysis.js";
 const configurations = ["master", "feedback-exception"].flatMap(hostPolicy =>
-  ["extracted", "runtime"].flatMap(host => ["minimal", "shared"].flatMap(coverage => sourceExperiments.map(config => ({
+  ["extracted", "runtime"].flatMap(host => ["minimal", "shared"].flatMap(coverage => experiments.map(config => ({
   hostPolicy,
   host,
   coverage,
@@ -56,7 +56,6 @@ test.for(configurations)("$hostPolicy / $host / $coverage / $id: fixed actors an
     expect(result.policy).toBe(active ? hostPolicy : "off");
     expect(result.kind).toBe("baseline");
     expect(result.execution.map(({ action, actor }) => ({ action, actor }))).toStrictEqual(config.schedule);
-    expect(result.configuration.workload).toBe("canonical");
     expect(result.configuration.feedback).toStrictEqual({
       script: "/feedback-raw.js", profile: "inspected", raw: true, salt: true, marker: true,
     });
@@ -131,7 +130,7 @@ test("renderer ownership, cache lifetime, and host disposal", async ({
   const url = location.origin;
   await assertSourceLifecycles(app, url);
 });
-test("unified gallery, host selection, and legacy redirects", async ({
+test("gallery host selection and canonical scenario navigation", async ({
   signal
 }) => {
   const app = await openApplication({
@@ -141,12 +140,12 @@ test("unified gallery, host selection, and legacy redirects", async ({
   await navigateApplication(app, `${url}/?coverage=minimal`);
   await expect.poll(() => applicationWindow(app).document.querySelector('nav a[aria-current="page"]').getAttribute("href")).toBe("/?coverage=minimal");
   await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll("nav a")).length).toBe(2);
-  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-scenario-contract="source-aligned"]')).length).toBe(sourceExperiments.length);
+  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-scenario-contract="source-aligned"]')).length).toBe(experiments.length);
   await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-scenario-contract="diagnostic"]')).length).toBe(0);
   await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-scenario-kind="main"]')).length).toBe(0);
   await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-scenario-kind="release"]')).length).toBe(8);
   await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-scenario-kind="proposal"]')).length).toBe(0);
-  for (const config of sourceExperiments) {
+  for (const config of experiments) {
     await waitForElement(() => applicationWindow(applicationFrame(app, `#${config.id} iframe`)).document.querySelector("[data-host-contract]"));
   }
   await app.getByLabelText("Host CSS", {
@@ -155,27 +154,26 @@ test("unified gallery, host selection, and legacy redirects", async ({
   await waitForApplicationURL(app, `${url}/?coverage=minimal&host=runtime`);
   await waitForElement(() => applicationWindow(applicationFrame(app, "#raw-marked-first iframe")).document.querySelector("[data-host-contract]"));
   await expect.poll(() => applicationWindow(applicationFrame(app, "#raw-marked-first iframe")).threeActorResult.simulation.host.shouldInstall).toBe(false);
-  await navigateApplication(app, `${url}/source?coverage=minimal#source-persona-first`);
-  await expect.poll(() => applicationWindow(app).location.href).toBe(`${url}/?coverage=minimal&hostPolicy=feedback-exception#persona-first-raw`);
+  await navigateApplication(app, `${url}/?coverage=minimal&hostPolicy=feedback-exception#persona-first-raw`);
   await expect.poll(() => visible(applicationWindow(app).document.querySelector("#persona-first-raw"))).toBe(true);
-  await navigateApplication(app, `${url}/?scenario=marker-guard&host=extracted&coverage=minimal`);
+  await navigateApplication(app, `${url}/?scenario=raw-marked-first&host=extracted&coverage=minimal&hostPolicy=feedback-exception&personaVersion=main-2026-10-16`);
   await expect.poll(() => {
     const window = applicationWindow(app);
     return window.threeActorResult;
   }).toBeTruthy();
   await expect.poll(() => applicationWindow(app).location.href).toBe(`${url}/?scenario=raw-marked-first&host=extracted&coverage=minimal&hostPolicy=feedback-exception&personaVersion=main-2026-10-16`);
   await expect.poll(() => applicationWindow(app).threeActorResult.simulation.persona).toBe("marker-guard");
-  await navigateApplication(app, `${url}/#marker-guard`);
+  await navigateApplication(app, `${url}/?personaVersion=main-2026-10-16&hostPolicy=feedback-exception#raw-marked-first`);
   await expect.poll(() => applicationWindow(app).location.href).toBe(`${url}/?personaVersion=main-2026-10-16&hostPolicy=feedback-exception#raw-marked-first`);
   await expect.poll(() => visible(applicationWindow(app).document.querySelector("#raw-marked-first"))).toBe(true);
-  await navigateApplication(app, `${url}/source?scenario=source-feedback-first&host=runtime&coverage=minimal`);
+  await navigateApplication(app, `${url}/?scenario=raw-marked-first&host=runtime&coverage=minimal&hostPolicy=feedback-exception`);
   await expect.poll(() => {
     const window = applicationWindow(app);
     return window.threeActorResult;
   }).toBeTruthy();
   await expect.poll(() => applicationWindow(app).location.href).toBe(`${url}/?scenario=raw-marked-first&host=runtime&coverage=minimal&hostPolicy=feedback-exception`);
   await expect.poll(() => applicationWindow(app).threeActorResult.simulation.host.shouldInstall).toBe(false);
-  await navigateApplication(app, `${url}/three-actors?scenario=persona-alone&coverage=minimal`);
+  await navigateApplication(app, `${url}/?scenario=persona-alone&coverage=minimal`);
   await expect.poll(() => {
     const window = applicationWindow(app);
     return window.threeActorResult;

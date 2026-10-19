@@ -5,7 +5,10 @@ export function loadScript(src) {
     const script = document.createElement("script");
     script.src = sitePath(src);
     script.onload = resolve;
-    script.onerror = () => reject(new Error(`Unable to load ${src}`));
+    script.onerror = () => {
+      script.remove();
+      reject(new Error(`Unable to load ${src}`));
+    };
     document.body.appendChild(script);
   });
 }
@@ -16,7 +19,10 @@ export function loadStylesheet(href) {
   link.href = sitePath(href);
   return new Promise((resolve, reject) => {
     link.onload = () => resolve(link);
-    link.onerror = () => reject(new Error(`Unable to load ${href}`));
+    link.onerror = () => {
+      link.remove();
+      reject(new Error(`Unable to load ${href}`));
+    };
     document.head.appendChild(link);
   });
 }

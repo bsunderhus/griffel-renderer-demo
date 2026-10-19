@@ -158,7 +158,7 @@ Existing Feedback bucket:
             <thead><tr><th scope="col">Existing scenario</th><th scope="col">Host filter</th><th scope="col">Feedback rule</th><th scope="col">Persona 1.20260927.13.2 rule</th><th scope="col">Persona main-snapshot rule</th></tr></thead>
             <tbody>
               <tr><th scope="row"><a href={scenarioLink("persona-alone", "master")}>Persona alone</a></th><td>Sheet-only</td><td>Not mounted</td><td>Inserts into sheet with the enhanced-specificity attribute</td><td>Inserts into sheet with the enhanced-specificity attribute</td></tr>
-              <tr><th scope="row"><a href={scenarioLink("master-rejects-marker")}>Feedback first</a></th><td>Sheet-only (inspected host main)</td><td>Rejected</td><td>Rejected in adopted sheet</td><td>Inserts into destination with the enhanced-specificity attribute</td></tr>
+              <tr><th scope="row"><a href={scenarioLink("raw-marked-first", "master")}>Feedback first</a></th><td>Sheet-only (inspected host main)</td><td>Rejected</td><td>Rejected in adopted sheet</td><td>Inserts into destination with the enhanced-specificity attribute</td></tr>
               <tr><th scope="row"><a href={scenarioLink("raw-marked-first", "feedback-exception")}>Feedback first</a></th><td>Prefix exception (unmerged)</td><td>Inserts by prefix</td><td>Rejected in adopted sheet</td><td>Inserts into destination with the enhanced-specificity attribute</td></tr>
               <tr><th scope="row"><a href={scenarioLink("persona-first-raw", "master")}>Persona first</a></th><td>Sheet-only</td><td>Shared buckets allowed; new buckets rejected</td><td>Inserts</td><td>Inserts</td></tr>
               <tr><th scope="row"><a href={scenarioLink("persona-first-raw", "feedback-exception")}>Persona first</a></th><td>Prefix exception (unmerged)</td><td>Inserts; shares sheets with the enhanced-specificity attribute</td><td>Inserts</td><td>Inserts</td></tr>
@@ -212,7 +212,7 @@ Existing Feedback bucket:
                 <tr><th scope="row">Class salt</th><td>Changes runtime-generated names.</td>
                   <td>Feedback always keeps its inspected salt. <a href={scenarioLink("persona-first-raw")}>Persona first</a> still demonstrates shared sheets; there is no salt-off comparison.</td></tr>
                 <tr><th scope="row">Rule prefix</th><td>Identifies a rule to a compatible host filter.</td>
-                  <td>Compare <a href={scenarioLink("raw-marked-first", "feedback-exception")}>the proposed exception</a> with <a href={scenarioLink("master-rejects-marker")}>sheet-only rejection</a>.</td></tr>
+                  <td>Compare <a href={scenarioLink("raw-marked-first", "feedback-exception")}>the proposed exception</a> with <a href={scenarioLink("raw-marked-first", "master")}>sheet-only rejection</a>.</td></tr>
               </tbody>
             </table>
             <p><strong>None prevents sheet adoption.</strong> The

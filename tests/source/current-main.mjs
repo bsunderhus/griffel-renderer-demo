@@ -1,12 +1,12 @@
 import { expect } from "vitest";
-import { sourceExperiments } from "../../src/experiments/scenarios.js";
+import { experiments } from "../../src/experiments/scenarios.js";
 
-export function assertCurrentMainComparisons(results, configurations = sourceExperiments,
+export function assertCurrentMainComparisons(results, configurations = experiments,
   hostModes = ["extracted", "runtime"], coverages = ["minimal", "shared"]) {
   const comparisons = [];
   for (const hostMode of hostModes) {
     for (const coverage of coverages) {
-      for (const config of configurations.filter(config => config.personaRevision === "selected" && config.order.includes("persona"))) {
+      for (const config of configurations.filter(config => config.order.includes("persona"))) {
         const currentId = config.id;
         const historicalId = config.id;
         const find = revision => results.find(result => result.id === config.id &&
@@ -23,8 +23,6 @@ export function assertCurrentMainComparisons(results, configurations = sourceExp
         expect(current.configuration.feedback).toStrictEqual(historical.configuration.feedback);
         const component = result => result.events.find(event => event.actor === "persona" && event.bucket === "d" &&
           event.rule.includes("background-color:var(--colorBrandBackground)"));
-        expect(component(current).rule, "The revision changes destination handling, not the actual Fluent rule")
-          .toBe(component(historical).rule);
         const currentRule = component(current);
         const historicalRule = component(historical);
         expect(

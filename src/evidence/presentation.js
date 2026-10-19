@@ -34,14 +34,12 @@ export function renderEvidence(result, analysis) {
   hostJSON.textContent = JSON.stringify(hostEvidence, null, 2);
   hostTrace.append(hostLabel, hostScope, hostJSON);
   hostStatus.append(hostSummary, hostProbe, hostTrace);
-  if (result.simulation) {
-    const contract = document.createElement("p");
-    contract.dataset.hostContract = "";
-    contract.textContent = `Host-owned ${result.simulation.host.contract} contract; ` +
-      `renderer=${result.simulation.host.renderer}; filter=${result.simulation.host.effectivePolicy}; ` +
-      `installation=${result.simulation.host.installationTiming}.`;
-    hostStatus.prepend(contract);
-  }
+  const contract = document.createElement("p");
+  contract.dataset.hostContract = "";
+  contract.textContent = `Host-owned ${result.simulation.host.contract} contract; ` +
+    `renderer=${result.simulation.host.renderer}; filter=${result.simulation.host.effectivePolicy}; ` +
+    `installation=${result.simulation.host.installationTiming}.`;
+  hostStatus.prepend(contract);
   document.getElementById("host-mount").parentElement.appendChild(hostStatus);
   for (const [actor, evidence] of Object.entries(actorEvidence)) {
     const { attempts, blocked, failed, foreignSheets, foreignAllowed, presentRules, sharedWith, componentRule, cause, tone, borrowedPermission } = analysis.actors[actor];
@@ -75,7 +73,7 @@ export function renderEvidence(result, analysis) {
     addOutcome("Sharing", sharedWith.length ? `Sheet handles also held by ${sharedWith.join(", ")}.` :
       "No shared destination handles recorded.");
     addOutcome("Permission", `${borrowedPermission} attempts rely on another actor's enhanced-specificity attribute.`);
-    if (result.simulation) addOutcome("Profile", result.simulation[actor]);
+    addOutcome("Profile", result.simulation[actor]);
     const trace = document.createElement("details");
     trace.dataset.ruleTrace = actor;
     const traceLabel = document.createElement("summary");
@@ -131,11 +129,10 @@ export function renderEvidence(result, analysis) {
   const description = document.createElement("p");
   description.className = "note";
   description.textContent = `Policy: ${policy}. Order: host -> ${order.join(" -> ")}. ` +
-    "Feedback: raw Fluent, fixed salt and rule prefix. " +
-    "Fixed candidate profile: raw styles, salted classes, prefixed rules, and a module-level renderer.";
+    "Feedback: raw Fluent, salted classes, prefixed rules, and a module-level renderer.";
   const schedule = document.createElement("pre");
   schedule.dataset.executionSchedule = "";
-  schedule.textContent = `Workload: ${result.configuration.workload}\nHost ready\n` +
+  schedule.textContent = "Host ready\n" +
     result.execution.map(event => `${event.action} ${event.actor}` +
       (event.renderer ? ` (${event.renderer}${event.reusesPreviousRenderer === true ? ", renderer reused" : ""})` : "")).join("\n");
   const decisions = document.createElement("pre");

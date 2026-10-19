@@ -1,12 +1,10 @@
 import React from "react";
-import { resolveHostSettings } from "../experiments/configuration.js";
 import { ConflictExplainer } from "./ConflictExplainer.jsx";
 import { MechanismGuide, ParticipantResponsibilities } from "./MechanismGuide.jsx";
 import { Navigation } from "./Navigation.jsx";
 import { REPOSITORY_URL, sitePath } from "../site.js";
 
-export function Documentation() {
-  const settings = resolveHostSettings(location.search);
+export function Documentation({ settings }) {
   return <main className="documentation-page">
     <Navigation mode="docs" />
     <header className="page-hero docs-hero">
