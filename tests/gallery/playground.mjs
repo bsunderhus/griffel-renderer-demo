@@ -88,12 +88,12 @@ export async function assertGalleryGuide(app, url) {
   await techniques.click();
   await expect.poll(() => guide.getByRole("table").elements().length).toBe(4);
   await expect.poll(() => guide.getByRole("table", {
-    name: "Who writes or reads the sheet marker?"
+    name: "Who writes or reads the enhanced-specificity attribute?"
   }).getByRole("row").elements().length).toBe(5);
   await expect.poll(() => guide.getByRole("table", {
-    name: "Width-rule outcomes with production extraction enabled"
-  }).getByRole("row").elements().length).toBe(6);
-  for (const id of ["unmarked-d-first", "owner-guard", "persona-first", "precompiled-salted", "host-collision-salted", "raw-marked-first", "master-rejects-marker", "no-policy"]) {
+    name: "Fluent-rule outcomes with production extraction enabled"
+  }).getByRole("row").elements().length).toBe(7);
+  for (const id of ["unmarked-d-first", "owner-guard", "persona-first-raw", "precompiled-salted", "host-collision-salted", "raw-marked-first", "master-rejects-marker"]) {
     await expect.poll(() => Array.from(applicationWindow(app).document.querySelector(".conflict-guide").querySelectorAll(`a[href*="#${id}"]`)).length, {
       message: `Guide links ${id} to a live reproduction`
     }).toBeTruthy();
@@ -124,7 +124,7 @@ export async function assertGalleryGuide(app, url) {
 export async function assertGalleryActions(app, url) {
   await navigateApplication(app, `${url}/`);
   const working = applicationFrame(app, '#persona-alone iframe');
-  const guarded = applicationFrame(app, '#unmarked-d-first iframe');
+  const guarded = applicationFrame(app, '#raw-marked-first iframe');
   await waitForElement(() => Array.from(applicationWindow(working).document.querySelectorAll(".result")).at(0));
   await waitForElement(() => Array.from(applicationWindow(guarded).document.querySelectorAll(".result")).at(0));
   const phone = Array.from(applicationWindow(working).document.querySelectorAll("[data-fluent-icon]")).at(-1);
@@ -148,10 +148,10 @@ export async function assertGalleryStructure(app, url) {
   await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll(".intended-reference")).length).toBe(0);
   await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll("iframe")).length).toBe(threeActorCases.length);
   await expect.element(app.getByCSS(".explanatory-controls")).not.toHaveAttribute("open");
-  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll(".walkthrough")).filter(visible).length).toBe(5);
+  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll(".walkthrough")).filter(visible).length).toBe(8);
   for (const config of threeActorCases) {
     await expect.poll(() => visible(applicationWindow(app).document.querySelector(`#${config.id}`))).toBe(Boolean(config.primaryExample));
-    await expect.poll(() => applicationWindow(app).document.querySelector(`#${config.id}`).getAttribute("data-scenario-contract")).toBe(config.hostContract === "production-extraction" ? "source-aligned" : "diagnostic");
+    await expect.poll(() => applicationWindow(app).document.querySelector(`#${config.id}`).getAttribute("data-scenario-contract")).toBe(config.kind === "baseline" ? "source-aligned" : "diagnostic");
     await expect.poll(() => applicationWindow(app).document.querySelector(`#${config.id}`).getAttribute("data-scenario-kind")).toBe(config.primaryExample ? "release" : config.controlKind || "diagnostic");
     if (config.primaryExample) {
       await expect.element(app.getByCSS(`#${config.id} > .note`)).toHaveTextContent(/Pinned release renderer; deployment unverified/);
@@ -164,8 +164,8 @@ export async function assertGalleryStructure(app, url) {
     await expect.element(app.getByCSS(`#${config.id}`).getByCSS(".scenario-details")).not.toHaveAttribute("open");
     await expect.poll(() => applicationWindow(app).document.querySelector(`#${config.id}`).querySelector(".scenario-details > summary").textContent).toBe("Technical details");
     await expect.poll(() => row.getByRole("list", {
-      name: "Load order"
-    }).getByCSS("li").elements().map(element => element.textContent)).toStrictEqual(["Host", ...(config.seed ? ["Unrelated style sheet"] : []), ...config.order.map(actor => actor === "persona" ? "Persona" : "Feedback")]);
+      name: "Execution schedule"
+    }).getByCSS("li").elements().map(element => element.textContent)).toStrictEqual(["Host ready", ...(config.seed ? ["Unrelated style sheet"] : []), ...config.schedule.map(({ action, actor }) => `${action} ${actor === "persona" ? "Persona" : "Feedback"}`)]);
     await expect.poll(() => applicationWindow(app).document.querySelector(`#${config.id}`).querySelector(".scenario-takeaway").textContent).toBe(`What this demonstrates: ${config.takeaway}`);
     const frame = applicationFrame(app, `#${config.id} iframe`);
     await waitForElement(() => Array.from(applicationWindow(frame).document.querySelectorAll(".result")).at(0));
@@ -188,9 +188,9 @@ export async function assertGallerySettings(app, url) {
   }).selectOptions("main-2026-10-16");
   await waitForApplicationURL(app, `${url}/?personaVersion=main-2026-10-16`);
   await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll(".walkthrough")).length).toBe(threeActorCases.length);
-  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-scenario-kind="main"]')).length).toBe(5);
-  await waitForElement(() => Array.from(applicationWindow(applicationFrame(app, "#unmarked-d-first iframe")).document.querySelectorAll(".result")).at(0));
-  await expect.poll(() => applicationWindow(applicationFrame(app, "#unmarked-d-first iframe")).threeActorResult.simulation.persona).toBe("marker-guard");
+  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-scenario-kind="main"]')).length).toBe(8);
+  await waitForElement(() => Array.from(applicationWindow(applicationFrame(app, "#persona-alone iframe")).document.querySelectorAll(".result")).at(0));
+  await expect.poll(() => applicationWindow(applicationFrame(app, "#persona-alone iframe")).threeActorResult.simulation.persona).toBe("marker-guard");
   await navigateApplication(app, applicationWindow(app).location.href);
   await expect.element(app.getByLabelText("Persona version", {
     exact: true
@@ -215,7 +215,7 @@ export async function assertGallerySettings(app, url) {
   }).selectOptions("1.20260927.13.2");
   await waitForApplicationURL(app, `${url}/?personaVersion=1.20260927.13.2&host=runtime&coverage=minimal`);
   await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll(".walkthrough")).length).toBe(threeActorCases.length);
-  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-scenario-kind="release"]')).length).toBe(5);
+  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-scenario-kind="release"]')).length).toBe(8);
   await navigateApplication(app, `${url}/#host-collision`);
   await app.getByCSS(".host-settings > summary").click();
   await app.getByLabelText("Host CSS", {
@@ -256,7 +256,7 @@ export async function prepareGallery(app, url, {
   await browserPage.viewport(1400, 1800);
   await navigateApplication(app, `${url}/?host=${hostMode}&coverage=${coverage}&personaVersion=${personaVersion}`);
   await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll("iframe")).every(frame => new URL(frame.src).searchParams.get("personaVersion") === personaVersion)).toBe(true);
-  const hiddenControl = applicationFrame(app, "#persona-first iframe");
+  const hiddenControl = applicationFrame(app, "#precompiled-salted iframe");
   await waitForElement(() => applicationWindow(hiddenControl).document.querySelector("#actor-evidence"), {
     state: "attached"
   });
@@ -288,8 +288,8 @@ export async function assertGalleryEvidence(app, url, configuration) {
     if (config.hostContract === "production-extraction") {
       expect(result.simulation.host.contract).toBe("production-extraction");
       expect(result.simulation.host.installed).toBe(hostMode === "extracted");
-      const revision = config.primaryExample ? personaVersion : null;
-      const profile = config.primaryExample ? personaRevisions[personaVersion].profile : config.personaProfile;
+      const revision = config.personaRevision === "selected" ? personaVersion : null;
+      const profile = config.personaRevision === "selected" ? personaRevisions[personaVersion].profile : config.personaProfile;
       expect(result.simulation.persona).toBe(profile);
       expect(result.simulation.feedback).toBe("inspected");
       expect(result.simulation.personaRevision).toBe(revision);

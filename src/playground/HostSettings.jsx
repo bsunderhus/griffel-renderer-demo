@@ -1,7 +1,7 @@
 import React from "react";
-import { personaRevisions } from "../experiments/scenarios.js";
+import { hostPolicies, personaRevisions } from "../experiments/scenarios.js";
 
-export function HostSettings({ hostMode, coverage, personaVersion, navigate, contract = "diagnostic" }) {
+export function HostSettings({ hostMode, coverage, personaVersion, hostPolicy, navigate, contract = "diagnostic" }) {
   return (
     <details className="host-settings" open={hostMode === "runtime" || coverage === "minimal" ||
       (personaVersion && personaVersion !== "1.20260927.13.2")}>
@@ -13,10 +13,20 @@ export function HostSettings({ hostMode, coverage, personaVersion, navigate, con
           {Object.entries(personaRevisions).map(([value, revision]) =>
             <option key={value} value={value}>{revision.label}</option>)}
         </select>
-        <p>Rerun the same five primary scenarios with the consumer-pinned release or guarded
+        <p>Rerun the same baseline schedules with the consumer-pinned release or guarded
           upstream snapshot. The selection is preserved in the URL and isolated examples.
-          Explicit explanatory controls keep their own renderer profiles.
+          Counterfactual controls identify their overrides; the extra-actor seed also
+          follows the selected Persona revision.
           A main-branch fix does not establish consumer adoption or deployment.</p>
+      </>}
+      {hostPolicy && <>
+        <label htmlFor="host-policy">Host filter revision </label>
+        <select id="host-policy" value={hostPolicy} onChange={event => navigate({ hostPolicy: event.target.value })}>
+          {Object.entries(hostPolicies).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+        </select>
+        <p>Apply one host revision to every baseline schedule. The prefix exception is an
+          unmerged candidate, not the baseline default. Runtime hosts install neither filter.
+          Counterfactual diagnostics keep their explicitly named configurations.</p>
       </>}
       <label htmlFor="host-coverage">Host component coverage </label>
       <select id="host-coverage" value={coverage} onChange={event => navigate({ coverage: event.target.value })}>
@@ -35,7 +45,7 @@ export function HostSettings({ hostMode, coverage, personaVersion, navigate, con
       {contract === "diagnostic" ? <p>Runtime mode changes only the host build, not the integrations or filter predicates.
         The filter is deliberately installed after the host mounts: this is a diagnostic control,
         not a claim that a non-extracted production host enables this filter.
-        Its pre-existing unmarked buckets can cause even story 1 to lose persona overrides.</p> :
+        Its pre-existing buckets without the enhanced-specificity attribute can cause even story 1 to lose persona overrides.</p> :
         <p>The host installs its filter in a layout effect only when its production/extraction gate
           is active. Extracted mode uses a no-op host renderer; runtime mode uses a DOM renderer
           with no host filter. The integration configurations do not change.

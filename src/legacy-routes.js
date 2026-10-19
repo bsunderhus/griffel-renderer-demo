@@ -1,8 +1,9 @@
-import { scenarioAliases, scenarioAliasVersions } from "./experiments/scenarios.js";
+import { scenarioAliases, scenarioAliasVersions, scenarioAliasPolicies } from "./experiments/scenarios.js";
 import { SITE_BASE, siteRoute } from "./site.js";
 
 function canonical(id, params) {
   if (Object.hasOwn(scenarioAliasVersions, id)) params.set("personaVersion", scenarioAliasVersions[id]);
+  if (Object.hasOwn(scenarioAliasPolicies, id)) params.set("hostPolicy", scenarioAliasPolicies[id]);
   return scenarioAliases[id];
 }
 

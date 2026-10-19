@@ -1,3 +1,64 @@
+function insertionCause(actor, attempts, policy, sharedWith) {
+  const names = { host: "the host", persona: "Persona", feedback: "Feedback", unrelated: "the unrelated renderer" };
+  const blocked = attempts.filter(event => event.blocked);
+  const allowed = attempts.filter(event => !event.blocked);
+  const failed = allowed.filter(event => !event.inserted);
+  const lost = attempts.filter(event => event.inserted && !event.equivalentPresent);
+  const replaced = attempts.some(event => event.inserted && !event.present && event.equivalentPresent);
+  const explanations = [];
+  if (blocked.length) {
+    const creators = new Map();
+    for (const event of blocked) creators.set(event.creator, (creators.get(event.creator) || 0) + 1);
+    for (const [creator, count] of creators) {
+      const source = creator === actor ? "created by this actor" : `adopted from ${names[creator] || creator}`;
+      explanations.push(`${count} ${count === 1 ? "rule" : "rules"} targeted sheets ${source} without a truthy enhanced-specificity attribute.`);
+    }
+    explanations.push(policy === "master" ?
+      "The sheet-only host filter permits only destinations with a truthy enhanced-specificity attribute; a rule prefix cannot bypass it." :
+      "The host's prefix exception did not apply: the blocked rules have no Feedback prefix.");
+    explanations.push("The host skipped native insertion for those rules.");
+  }
+  if (allowed.some(event => event.reason === "filter disabled")) {
+    explanations.push("No host insertion filter is active.");
+  }
+  if (policy === "feedback-exception" && allowed.some(event => event.feedbackPrefix)) {
+    explanations.push("Feedback's rule prefix grants insertion permission, even in a sheet without the enhanced-specificity attribute.");
+  }
+  const marked = allowed.filter(event => event.enhanced &&
+    !(policy === "feedback-exception" && event.feedbackPrefix) && event.reason !== "filter disabled");
+  if (marked.some(event => event.creator === actor)) {
+    explanations.push("This actor's sheets have a truthy enhanced-specificity attribute, so the host permits its rules.");
+  }
+  const borrowed = [...new Set(marked.filter(event => event.creator !== actor).map(event => event.creator))];
+  if (borrowed.length) {
+    explanations.push(`Rules in sheets shared from ${borrowed.map(creator => names[creator] || creator).join(", ")} ` +
+      "are allowed by those sheets' enhanced-specificity attributes (borrowed permission).");
+  }
+  if (failed.length) {
+    explanations.push(`The browser rejected ${failed.length} native insertion ${failed.length === 1 ? "call" : "calls"} after the host allowed them; ` +
+      "these are not host-filter rejections. See the rule evidence for the native errors.");
+  }
+  if (lost.length) {
+    explanations.push(`${lost.length} previously inserted ${lost.length === 1 ? "rule no longer has" : "rules no longer have"} equivalent CSS in the recorded destinations; ` +
+      "that is rule removal, not blocked insertion.");
+  }
+  if (replaced) {
+    explanations.push("A recorded rule object was removed, but equivalent CSS remains; " +
+      "this is a provenance warning, not blocked insertion.");
+  }
+  if (!blocked.length && !failed.length && !lost.length && sharedWith.length) {
+    explanations.push("Shared sheets alone do not mean insertion failed or appearance changed.");
+  }
+  return {
+    title: blocked.length ? `Host filter blocked ${blocked.length} ${blocked.length === 1 ? "rule" : "rules"}` :
+      failed.length ? "Host allowed insertion; the browser rejected some rules" :
+      lost.length ? "Previously inserted rules are now missing" :
+      sharedWith.length ? "Insertion allowed; sheets are shared" :
+      replaced ? "Insertion allowed; equivalent CSS remains" : "Insertion allowed",
+    explanation: explanations.join(" "),
+  };
+}
+
 export function analyzeEvidence(result) {
   const actors = Object.fromEntries(Object.entries(result.actors).map(([actor, evidence]) => {
     const attempts = result.events.filter(event => event.actor === actor && event.bucket);
@@ -11,8 +72,12 @@ export function analyzeEvidence(result) {
     const warning = failed || sharedWith.length || attempts.some(event => event.inserted && !event.present);
     const widthRule = attempts.find(event => event.rule.includes("width:137px"));
     if (!widthRule) throw new Error(`Missing recorded width insertion for ${actor}`);
+    const componentRule = attempts.find(event => event.bucket === "d" &&
+      event.rule.includes("background-color:var(--colorBrandBackground)"));
+    if (result.kind === "baseline" && !componentRule) throw new Error(`Missing Fluent Button rule for ${actor}`);
     return [actor, {
-      attempts, blocked, failed, foreignSheets, foreignAllowed, presentRules, sharedWith, widthRule,
+      attempts, blocked, failed, foreignSheets, foreignAllowed, presentRules, sharedWith, widthRule, componentRule,
+      cause: insertionCause(actor, attempts, result.policy, sharedWith),
       borrowedPermission: attempts.filter(event => !event.blocked &&
         event.reason === "enhanced sheet" && event.creator !== actor &&
         !(result.policy === "feedback-exception" && event.feedbackPrefix)).length,

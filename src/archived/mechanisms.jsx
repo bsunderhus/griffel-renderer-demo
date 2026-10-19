@@ -40,7 +40,7 @@ export function runCase(config) {
     if (config.policy !== "none" && needsApproval &&
         !(config.policy === "rule" && rule.startsWith(RULE_MARKER))) {
       blocked++;
-      console.error("[standalone host policy] Blocked rule in unapproved sheet:", rule);
+      console.error("[standalone host policy] Blocked rule in sheet without the enhanced-specificity attribute:", rule);
       return 0;
     }
     return nativeInsert.call(this, rule, index);
@@ -92,7 +92,7 @@ export function runCase(config) {
       config.foreign ? "POLICY BYPASS: unrelated renderer's rule was allowed" : "STYLE PRESENT: width is 137px";
     const details = document.createElement("pre");
     details.textContent = [
-      `Reused first sheet: ${result.adopted} | Destination approved: ${result.markedDestination}`,
+      `Reused first sheet: ${result.adopted} | Destination has enhanced-specificity attribute: ${result.markedDestination}`,
       `insertRule attempts: ${attempts} | Blocked: ${blocked} | CSSOM rules: ${result.rules}`,
       `Computed width: ${result.width} | Cached rules: ${result.cachedRules.length}`,
       `Sheet: ${JSON.stringify(result.attributes)}`,
@@ -107,4 +107,3 @@ export function runCase(config) {
     </RendererProvider>
   ));
 }
-

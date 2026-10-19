@@ -11,6 +11,10 @@ const useOverrides = makeStyles({ root: { backgroundColor: "#b7e4c7" } });
 
 export function createHostModule(HostControls) {
   function Host({ ownerDocument }) {
+    const overrides = useOverrides();
+    return <HostControls avatarClassName={overrides.root} ownerDocument={ownerDocument} />;
+  }
+  function DiagnosticHost({ ownerDocument }) {
     const base = useBase();
     const overrides = useOverrides();
     return <HostControls avatarClassName={mergeClasses(base, overrides.root)} ownerDocument={ownerDocument} />;
@@ -44,8 +48,9 @@ export function createHostModule(HostControls) {
         insert(rules);
       };
       const root = createRoot(container);
+      const Workload = contract.contract === "diagnostic" ? DiagnosticHost : Host;
       try {
-        flushSync(() => root.render(<HostProvider><Host ownerDocument={ownerDocument} /></HostProvider>));
+        flushSync(() => root.render(<HostProvider><Workload ownerDocument={ownerDocument} /></HostProvider>));
       } catch (error) {
         policy?.();
         flushSync(() => root.unmount());

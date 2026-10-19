@@ -34,10 +34,12 @@ export function ThreeActorGallery() {
       not a full SDK or proof of an incident-time deployment.</p>
     <HostSettings {...settings} contract="production-extraction" navigate={navigate} />
     <section aria-label="Primary integration examples">
-      <h2 className="section-title">Primary integration examples</h2>
-      <p>Use <strong>Persona version</strong> in Advanced host control to switch these same five
-        scenarios between Persona 1.20260927.13.2 and Persona main snapshot (2026-10-16).
-        Only Persona's renderer profile changes; no duplicate scenario cards are added.</p>
+      <h2 className="section-title">Baseline: fixed actors, different schedules</h2>
+      <p>Use <strong>Persona version</strong> in Advanced host control to switch the same
+        schedules between Persona 1.20260927.13.2 and Persona main snapshot (2026-10-16).
+        Host filter revision is a separate configuration axis. Feedback always uses the same
+        inspected profile. Script evaluation, mounting, and reopening are explicit events;
+        no scenario changes the actors to manufacture a timing failure.</p>
       {settings.hostMode === "runtime" && <p className="note">
         Extraction is disabled: primary scenarios use a DOM host renderer with no insertion filter.
         Adoption alone does not reject rules. Explanatory controls retain their explicitly forced diagnostic policies.
@@ -45,10 +47,11 @@ export function ThreeActorGallery() {
       {cards(primary)}
     </section>
     <details className="explanatory-controls" open={controls.some(config => location.hash === `#${config.id}`)}>
-      <summary>Explanatory controls ({controls.length}) — alternative configurations and collision experiments</summary>
+      <summary>Counterfactual diagnostics and proposals ({controls.length}) — not baseline schedules</summary>
       <p>The owner guard is an unmerged proposal.
-        Other controls explicitly use the unguarded renderer with alternative Feedback settings,
-        forced diagnostic policies or a constructed shared reset. None is presented as current-main Persona behavior.</p>
+        Other controls use alternative Feedback settings, an unrelated seed renderer,
+        forced diagnostic policies or a constructed shared reset. They answer separate mechanism
+        questions and are not loading scenarios of the fixed baseline actors.</p>
       {cards(controls)}
     </details>
   </main>;

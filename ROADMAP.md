@@ -93,7 +93,7 @@ integration is solely responsible.
 | Technique | Intended benefit | Missing guarantee to investigate |
 | --- | --- | --- |
 | Contact-card selector scoping | Restrict matching to a container | Does not create private sheets or insertion permission. Portals may leave the container. |
-| Destination-sheet marker | Let a host permit marked sheets | Adoption may borrow permission or select a sheet without the marker. |
+| Enhanced-specificity attribute | Let a host permit sheets with a truthy attribute value | Adoption may borrow permission or select a sheet without the attribute. |
 | Form class-name salt | Separate runtime-generated class names | Does not isolate sheets or rename precompiled component classes. |
 | Per-rule prefix | Identify rules to a compatible filter | Does not contain CSS or establish exclusive ownership; host compatibility is required. |
 
@@ -106,7 +106,7 @@ integration is solely responsible.
   destination-based permission, independently of class collision.
 - [x] Narrate the three-actor conflict visually: the documentation explainer
   steps through five chapters whose final drawings are asserted against live
-  creator, marker, prefix, verdict, presence and cache evidence in both
+  creator, enhanced-specificity attribute, prefix, verdict, presence and cache evidence in both
   coverage profiles.
 
 **Exit gate:** every conclusion links to a reproducible configuration and an
@@ -125,8 +125,8 @@ also report later adopters; sharing does not imply borrowed permission or damage
 The integrated reader guide now explains participant responsibilities before
 following a rule through generation, sheet adoption, host filtering and native
 CSSOM presence. It distinguishes active renderer counts from sheet counts and
-maps the inspected enhanced-specificity attribute to the fictional live marker.
-Selector specificity, sheet approval, runtime salt and rule-prefix compatibility
+maps the inspected enhanced-specificity attribute to the fictional live attribute name.
+Selector specificity, the enhanced-specificity attribute, runtime salt and rule-prefix compatibility
 are separate mechanisms; the overview does not infer a deployed fix or private
 sheets from any of them.
 Public participant names are restricted to host, persona and feedback in source,
@@ -145,21 +145,35 @@ See the [module contracts](docs/RESEARCH.md#module-contracts-and-dependency-dire
 before extending the lab. This structural refactor does not enable a solution
 experiment or change the baseline failure mechanisms.
 
-The playground at `/` now has five primary scenarios and eight
-collapsed explanatory controls. Primary cases model participant-owned
-production/extraction gating, a no-op extracted host renderer, document-lifetime
-filtering and the fixed inspected form profile. Five paired setups compare
-Persona 1.20260927.13.2 with Persona main snapshot (2026-10-16) through one shared
-Persona version control, without adding scenario cards. The pinned release is the
-default; version, host build and coverage are independently retained in URLs.
-One control shows the unmerged owner proposal; seven retain explicit diagnostic
-profiles. Old `/source` and
-`/three-actors` links redirect into the same gallery.
+The playground at `/` separates eight fixed-actor baseline schedules from six
+counterfactual diagnostics/proposals. Host filter revision is independent of
+schedule, alongside Persona version, host build and coverage. The default is the
+pinned release with the sheet-only host, not a candidate prefix exception.
+Every baseline keeps the inspected Feedback profile and canonical workload.
+The unrelated seed is explicitly an extra-actor diagnostic; the owner guard is
+a proposal; four controls retain alternative builds/options and constructed
+collisions. The duplicate sheet-only Feedback-first card is removed; its URL
+selects the matching baseline schedule and filter revision.
+The altered-Feedback arrival-order cards are removed in favor of the faithful
+baseline comparisons; the redundant no-policy card is removed too. Old URLs
+redirect to the appropriate surviving baseline schedule or collision diagnostic,
+without claiming old actor configurations are equivalent.
 
-Validation covers 72 distinct gallery/renderer combinations and 24 archived cases, plus
-bounded lifecycle probes. The original source/diagnostic overlap is no longer
-counted twice. The 28 diagnostic-control records remain comparable to the
-historical diagnostic baseline; primary host contracts intentionally changed.
+Fidelity implementation:
+
+- [x] Freeze baseline actor options and reject counterfactual overrides.
+- [x] Separate script evaluation, mount and unmount into validated schedules.
+- [x] Add Persona-first under the sheet-only filter with unchanged Feedback.
+- [x] Add preload equivalence and renderer-lifetime schedules.
+- [x] Keep the artificial matching avatar reset out of canonical mounts.
+- [x] Assert actual Fluent rules independently of the supplemental width witness.
+- [x] Record configuration, executed events, mount attribution and renderer reuse.
+- [x] Keep deployment claims, counterfactual diagnostics and proposals separate.
+
+The baseline matrix has 128 schedule/version/policy/build/coverage executions,
+with separate paired preload equivalence checks, diagnostic cases and 24 archived
+cases. Historical diagnostic comparisons normalize additive execution metadata
+but preserve rule, cache, permission and appearance evidence.
 Tests now use one [Vitest runner](vitest.config.js) with separate Node unit,
 Node artifact and real-Chromium Browser Mode projects. Parameterized checks preserve paired
 comparisons, independent compiled renderers and the expected baseline failures;
@@ -179,14 +193,14 @@ See the
 behavior and explicit limits; this is not incident-time deployment attribution
 or a complete coexistence sign-off.
 
-The 2026-10-16 authorized source recheck confirmed marker-guard behavior in the
+The 2026-10-16 authorized source recheck confirmed enhanced-specificity attribute guard behavior in the
 inspected main branch; owner-filtered adoption and shared renderer caching remain
-an unmerged proposal, not a deployed default. The verified marker-guard setups
-are selectable in the five primary scenarios (20 host/coverage cases). The inspected consumer
+an unmerged proposal, not a deployed default. The verified enhanced-specificity attribute guard setups
+remain selectable across the baseline schedules. The inspected consumer
 instead pins Persona 1.20260927.13.2 with version locking enabled in checked-in
-defaults; its release build has no adopted-handle guard. Its five scenarios
-use the same five cards. Twenty direct paired comparisons cover both versions.
-The duplicate marker-guard card redirects to the current Feedback-first case.
+defaults; its release build has no adopted-handle guard. Both revisions use the
+same schedules and Feedback code. Direct paired comparisons cover both versions.
+The duplicate `marker-guard` card redirects to the current Feedback-first case.
 Separate actual-source probes corroborated
 native insertion, cache and sharing outcomes. See the
 [current-source recheck](docs/RESEARCH.md#current-source-recheck-2026-10-16)

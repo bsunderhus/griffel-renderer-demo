@@ -91,7 +91,30 @@ export async function navigateApplication(app, url) {
 }
 
 async function waitForApplicationReady(app) {
-  await expect.poll(() => applicationWindow(app).document.readyState).toBe("complete");
+  const window = applicationWindow(app);
+  const { signal } = applications.get(app);
+  if (window.document.readyState !== "complete") {
+    await new Promise((resolve, reject) => {
+      function cleanup() {
+        window.removeEventListener("load", loaded);
+        signal.removeEventListener("abort", aborted);
+      }
+      function loaded() {
+        cleanup();
+        resolve();
+      }
+      function aborted() {
+        cleanup();
+        reject(signal.reason);
+      }
+      if (signal.aborted) {
+        aborted();
+        return;
+      }
+      window.addEventListener("load", loaded);
+      signal.addEventListener("abort", aborted, { once: true });
+    });
+  }
   const current = new URL(applicationWindow(app).location.href);
   if (current.searchParams.has("scenario")) {
     await expect.poll(() => {

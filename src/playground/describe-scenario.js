@@ -1,8 +1,13 @@
-const sharedDescriptions = {
-  "feedback-first": "Feedback creates unmarked sheets first; both integrations' rules are blocked. Shared host CSS keeps their phone and blue primary actions styled, but cannot supply the custom 137px secondary-action rule: both secondary actions expand.",
-};
-
 export function describeScenario(config, hostMode, coverage) {
+  if (config.kind === "baseline") {
+    return `${config.description} The selected host filter revision, Persona version, and host
+      build/coverage are held constant across schedules. Feedback's raw styles, salt, prefix,
+      singleton and canonical component workload never change. Host ready always precedes the
+      schedule. ${hostMode === "runtime" ? "Runtime mode installs no filter." :
+        "Extraction enables the selected host filter."} ${coverage === "shared" ?
+        "Shared host styles may mask missing declarations; CSSOM evidence remains independent." :
+        "The minimal host supplies no button or textarea CSS."}`;
+  }
   if (config.hostContract === "production-extraction") {
     const coverageNote = coverage === "shared" ?
       "Shared host component CSS can mask missing declarations; it does not change insertion evidence." :
@@ -15,13 +20,13 @@ export function describeScenario(config, hostMode, coverage) {
     return `${config.description} ${coverageNote}`;
   }
   if (hostMode === "extracted") {
-    return coverage === "shared" ? sharedDescriptions[config.id] || config.description : config.description;
+    return config.description;
   }
   let insertion = "The filter is off, so both integrations insert successfully.";
   if (config.policy !== "off") {
     const masking = coverage === "shared" ? "Host CSS can mask standard button failures." :
       "Without host button CSS, missing standard styles are exposed unless Feedback supplies matching classes.";
-    insertion = `Persona's rules are blocked in the host's unmarked sheets. ${masking}`;
+    insertion = `Persona's rules are blocked in the host's sheets without the enhanced-specificity attribute. ${masking}`;
   }
   return `Diagnostic control: repeat "${config.title}" with host-created runtime buckets already present and ${coverage} component coverage.
             Filtering is deliberately independent of the production/extraction gate. ${insertion}

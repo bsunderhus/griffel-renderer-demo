@@ -1,32 +1,32 @@
 export const cases = [
   {
     id: "clean",
-    title: "1. Clean document: approved renderer works",
-    description: "No existing sheet. The renderer creates a sheet carrying its own approval attribute.",
+    title: "1. Clean document: enhanced-specificity attribute permits insertion",
+    description: "No existing sheet. The renderer creates a sheet carrying its own enhanced-specificity attribute.",
     seed: "none", policy: "sheet", expected: { adopted: false, rules: 1, blocked: 0, attempts: 1 },
   },
   {
     id: "reuse-only",
     title: "2. Reuse without a host filter: styles still work",
-    description: "An unmarked d0 sheet exists first. Griffel adopts it, but nothing blocks insertion.",
+    description: "A d0 sheet without the enhanced-specificity attribute exists first. Griffel adopts it, but nothing blocks insertion.",
     seed: "plain", policy: "none", expected: { adopted: true, rules: 1, blocked: 0, attempts: 1 },
   },
   {
     id: "blocked",
     title: "3. Reuse + host filter: integration styles disappear",
-    description: "The approved renderer adopts the unmarked sheet. The filter blocks its rule because the destination is unmarked.",
+    description: "The renderer requests the enhanced-specificity attribute but adopts a sheet without it. The filter blocks its rule because the destination lacks that attribute.",
     seed: "plain", policy: "sheet", expected: { adopted: true, rules: 0, blocked: 1, attempts: 1 },
   },
   {
     id: "bypass",
     title: "4. Reverse order: an unrelated renderer gets through",
-    description: "An approved renderer creates the sheet first. An unapproved renderer adopts it and its rule passes the sheet-level filter.",
+    description: "A renderer creates a sheet with the enhanced-specificity attribute first. Another renderer does not request the attribute, but adopts that sheet and its rule passes the sheet-level filter.",
     seed: "approved", policy: "sheet", foreign: true, expected: { adopted: true, rules: 1, blocked: 0, attempts: 1 },
   },
   {
     id: "salt",
     title: "5. A class-name salt does not isolate sheets",
-    description: "A genuine makeStyles call uses a salted class, but the renderer still adopts the unmarked d0 sheet and insertion is blocked.",
+    description: "A genuine makeStyles call uses a salted class, but the renderer still adopts the d0 sheet without the enhanced-specificity attribute and insertion is blocked.",
     seed: "plain", policy: "sheet", salt: "isolated-integration", expected: { adopted: true, rules: 0, blocked: 1, attempts: 1 },
   },
   {

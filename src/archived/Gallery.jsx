@@ -9,10 +9,12 @@ export function Gallery({ mode }) {
   return <main>
     <Navigation mode={mode} />
     <h1>Griffel: shared sheets, different insertion policies</h1>
-    <p>Two independent renderers share a document. One expects its sheets to carry an approval marker.
-      Griffel's <code>RendererProvider</code> can adopt an existing sheet without that marker instead.
+    <p>Two independent renderers share a document. One expects its sheets to carry an enhanced-specificity attribute.
+      Griffel's <code>RendererProvider</code> can adopt an existing sheet without that attribute instead.
       A simulated host filter checks the destination sheet, not the renderer that produced a rule.</p>
     <p className="note"><strong>Synthetic local examples.</strong> React, Griffel, and a small explicit host-policy simulation only.
+      These archived probes use <code>data-standalone-approved</code> as their local enhanced-specificity attribute.
+      Their filters check attribute presence, unlike the baseline host's truthiness check.
       Sheet adoption alone is not a missing-style failure: compare cases 2 and 3.
       Red and amber outcomes are intentional evidence, not test-run failures.</p>
     <button onClick={() => window.location.reload()}>Replay all cases</button>
@@ -42,4 +44,3 @@ export function Gallery({ mode }) {
     </section>}
   </main>;
 }
-

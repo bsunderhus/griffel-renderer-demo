@@ -11,7 +11,7 @@ test.for([["default", {}, false, false], ["historical", {}, true, true], ["marke
 }, false, false], ["owner-guard", {
   "data-demo-allow-rules": "true",
   "data-demo-renderer-owner": "test-owner"
-}, true, false]])("%s with marker %j: adoption=%s, blocked=%s", async ([profile, attributes, adopted, blocked], {
+}, true, false]])("%s with enhanced-specificity attributes %j: adoption=%s, blocked=%s", async ([profile, attributes, adopted, blocked], {
   onTestFinished,
   signal
 }) => {
@@ -48,7 +48,7 @@ test.for([["default", {}, false, false], ["historical", {}, true, true], ["marke
     cached: Boolean(mounted.renderer.insertionCache[width.rule]),
     nativePresent: Array.from(mounted.renderer.stylesheets.d0.element.sheet.cssRules).some(rule => rule.cssText.includes("width: 137px"))
   }), {
-    message: "Acceptance depends on the actual marker/owner, not appearance or cached rules"
+    message: "Acceptance depends on the actual enhanced-specificity attribute/owner, not appearance or cached rules"
   }).toStrictEqual({
     adopted,
     blocked,

@@ -6,7 +6,7 @@ const NAMES = { host: "Host", persona: "Persona", feedback: "Feedback" };
 const RENDERER_Y = { host: 58, persona: 158, feedback: 258 };
 const SHEET_X = 232;
 const SHEET_W = 176;
-const SHEET_H = 74;
+const SHEET_H = 88;
 const SHEET_Y = [70, 196];
 const GATE_X = 450;
 const GATE_W = 86;
@@ -18,7 +18,7 @@ function sheetY(state, id) {
 
 function describeState(chapter, state) {
   const sheets = state.sheets.map(sheet =>
-    `${NAMES[sheet.creator]} created ${sheet.marked ? "an approved" : "an unmarked"} sheet`);
+    `${NAMES[sheet.creator]} created a sheet ${sheet.marked ? "with" : "without"} the enhanced-specificity attribute`);
   const handles = state.handles.filter(handle => handle.kind !== "created").map(handle => {
     const creator = NAMES[state.sheets.find(sheet => sheet.id === handle.sheet).creator];
     return `${NAMES[handle.actor]} ${handle.kind} ${creator}'s sheet`;
@@ -53,10 +53,12 @@ function Sheet({ sheet, y }) {
     <rect x={SHEET_X} y={y} width={SHEET_W} height={SHEET_H} rx="10" />
     <text x={SHEET_X + 14} y={y + 24} className="explainer-code">{"<style … bucket=\"d\">"}</text>
     <text x={SHEET_X + 14} y={y + 44} className="explainer-subtle">Created by {NAMES[sheet.creator]}</text>
-    <rect x={SHEET_X + 14} y={y + 52} width={sheet.marked ? 92 : 74} height="16" rx="8"
-      className={sheet.marked ? "explainer-approved" : "explainer-unmarked"} />
-    <text x={SHEET_X + 22} y={y + 64} className="explainer-badge-text">
-      {sheet.marked ? "✓ approved" : "unmarked"}</text>
+    <rect x={SHEET_X + 14} y={y + 52} width="148" height="30" rx="8"
+      className={sheet.marked ? "explainer-attribute-present" : "explainer-attribute-absent"} />
+    <text data-sheet-attribute="" className="explainer-badge-text">
+      <tspan x={SHEET_X + 22} y={y + 64}>enhanced-specificity</tspan>
+      <tspan x={SHEET_X + 22} y={y + 77}> attribute: {sheet.marked ? '"true"' : "absent"}</tspan>
+    </text>
   </motion.g>;
 }
 

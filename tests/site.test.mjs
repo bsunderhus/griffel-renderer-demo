@@ -22,7 +22,7 @@ test("legacy locations normalize like the server redirects, under any base", () 
   expect(at(`${base}source`, "?coverage=shared")).toBe(`${base}?coverage=shared`);
   expect(at(`${base}three-actors.html`)).toBe(base);
   expect(at(base, "?scenario=marker-guard&coverage=minimal")).toBe(
-    `${base}?scenario=raw-marked-first&coverage=minimal&personaVersion=main-2026-10-16`);
+    `${base}?scenario=raw-marked-first&coverage=minimal&personaVersion=main-2026-10-16&hostPolicy=feedback-exception`);
   expect(at(`${base}docs`, "", "#historical-unmarked-first")).toBe(
     `${base}docs?personaVersion=1.20260927.13.2#unmarked-d-first`);
   expect(at(`${base}extracted`, "?scenario=marker-guard")).toBeNull();

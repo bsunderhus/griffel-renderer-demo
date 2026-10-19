@@ -29,7 +29,7 @@ describe("conflict explainer story", () => {
     expect(["extracted", "runtime"]).toContain(chapter.host);
     const final = storyState(chapter, chapter.steps.length - 1);
     const gate = chapter.host === "runtime" ? "off" :
-      Object.entries(GATES).find(([, value]) => value.policy === config.policy)?.[0];
+      Object.entries(GATES).find(([, value]) => value.policy === (chapter.hostPolicy || "master"))?.[0];
     expect(final.gate, "The drawn filter matches the configured host policy").toBe(gate);
     const arrivals = chapter.steps.flatMap(step => step.events).map(event => event.actor)
       .filter((actor, index, all) => ["persona", "feedback"].includes(actor) && all.indexOf(actor) === index);
@@ -40,7 +40,7 @@ describe("conflict explainer story", () => {
     if (profile === "historical") expect(personaHandles.some(handle => handle.kind === "discarded")).toBe(false);
     if (profile === "marker-guard") {
       const used = final.attempts.find(attempt => attempt.actor === "persona").sheet;
-      expect(final.sheets.find(sheet => sheet.id === used).marked, "The guard never writes into unmarked sheets").toBe(true);
+      expect(final.sheets.find(sheet => sheet.id === used).marked, "The guard never writes into sheets without the enhanced-specificity attribute").toBe(true);
     }
   });
 
@@ -68,6 +68,7 @@ describe("conflict explainer story", () => {
     expect(url.hash).toBe(`#${chapter.scenario}`);
     expect(Object.fromEntries(url.searchParams)).toStrictEqual({
       coverage: "minimal", host: "runtime", personaVersion: chapter.personaVersion,
+      hostPolicy: "master",
     });
   });
 });

@@ -62,14 +62,14 @@ rule prefix, rather than the renderer that generated the rule.
 
 1. **Sheet selection:** bucket and priority determine which existing sheets a
    renderer adopts.
-2. **Permission:** a container-scoped integration requests specially marked
-   sheets. Another integration may adopt them, or the scoped integration may
-   adopt an unmarked sheet.
+2. **Permission:** a container-scoped integration requests sheets with the
+   enhanced-specificity attribute. Another integration may adopt them, or the
+   scoped integration may adopt a sheet without that attribute.
 3. **Appearance:** shared CSS can mask rejected rules. A deliberately overlapping
    avatar reset also demonstrates a late rule changing host styling.
 4. **Cache:** a rejected insertion can leave a rule recorded in Griffel's cache.
 
-The marker names, salt, host filter, and integration configurations are invented
+The attribute name, rule prefix, salt, host filter, and integration configurations are invented
 for this experiment. They are not security boundaries or recommended production
 policies. CSS scoping is not document isolation, and class-name salt does not
 provide private style sheets.
@@ -89,7 +89,7 @@ CSSOM insertion separately, and links to the matching playground configuration.
 The chapters are a declarative script in
 [conflict-story.js](src/playground/conflict-story.js); tests replay each linked
 configuration and assert that the final drawing matches recorded creator,
-marker, prefix, verdict, presence and cache evidence. The explainer honors
+enhanced-specificity attribute, prefix, verdict, presence and cache evidence. The explainer honors
 reduced-motion preferences and supports keyboard stepping.
 
 The actors are introduced once, before the explainer. Below the conclusion, a
@@ -101,10 +101,10 @@ live examples, and evidence.
 - **Host** builds its own extracted CSS, supplies a no-op host renderer
   in extracted mode and installs a document-wide native-insertion filter.
 - **Persona** supplies a separate renderer, scopes its rules under a parent
-  selector and requests marked new sheets. Its pinned release and guarded main
-  snapshot differ in how they handle adopted unmarked destinations.
+  selector and requests new sheets with the enhanced-specificity attribute. Its pinned release and guarded main
+  snapshot differ in how they handle adopted destinations without the enhanced-specificity attribute.
 - **Feedback** uses the inspected module-level renderer profile,
-  salted runtime names and prefixed rules, but requests no Persona approval marker.
+  salted runtime names and prefixed rules, but requests no Persona enhanced-specificity attribute.
 
 With both integrations mounted, the fixture has three active participant
 renderer roles, not three private sheets. The extracted host's role is a no-op;
@@ -113,28 +113,32 @@ different counts, explained in the guide; this is not a census of real-product
 renderers.
 
 The inspected `data-enhanced-specificity` attribute maps to the running demo's
-fictional `data-demo-allow-rules` marker. The attribute itself adds no CSS
+fictional `data-demo-allow-rules` attribute. The attribute itself adds no CSS
 specificity: Persona's extra parent selector does that. The host turns the attribute
 into permission by reading the destination sheet. Adoption does not relabel
 that sheet, which explains both legitimate Persona rejection and foreign writes
-through Persona-marked sheets. The guide separates those mechanisms, the unmerged
+through Persona's sheets carrying the enhanced-specificity attribute. The guide separates those mechanisms, the unmerged
 host-prefix exception, cache state, native parser rejection and host collisions.
 
 ## Playground
 
-The playground at `/` keeps five primary scenarios. **Persona version** in
-Advanced host control reruns those same scenarios with either renderer revision,
-without adding duplicate cards:
+The playground at `/` uses **fixed actors and explicit execution schedules**.
+Advanced host control selects one Persona version and one host filter revision
+for every baseline schedule, without changing Feedback or adding duplicate cards:
 
 - **Persona 1.20260927.13.2:** the release pinned by the inspected consumer
   bootstrapper, using unguarded sheet adoption.
-- **Persona main snapshot (2026-10-16):** the upstream source containing the marker
-  guard. No published release containing that guard is established here.
+- **Persona main snapshot (2026-10-16):** the upstream source containing the
+  enhanced-specificity attribute guard. No published release containing that
+  guard is established here.
 
 The consumer's checked-in defaults enable version locking. That is source
 consumption evidence, not proof of effective runtime settings or deployed assets.
-Eight collapsed controls retain the unmerged owner-guard proposal and seven
-diagnostic configurations.
+The host filter defaults to **sheet-only**, matching the inspected baseline.
+The prefix exception is an explicit candidate configuration, not a different
+Feedback implementation. Six collapsed diagnostics/proposals retain the
+extra-actor seed, owner guard and four counterfactual styling configurations.
+They are not baseline arrival scenarios.
 
 The source-aligned primary scenarios run across both host modes and component
 coverage profiles:
@@ -147,26 +151,50 @@ coverage profiles:
 - **Versioned Persona** explicitly selects either the pinned release's unguarded
   renderer or the main snapshot's `marker-guard`. The latter discards incompatible
   handles before insertion, but does not enforce exclusive ownership: another
-  owner's approved sheet can still be accepted, and a later foreign renderer can
-  adopt Persona's approved sheets. The unmerged `owner-guard` proposal remains a
+  owner's sheet with the enhanced-specificity attribute can still be accepted, and a later foreign renderer can
+  adopt Persona's sheets with the enhanced-specificity attribute. The unmerged `owner-guard` proposal remains a
   control, not either revision's default.
 - The **inspected form profile** uses its independently compiled raw-style
   bundle, module-level renderer, salted runtime names and prefixed rules, without
-  requested sheet-approval metadata. A precompiled control bundle rejects that
+  a requested enhanced-specificity attribute. A precompiled control bundle rejects that
   profile rather than pretending to provide it.
 
 These are sanitized simulations of inspected styling contracts, not a complete
 product integration or an incident-time deployment. The pinned public library
-versions, fictional UI and marker names remain explicit experimental inputs.
+versions, fictional UI, attribute name and rule prefix remain explicit experimental inputs.
 Host custom query sorting, CSP configuration, theme/font customization and
 portals are outside these cases. The actual deployed revision, incident-time UI
 asset and embedded SDK Griffel version are not established by this repository.
 
-Five primary examples are visible; eight explanatory controls are collapsed.
-Each includes load order, a takeaway, live controls, and compact outcomes:
+Eight baseline schedules are visible:
+
+| Schedule | Events after the host is ready |
+| --- | --- |
+| Persona alone | Load and mount Persona. |
+| Feedback alone | Load and mount Feedback. |
+| Feedback first | Load/mount Feedback, then load/mount Persona. |
+| Persona first | Reverse the same actors' arrival order. |
+| Feedback preloaded | Evaluate Feedback, load/mount Persona, then mount Feedback. |
+| Both scripts preloaded | Evaluate both scripts, then mount Feedback and Persona. |
+| Feedback reopened | Persona first, then unmount/remount Feedback with its retained singleton. |
+| Persona remounted | Feedback first, then unmount/remount Persona with a fresh per-provider renderer. |
+
+Script evaluation and mounting are separate deterministic events, not timing
+sleeps. Preload comparisons assert identical generated rules, decisions, native
+presence, caches and sheet relationships. Constructor timing alone does not
+freeze adoption: the pinned Griffel provider hydrates sheets before rendering
+its children. Host-late races and arbitrary asynchronous render interleavings
+are not modeled.
+
+Each actor first explains **why insertion failed or was allowed**: the host
+filter's missing destination enhanced-specificity attribute, an inapplicable prefix exception,
+browser-native rejection, or later rule removal. Adopted and actor-created
+destinations are distinguished. Sharing alone is not described as failure.
+Technical counts and outcomes remain inside **Generated CSS and rule evidence**:
 **Insertion**, **Rules**, **Ownership**, **Sharing**, and **Permission**.
-Expand **Generated CSS and rule evidence** to follow the selected action-width
-rule, then **All recorded insertion attempts** to inspect every recorded rule.
+The actual Fluent primary Button background rule provides a non-custom witness.
+Expand **Generated CSS and rule evidence** for the supplemental action-width
+probe, then **All recorded insertion attempts** to inspect every recorded rule.
 
 The rule trace distinguishes the generated CSS, host permission decision,
 native insertion, actual destination CSSOM contents, renderer cache, and
@@ -200,34 +228,40 @@ paired reproductions. Start with extracted CSS and minimal coverage to reduce
 masking, then repeat with shared coverage and the runtime-host control.
 The versioned findings are:
 
-- The pinned release can cache scoped rules that are rejected after an unmarked
-  sheet or Feedback-first arrival. Calling it merely a historical control would
+- The pinned release can cache scoped rules that are rejected after a sheet
+  without the enhanced-specificity attribute or Feedback-first arrival. Calling it merely a historical control would
   misrepresent the inspected consumer's version pin.
-- The upstream main snapshot's scoped rules insert in all five setups, including
-  after unmarked sheets. This does not establish consumer adoption of that fix.
-- Reversing arrival order can still produce shared approved sheets. That is not
+- The upstream main snapshot's tracked scoped rules insert across baseline
+  schedules and the separate diagnostic seed without the enhanced-specificity attribute. This does not establish
+  consumer adoption of that fix.
+- Reversing arrival order can still produce shared sheets with the enhanced-specificity attribute. That is not
   exclusive ownership or proof of damage.
 - The inspected host main uses a sheet-only filter. The Feedback prefix
   exception is an unmerged host proposal, labeled separately in each example.
   Under the sheet-only filter, Feedback-first blocks both actors in the pinned
   release; the upstream guard protects Persona, not Feedback.
+- Under the sheet-only filter, Persona-first lets unchanged prefixed Feedback
+  borrow permission in shared buckets with the enhanced-specificity attribute. Feedback-only buckets can still
+  be rejected. This comparison does not remove Feedback's salt or prefix.
 
 Both renderer revisions remain first-class reproductions. The owner proposal is
 a stronger, separately labeled comparison.
-The intentionally overlapping avatar reset is a separate collision probe,
-not a prerequisite for the adoption-plus-filter failure.
+The intentionally overlapping avatar reset is enabled only in explicit
+diagnostic workloads. Canonical host/Feedback mounts do not apply it.
 
 The contact card offers Message and View profile. The feedback form offers
 Send feedback and Clear status. All actions are local; no form data is sent.
-View profile and Clear status have a 137px customization. Rejected rules may
-make them expand. A green host avatar turning orange demonstrates the
-constructed class collision.
+View profile and Clear status have the same supplemental 137px witness in every
+configuration; it is not a claim about a product declaration. Baseline assertions
+also follow real Fluent rules. A green avatar turning orange belongs to the
+constructed diagnostic collision, not the candidate Feedback baseline.
 
-**Advanced host control** offers three independent choices:
+**Advanced host control** offers four independent choices:
 
 | Choice | Values | Purpose |
 | --- | --- | --- |
 | Persona version | Pinned release / guarded main snapshot | Rerun the same scenarios with a different Persona adoption contract. |
+| Host filter revision | Sheet-only baseline / candidate prefix exception | Change only the host's insertion permission contract. |
 | Host CSS | Extracted / runtime | Compare build-time CSS with runtime insertion. |
 | Component coverage | Shared / minimal | Compare a host using form controls with one using only an avatar. |
 
@@ -235,7 +269,7 @@ The URL preserves these choices, for example
 `/?host=extracted&coverage=minimal`. Each example starts in a fresh iframe.
 Fragment links such as `/#host-collision` open the relevant control group.
 An isolated example is available at
-`/?scenario=raw-marked-first&host=extracted&coverage=shared&personaVersion=1.20260927.13.2`.
+`/?scenario=raw-marked-first&host=extracted&coverage=shared&personaVersion=1.20260927.13.2&hostPolicy=master`.
 The version defaults to the consumer-pinned release. Set
 `personaVersion=main-2026-10-16` for the guarded source snapshot; the same scenario
 IDs are used for both. Changing host CSS or coverage preserves the version, and
@@ -245,11 +279,18 @@ renderer contracts, not a complete SDK implementation.
 Old `/three-actors` and `/source` links redirect into this same gallery;
 the seven former `source-*` scenario IDs map to their canonical counterparts.
 The former `marker-guard` example redirects to `raw-marked-first` with the main
-snapshot selected instead of duplicating it.
+snapshot and candidate filter selected. The former `master-rejects-marker` card
+is removed as a redundant schedule: its URL selects Feedback-first with
+`hostPolicy=master`. Legacy aliases retain their known policy/version settings.
+The altered-Feedback `feedback-first` and `persona-first` cards are removed:
+the fixed baseline now demonstrates those mechanisms without changing Feedback.
+Their aliases select the corresponding sheet-only baseline schedules.
+The redundant `no-policy` diagnostic redirects to the existing collision control;
+these aliases are navigation compatibility, not claims of identical old actor code.
 The former `historical-unmarked-first` and `historical-feedback-first` links map
 to the same canonical scenarios with the pinned release selected.
 
-Within the seven diagnostic controls, the filter is deliberately activated after host mount in both host modes.
+Within the four counterfactual styling controls, the filter is deliberately activated after host mount in both host modes.
 Runtime mode with filtering is a diagnostic control, not a claim about typical
 production configuration. Both primary renderer revisions and the
 owner proposal use the host-owned production/extraction gate. The checks cover selected CSS mechanisms, not
@@ -271,13 +312,15 @@ On supported Linux systems needing browser libraries, use
 `npx playwright install --with-deps chromium`; OS installation may require
 administrator privileges.
 
-The full suite builds and runs 96 matrix cases: 72 distinct gallery/renderer
-combinations plus 24 archived diagnostics. There are only 13 gallery cards:
-5 primary scenarios × 2 Persona versions × 2 host builds × 2 coverage profiles = 40
-primary combinations, plus 8 fixed-profile controls × 2 host builds × 2 coverage
-profiles = 32 control combinations.
-The five release/main pairs yield 20 direct comparisons from those
-same records; no test-only scenario override or duplicate primary gallery is needed.
+The baseline matrix has 8 schedules × 2 Persona versions × 2 host filter
+revisions × 2 host builds × 2 coverage profiles = **128 executions**.
+The source tests compare release/main pairs within each configuration.
+Separate schedule-pair tests replay preloaded versus ordinary arrival under all
+16 version/policy/build/coverage configurations. Those repeats are equivalence
+checks, not additional distinct baseline configurations.
+The gallery has 14 cards: 8 baseline schedules and 6 diagnostics/proposals.
+Four historical diagnostic controls retain their 16 build/coverage combinations;
+the seed and proposal have separate coverage, alongside 24 archived cases.
 It also checks gate truth tables, filter
 idempotence, renderer/cache lifecycle and build boundaries.
 Vitest is the single runner for both unit and integration tests, configured in
@@ -300,7 +343,7 @@ renderer stays separate from the compiled Persona renderer. No test invokes
 esbuild or injects a manually compiled seed script.
 Paired revisions and host/coverage comparisons remain
 in the same parameterized test so filtered runs do not depend on another test.
-The 96 matrix cases are grouped into named tests alongside UI and lifecycle
+Matrix executions are grouped into named tests alongside UI and lifecycle
 checks; the Vitest test count is not the matrix-case count.
 Assertions use Vitest's `expect` matchers, with domain-specific checks in
 reusable helpers. Each browser test keeps its evidence local; there are no
@@ -347,6 +390,7 @@ After a build, filter by file or test name without rebuilding:
 ```sh
 npx vitest run tests/policy/host-contract.test.mjs
 npx vitest run tests/source/run.test.mjs
+npx vitest run tests/source/schedules.test.mjs
 npx vitest run tests/archived
 npx vitest run --project browser
 npx vitest run --project browser -t feedback-first
@@ -363,7 +407,7 @@ Vitest's built-in reporters.
 Experiment results are in each JSON test's `meta.evidence` field;
 filtered reports include only the tests selected, not a complete matrix.
 The optional saved-baseline comparison is skipped unless `BASELINE_RESULTS` is
-set. It executes all 28 diagnostic combinations afresh against the current build,
+set. It executes all 16 retained diagnostic combinations afresh against the current build,
 not a previously generated report; see the
 [research notes](docs/RESEARCH.md#build-boundaries-matter).
 Tests still read built files to verify extraction, dependency boundaries and raw
@@ -422,7 +466,8 @@ generated classes, adoption or insertion.
 
 - [src/host/](src/host/): application UI, explicit minimal/shared entries,
   renderer mounting, extraction assertion and host insertion policy.
-- [src/persona/](src/persona/): contact-card UI and its scoped, marked renderer.
+- [src/persona/](src/persona/): contact-card UI and its scoped renderer requesting
+  the enhanced-specificity attribute.
 - [src/feedback/](src/feedback/): form UI, salted/prefixed renderer and singleton profile.
 - [src/shared/](src/shared/): neutral UI primitives compiled into each participant;
   not a shared browser renderer or participant-switching component.

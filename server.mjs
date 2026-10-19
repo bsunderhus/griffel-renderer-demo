@@ -1,7 +1,7 @@
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { scenarioAliases, scenarioAliasVersions } from "./src/experiments/scenarios.js";
+import { scenarioAliases, scenarioAliasVersions, scenarioAliasPolicies } from "./src/experiments/scenarios.js";
 
 // Public allowlist shared by the local server and the static GitHub Pages artifact.
 export const SITE_FILES = {
@@ -32,6 +32,9 @@ export async function serveReproRequest(request, response) {
   if (pathname === "/source" || pathname === "/three-actors" || (pathname === "/" && alias)) {
     if (alias) {
       requested.searchParams.set("scenario", scenarioAliases[scenario]);
+      if (Object.hasOwn(scenarioAliasPolicies, scenario)) {
+        requested.searchParams.set("hostPolicy", scenarioAliasPolicies[scenario]);
+      }
       if (Object.hasOwn(scenarioAliasVersions, scenario)) {
         requested.searchParams.set("personaVersion", scenarioAliasVersions[scenario]);
       }

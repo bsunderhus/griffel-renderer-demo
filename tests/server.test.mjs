@@ -1,7 +1,7 @@
 import { once } from "node:events";
 import { expect, test } from "vitest";
 import { createReproServer } from "../server.mjs";
-import { scenarioAliases, scenarioAliasVersions } from "../src/experiments/scenarios.js";
+import { scenarioAliases, scenarioAliasVersions, scenarioAliasPolicies } from "../src/experiments/scenarios.js";
 
 test("legacy HTTP redirects preserve status, settings and revision aliases", async ({ onTestFinished }) => {
   const server = createReproServer();
@@ -18,8 +18,9 @@ test("legacy HTTP redirects preserve status, settings and revision aliases", asy
       { redirect: "manual" },
     );
     expect(response.status).toBe(302);
-    const version = scenarioAliasVersions[legacy];
-    expect(response.headers.get("location"))
-      .toBe(`/?scenario=${canonical}&host=runtime&coverage=minimal&view=walkthrough${version ? `&personaVersion=${version}` : ""}`);
+    const expected = new URLSearchParams({ scenario: canonical, host: "runtime", coverage: "minimal", view: "walkthrough" });
+    if (scenarioAliasPolicies[legacy]) expected.set("hostPolicy", scenarioAliasPolicies[legacy]);
+    if (scenarioAliasVersions[legacy]) expected.set("personaVersion", scenarioAliasVersions[legacy]);
+    expect(response.headers.get("location")).toBe(`/?${expected}`);
   }
 });

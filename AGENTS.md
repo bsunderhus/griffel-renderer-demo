@@ -36,8 +36,9 @@ Publication of the source baseline is complete; licensing remains open.
   inputs. Document and test deliberate upgrades.
 - Setup: `npm ci`, then `npx playwright install chromium`. Linux may need
   `npx playwright install --with-deps chromium`.
-- Full validation: `npm test` builds all eight targets and runs Vitest across
-  96 matrix cases. See the README for focused checks and preview commands.
+- Full validation: `npm test` builds all eight targets and runs Vitest, including
+  128 baseline schedule/configuration executions, paired preload checks and
+  separate diagnostics. See the README for focused checks and preview commands.
 - Run `npm run test:unit` for checks without a build or browser.
   After source changes, rebuild before running integration tests directly with
   `npx vitest run`; `npm run test:integration` includes the build.

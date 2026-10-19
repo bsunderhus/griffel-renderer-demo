@@ -1,5 +1,5 @@
 import { expect } from "vitest";
-import { applicationWindow } from "../browser/application.mjs";
+import { applicationWindow, visible } from "../browser/application.mjs";
 
 export async function assertPresentedEvidence(app, result) {
   // Normalize snapshots from different iframe realms without weakening strict equality.
@@ -7,7 +7,7 @@ export async function assertPresentedEvidence(app, result) {
   const document = applicationWindow(app).document;
   const hostEvidence = result.hostEvidence;
   const background = hostEvidence.avatarBackground;
-  const collision = result.hostMode === "extracted" && ["no-policy", "raw-unsalted", "host-collision"].includes(result.id);
+  const collision = result.hostMode === "extracted" && ["raw-unsalted", "host-collision"].includes(result.id);
   expect(background.baseline.resolved, "Baseline background is proven from CSS declarations").toBe(true);
   expect(background.current.resolved, "Fixture stays inside the bounded cascade probe").toBe(true);
   expect(background.baseline.value).toBe("rgb(183, 228, 199)");
@@ -43,6 +43,26 @@ export async function assertPresentedEvidence(app, result) {
     const attempts = result.events.filter(event => event.actor === actor && event.bucket);
     const blocked = attempts.filter(event => event.blocked).length;
     const failed = attempts.filter(event => !event.blocked && !event.inserted).length;
+    const cause = () => status().querySelector("[data-insertion-cause]");
+    await expect.poll(() => visible(cause()), {
+      message: "The cause is visible without expanding technical evidence",
+    }).toBe(true);
+    expect(cause().parentElement.firstElementChild).toBe(cause());
+    if (blocked) {
+      expect(cause().querySelector("strong").textContent).toBe(`Host filter blocked ${blocked} ${blocked === 1 ? "rule" : "rules"}`);
+      expect(cause().textContent).toContain("without a truthy enhanced-specificity attribute");
+      expect(cause().textContent).toContain("host skipped native insertion");
+      expect(cause().textContent).toContain(result.policy === "master" ?
+        "a rule prefix cannot bypass it" : "blocked rules have no Feedback prefix");
+      for (const creator of new Set(attempts.filter(event => event.blocked && event.creator !== actor)
+        .map(event => event.creator))) {
+        const name = { host: "the host", unrelated: "the unrelated renderer" }[creator] || creator;
+        expect(cause().textContent.toLowerCase()).toContain(`adopted from ${name}`.toLowerCase());
+      }
+    } else if (failed) {
+      expect(cause().querySelector("strong").textContent).toBe("Host allowed insertion; the browser rejected some rules");
+      expect(cause().textContent).toContain("not host-filter rejections");
+    } else expect(cause().querySelector("strong").textContent).toMatch(/^Insertion allowed/);
     for (const sheet of evidence.sheets) {
       const liveRules = Array.from(document.styleSheets[sheet.documentIndex].cssRules, rule => rule.cssText);
       expect(sheet.rules, `${result.id}/${actor}: recorded CSS matches the actual destination CSSOM`).toStrictEqual(liveRules);
@@ -69,12 +89,8 @@ export async function assertPresentedEvidence(app, result) {
       .toBe(attempts.filter(event => !event.blocked && event.reason === "enhanced sheet" && event.creator !== actor &&
         !(result.policy === "feedback-exception" && event.feedbackPrefix)).length);
     await expect.poll(() => status().querySelector('[data-outcome="permission"]').textContent)
-      .toBe(`${evidence.borrowedPermission} attempts rely on another actor's sheet marker.`);
-    if (result.id === "persona-first" && actor === "feedback") {
-      expect(evidence.borrowedPermission > 0, "A shared runtime host can pre-create every destination without Persona's marker")
-        .toBe(result.hostMode === "extracted" || result.coverage === "minimal");
-    }
-    if (result.id === "persona-first-raw") {
+      .toBe(`${evidence.borrowedPermission} attempts rely on another actor's enhanced-specificity attribute.`);
+    if (result.id === "persona-first-raw" && result.policy === "feedback-exception") {
       expect(evidence.borrowedPermission, "Accepted prefixes do not depend on borrowed sheet permission").toBe(0);
       expect(sharedWith).toContain(actor === "persona" ? "feedback" : "persona");
       await expect.poll(() => status().querySelector('[data-outcome="ownership"]').textContent).not.toContain("Own sheets only.");
@@ -83,6 +99,8 @@ export async function assertPresentedEvidence(app, result) {
     const traceLocator = app.getByCSS(selector).getByCSS("[data-rule-trace]");
     await traceLocator.getByCSS(":scope > summary").click();
     await expect.poll(() => trace().open).toBe(true);
+    expect(trace().contains(status().querySelector(".actor-outcomes")),
+      "Technical counters stay available without crowding the primary cause").toBe(true);
     const widthRule = attempts.find(event => event.rule.includes("width:137px"));
     await expect.poll(() => trace().querySelector("code").textContent).toBe(widthRule.rule);
     await expect.poll(() => trace().textContent).toContain(`${widthRule.blocked ? "blocked" : "allowed"} (${widthRule.reason})`);

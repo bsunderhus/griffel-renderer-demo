@@ -2,7 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import { RendererProvider } from "@fluentui/react-components";
-import { FeedbackForm } from "./FeedbackForm.jsx";
+import { DiagnosticFeedbackForm, FeedbackForm } from "./FeedbackForm.jsx";
 import { getFeedbackRenderer } from "./renderer.js";
 import { inspectedFeedbackOptions } from "./profile.js";
 
@@ -18,9 +18,13 @@ export function createFeedbackModule({ rawStyles }) {
         throw new Error(`Unknown Feedback renderer profile: ${options.profile}`);
       }
       const renderer = getFeedbackRenderer({ salt, marker });
+      if (options.profile === "inspected" && options.diagnostic) {
+        throw new Error("The inspected Feedback workload cannot enable collision diagnostics");
+      }
+      const Form = options.diagnostic ? DiagnosticFeedbackForm : FeedbackForm;
       const root = createRoot(container);
       flushSync(() => root.render(
-        <RendererProvider renderer={renderer} targetDocument={document}><FeedbackForm /></RendererProvider>
+        <RendererProvider renderer={renderer} targetDocument={document}><Form /></RendererProvider>
       ));
       return { renderer, unmount: () => flushSync(() => root.unmount()) };
     },

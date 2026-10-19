@@ -5,7 +5,7 @@ import { createEvidenceController } from "../evidence/controller.js";
 import { measure } from "../evidence/legacy-diagnostics.js";
 import { resolveExperiment } from "./configuration.js";
 import { prepareExperiment } from "./layout.js";
-import { mountHost, mountIntegration } from "./participants.js";
+import { integrations, loadIntegration, mountHost, mountIntegration } from "./participants.js";
 import { createUnmarkedSeed } from "./seed.js";
 
 export async function runThreeActorCase(config) {
@@ -17,6 +17,10 @@ export async function runThreeActorCase(config) {
   const hostBuckets = document.querySelectorAll("[data-make-styles-bucket]").length;
   const stages = [{ phase: "host", host: measure("host"), persona: null, feedback: null }];
   const actors = {};
+  const execution = [];
+  const previousRenderers = new Map();
+  const mountCounts = new Map();
+  const rendererIds = new Map([[host.renderer, "host-1"]]);
   let controller;
   let disposed = false;
   function dispose() {
@@ -34,15 +38,41 @@ export async function runThreeActorCase(config) {
     if (seed) observation.registerSheets("unrelated");
     host.beginIntegrations();
     observation.connectHost(host);
-    for (const actor of settings.order) {
-      actors[actor] = await mountIntegration(actor, settings, document.getElementById(`${actor}-mount`), observation);
-      stages.push({ phase: actor, host: measure("host"), persona: measure("persona"), feedback: measure("feedback") });
+    for (const { action, actor } of settings.schedule) {
+      if (action === "load") {
+        const script = await loadIntegration(actor, settings);
+        execution.push({ action, actor, script });
+      } else if (action === "unmount") {
+        actors[actor].unmount();
+        delete actors[actor];
+        execution.push({ action, actor });
+      } else {
+        const mountIndex = (mountCounts.get(actor) || 0) + 1;
+        mountCounts.set(actor, mountIndex);
+        const mounted = mountIntegration(actor, settings, document.getElementById(`${actor}-mount`), observation, mountIndex);
+        actors[actor] = mounted;
+        const previous = previousRenderers.get(actor);
+        if (!rendererIds.has(mounted.renderer)) rendererIds.set(mounted.renderer, `${actor}-${mountIndex}`);
+        execution.push({ action, actor, mountIndex, renderer: rendererIds.get(mounted.renderer),
+          reusesPreviousRenderer: previous ? previous === mounted.renderer : null });
+        previousRenderers.set(actor, mounted.renderer);
+        stages.push({ phase: actor, host: measure("host"), persona: measure("persona"), feedback: measure("feedback") });
+      }
     }
     const actorEvidence = Object.fromEntries(Object.entries(actors).map(([actor, { renderer }]) => [
       actor, { measured: measure(actor), rendererSalt: renderer.classNameHashSalt || null },
     ]));
     const result = {
       id: settings.id, hostMode: settings.hostMode, coverage: settings.coverage, policy: settings.policy, order: settings.order,
+      kind: settings.kind, execution,
+      configuration: {
+        host: { script: settings.script, stylesheet: settings.stylesheet || null, contract: settings.hostContract,
+          requestedPolicy: settings.policy },
+        persona: { script: integrations.persona.script(), profile: settings.personaProfile, revision: settings.personaRevision },
+        feedback: { script: integrations.feedback.script(settings.feedback), profile: settings.feedbackProfile,
+          ...settings.feedback },
+        workload: settings.kind === "baseline" ? "canonical" : "explicit diagnostic/proposal",
+      },
       feedbackConfig: {
         ...settings.feedback,
         usesDemoProfile: settings.feedback.raw && settings.feedback.salt && settings.feedback.marker,

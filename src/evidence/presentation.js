@@ -45,10 +45,18 @@ export function renderEvidence(result, config, analysis) {
   document.getElementById("host-mount").parentElement.appendChild(hostStatus);
   for (const [actor, evidence] of Object.entries(actorEvidence)) {
     const actionLabel = { persona: "View profile", feedback: "Clear status" }[actor];
-    const { attempts, blocked, failed, foreignSheets, foreignAllowed, presentRules, sharedWith, widthRule, tone } = analysis.actors[actor];
+    const { attempts, blocked, failed, foreignSheets, foreignAllowed, presentRules, sharedWith, widthRule, componentRule, cause, tone } = analysis.actors[actor];
     const status = document.createElement("div");
     status.dataset.actorStatus = actor;
     status.className = `result ${tone}`;
+    const causeSummary = document.createElement("div");
+    causeSummary.dataset.insertionCause = actor;
+    const causeTitle = document.createElement("strong");
+    causeTitle.textContent = cause.title;
+    const causeExplanation = document.createElement("p");
+    causeExplanation.textContent = cause.explanation;
+    causeSummary.append(causeTitle, causeExplanation);
+    status.append(causeSummary);
     const outcomes = document.createElement("dl");
     outcomes.className = "actor-outcomes";
     const addOutcome = (name, value) => {
@@ -67,9 +75,18 @@ export function renderEvidence(result, config, analysis) {
       sharedWith.length ? "Creates its sheets, but does not use them exclusively." : "Own sheets only.");
     addOutcome("Sharing", sharedWith.length ? `Sheet handles also held by ${sharedWith.join(", ")}.` :
       "No shared destination handles recorded.");
-    addOutcome("Permission", `${evidence.borrowedPermission} attempts rely on another actor's sheet marker.`);
+    addOutcome("Permission", `${evidence.borrowedPermission} attempts rely on another actor's enhanced-specificity attribute.`);
     if (result.simulation) addOutcome("Profile", result.simulation[actor]);
-    status.append(outcomes);
+    const componentTrace = document.createElement("p");
+    if (componentRule) {
+      componentTrace.dataset.fluentRule = actor;
+      componentTrace.textContent = `Fluent primary Button background rule (not a custom probe): ` +
+        `${componentRule.blocked ? "blocked" : "allowed"}; native CSSOM=${componentRule.present ? "present" : "absent"}; ` +
+        `destination=${componentRule.destination}; creator=${componentRule.creator}. `;
+      const componentCSS = document.createElement("code");
+      componentCSS.textContent = componentRule.rule;
+      componentTrace.append(componentCSS);
+    }
     const trace = document.createElement("details");
     trace.dataset.ruleTrace = actor;
     const traceLabel = document.createElement("summary");
@@ -77,8 +94,9 @@ export function renderEvidence(result, config, analysis) {
     const explanation = document.createElement("p");
     const widthInCSSOM = widthRule.present;
     const matchingWidth = evidence.matchingWidthRules.length > 0;
-    explanation.textContent = `Selected rule only: ${actionLabel}. ${actor} generated width:137px -> ${widthRule.destination}, bucket ${widthRule.bucket}/${widthRule.priority}, ` +
-      `created by ${widthRule.creator} -> enhanced marker ${widthRule.enhanced ? "present" : "absent"}, ` +
+    explanation.textContent = `Selected rule only: supplemental 137px witness on ${actionLabel}, identical in every workload. ` +
+      `${actor} generated width:137px -> ${widthRule.destination}, bucket ${widthRule.bucket}/${widthRule.priority}, ` +
+      `created by ${widthRule.creator} -> enhanced-specificity attribute ${widthRule.enhanced ? "truthy" : "absent or empty"}, ` +
       `feedback prefix ${widthRule.feedbackPrefix ? "present" : "absent"} -> ` +
       `${widthRule.blocked ? "blocked" : "allowed"} (${widthRule.reason}). ` +
       `Native insertion: ${widthRule.inserted ? "succeeded" : widthRule.blocked ? "not attempted" : `failed (${widthRule.error})`}. ` +
@@ -116,7 +134,8 @@ export function renderEvidence(result, config, analysis) {
       `cached=${evidence.cache.includes(event.rule)}\n${event.rule}`).join("\n\n");
     ledger.append(ledgerLabel, ledgerRules);
     trace.open = openTraces.has(actor);
-    trace.append(traceLabel, counts, explanation, rule, matchingSources, matchingRules, ledger);
+    trace.append(traceLabel, outcomes, counts, explanation, rule, matchingSources, matchingRules, ledger);
+    if (componentRule) trace.append(componentTrace);
     status.append(trace);
     document.getElementById(`${actor}-mount`).parentElement.appendChild(status);
   }
@@ -124,10 +143,15 @@ export function renderEvidence(result, config, analysis) {
   const description = document.createElement("p");
   description.className = "note";
   description.textContent = `Policy: ${policy}. Order: host -> ${config.seed ? "unrelated d0 -> " : ""}${order.join(" -> ")}. ` +
-    `Feedback: ${result.feedbackConfig.raw ? "raw" : "precompiled"} Fluent, salt ${result.feedbackConfig.salt ? "on" : "off"}, rule marker ${result.feedbackConfig.marker ? "on" : "off"}. ` +
+    `Feedback: ${result.feedbackConfig.raw ? "raw" : "precompiled"} Fluent, salt ${result.feedbackConfig.salt ? "on" : "off"}, rule prefix ${result.feedbackConfig.marker ? "on" : "off"}. ` +
     (result.feedbackConfig.usesDemoProfile ?
       "Synthetic form profile: raw styles, salted classes, and prefixed rules." :
       "Configuration control: varies the synthetic form profile.");
+  const schedule = document.createElement("pre");
+  schedule.dataset.executionSchedule = "";
+  schedule.textContent = `Workload: ${result.configuration.workload}\nHost ready\n` +
+    result.execution.map(event => `${event.action} ${event.actor}` +
+      (event.renderer ? ` (${event.renderer}${event.reusesPreviousRenderer === true ? ", renderer reused" : ""})` : "")).join("\n");
   const summary = document.createElement("pre");
   summary.textContent = stages.map(stage =>
     `After ${stage.phase}: ${["host", "persona", "feedback"].filter(actor => stage[actor]).join(", ")} mounted.`
@@ -147,5 +171,5 @@ export function renderEvidence(result, config, analysis) {
   const json = document.createElement("pre");
   json.textContent = JSON.stringify(result, null, 2);
   details.append(label, json);
-  output.replaceChildren(description, summary, decisions, details);
+  output.replaceChildren(description, schedule, summary, decisions, details);
 }

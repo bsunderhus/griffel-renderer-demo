@@ -5,6 +5,10 @@ import { openApplication, runExperiment } from "../browser/application.mjs";
 
 function semanticRecord(record) {
   const result = structuredClone(record);
+  delete result.kind;
+  delete result.configuration;
+  delete result.execution;
+  for (const event of result.events) delete event.mountIndex;
   // Extraction traversal changes with module boundaries; compare all declarations,
   // while the browser suite verifies live CSSOM positions and cascade outcomes.
   result.staticCSS.sort();

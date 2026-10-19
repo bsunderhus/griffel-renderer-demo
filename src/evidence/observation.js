@@ -8,6 +8,7 @@ export function createObservation(doc, hostStylesheet) {
   const events = [];
   const restoreRenderers = [];
   let actor = "external";
+  let mountIndex = null;
   let onChange = () => {};
   let disconnect = () => {};
 
@@ -20,20 +21,30 @@ export function createObservation(doc, hostStylesheet) {
     }
   }
 
-  function withActor(name, action) {
+  function withActor(name, action, index = null) {
     const previous = actor;
+    const previousIndex = mountIndex;
     actor = name;
+    mountIndex = index;
     try {
       return action();
     } finally {
       actor = previous;
+      mountIndex = previousIndex;
     }
   }
 
-  function observeRenderer(name, renderer) {
+  function observeRenderer(name, renderer, index) {
     const original = renderer.insertCSSRules;
-    renderer.insertCSSRules = rules => withActor(name, () => original.call(renderer, rules));
-    restoreRenderers.push(() => { renderer.insertCSSRules = original; });
+    renderer.insertCSSRules = rules => withActor(name, () => original.call(renderer, rules), index);
+    let active = true;
+    const restore = () => {
+      if (!active) return;
+      active = false;
+      renderer.insertCSSRules = original;
+    };
+    restoreRenderers.push(restore);
+    return restore;
   }
 
   function record({ sheet, rule, blocked, reason, inserted, index, error }) {
@@ -41,7 +52,7 @@ export function createObservation(doc, hostStylesheet) {
     const element = sheet.ownerNode;
     const event = {
       id: events.length + 1,
-      actor, creator: creators.get(element) || "not a Griffel bucket", rule, blocked, reason,
+      actor, mountIndex, creator: creators.get(element) || "not a Griffel bucket", rule, blocked, reason,
       destination: sheetIds.get(element) || null,
       inserted, cssText: inserted ? sheet.cssRules[index].cssText : null, error: error || null,
       bucket: element?.getAttribute("data-make-styles-bucket"),

@@ -19,6 +19,8 @@ export async function assertEvidenceLifecycle(app, url) {
     "An identical replacement cannot mask removal of the recorded native CSSRule")
     .toBe(`${attempts - 1}/${attempts} recorded native rules present in destination CSSOM.`);
   expect(event.present).toBe(false);
+  expect(document.querySelector('[data-insertion-cause="persona"]').textContent)
+    .toContain("equivalent CSS remains");
   expect(Array.from(sheet.cssRules).some(rule => rule.cssText === event.cssText)).toBe(true);
   await app.getByCSS("[data-rule-trace] > summary").click();
   const removedTrace = document.querySelector("[data-rule-trace]").textContent;
@@ -51,6 +53,10 @@ export async function assertEvidenceLifecycle(app, url) {
   await refreshEvidence(window);
   expect(document.querySelector('[data-actor-status="persona"]').classList.contains("missing"),
     "Removing all equivalent CSS is a real rule-availability failure").toBe(true);
+  expect(document.querySelector('[data-insertion-cause="persona"] strong').textContent)
+    .toBe("Previously inserted rules are now missing");
+  expect(document.querySelector('[data-insertion-cause="persona"]').textContent)
+    .toContain("rule removal, not blocked insertion");
   expect(document.querySelector("[data-rule-trace]").textContent)
     .toContain("Equivalent serialized rule in destination CSSOM: no");
   document.querySelector('[data-fluent-owner="host"] [data-avatar-override]').style.backgroundColor = "inherit";

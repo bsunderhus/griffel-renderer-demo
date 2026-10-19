@@ -36,7 +36,7 @@ test.for(controlCases)("$id preserves diagnostics across both host builds and co
     }
     const headerBefore = result.stages[0].host.avatarOverride;
     const headerAfter = result.stages.at(-1).host.avatarOverride;
-    const hostCollision = ["no-policy", "raw-unsalted", "host-collision"].includes(config.id);
+    const hostCollision = ["raw-unsalted", "host-collision"].includes(config.id);
     expect(headerBefore.background).toBe("rgb(183, 228, 199)");
     expect(headerAfter.background, `${config.id}: late unsalted reset affects extracted host`).toBe(hostCollision ? "rgb(232, 163, 61)" : headerBefore.background);
     await expect.element(app.getByCSS('[data-actor-status="host"]')).toHaveTextContent(`Host CSS: extracted; ${result.hostBuckets} initial Griffel sheets; 0 runtime insertion calls.`);
@@ -95,10 +95,9 @@ test.for(controlCases)("$id preserves diagnostics across both host builds and co
     }
     expect(persona.measured.scoped, "Scope class actually wraps persona controls").toBeTruthy();
     const personaBlocked = result.events.filter(event => event.actor === "persona" && event.bucket && event.blocked);
-    const allPersonaBlocked = ["feedback-first", "precompiled-salted", "raw-unsalted"].includes(config.id);
-    const unstyled = config.id === "feedback-first";
-    expect(persona.measured.icon.width).toBe(unstyled ? "48px" : "32px");
-    expect(persona.measured.primary.background).toBe(unstyled ? "rgb(239, 239, 239)" : "rgb(15, 108, 189)");
+    const allPersonaBlocked = ["precompiled-salted", "raw-unsalted"].includes(config.id);
+    expect(persona.measured.icon.width).toBe("32px");
+    expect(persona.measured.primary.background).toBe("rgb(15, 108, 189)");
     if (allPersonaBlocked) {
       expect(personaBlocked.length).toBeGreaterThan(100);
       expect(persona.sheets.find(sheet => sheet.key === "d0").creator).toBe("feedback");
@@ -114,30 +113,8 @@ test.for(controlCases)("$id preserves diagnostics across both host builds and co
       const feedbackBlocked = result.events.filter(event => event.actor === "feedback" && event.bucket && event.blocked);
       expect(result.sharedFeedbackClasses.length === 0, "Only raw + salt isolates actual Fluent classes").toBe(Boolean(config.raw && config.salt));
       expect(feedback.measured.scoped).toBe(false);
-      if (config.id === "feedback-first") {
-        expect(feedback.measured.icon.width).toBe("48px");
-        expect(feedback.measured.primary.background).toBe("rgb(239, 239, 239)");
-        expect(feedbackBlocked.length).toBeGreaterThan(100);
-        expect(feedback.measured.probeWidth).not.toBe("137px");
-      } else {
-        if (config.id === "persona-first") {
-          expect(feedbackBlocked, "New textarea buckets do not inherit Persona's permission").toHaveLength(17);
-          expect(feedbackBlocked.every(event => event.creator === "feedback" && !event.enhanced)).toBeTruthy();
-          expect(feedbackBlocked.some(event => event.bucket === "w")).toBeTruthy();
-        } else {
-          expect(feedbackBlocked).toHaveLength(0);
-        }
-        expect(feedback.measured.probeWidth).toBe("137px");
-      }
-      if (config.order[0] === "persona") {
-        expect(feedback.sheets.find(sheet => sheet.key === "d0").creator).toBe("persona");
-        const inherited = result.events.filter(event => event.actor === "feedback" && event.bucket && event.creator === "persona" && event.enhanced && !event.blocked);
-        expect(inherited.length, "Feedback actually inserts into persona-owned marked sheets").toBeGreaterThan(100);
-        if (config.id === "persona-first") {
-          expect(inherited.every(event => !event.feedbackPrefix), "Unmarked feedback bypasses sheet-level guard").toBeTruthy();
-        }
-      }
-      if (config.id === "no-policy") expect(result.events.every(event => !event.blocked)).toBeTruthy();
+      expect(feedbackBlocked).toHaveLength(0);
+      expect(feedback.measured.probeWidth).toBe("137px");
     }
     minimalResults.extracted = result;
   }

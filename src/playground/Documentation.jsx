@@ -35,19 +35,20 @@ export function Documentation() {
       <p className="conflict-thesis">The host checks the <em>destination sheet or rule prefix</em>,
         not the <em>renderer</em> writing the rule.</p>
       <p>That is why Feedback can insert a prefixed rule while older Persona is rejected in the
-        same unmarked sheet. The host mixes sheet-level and rule-level permission; Persona assumes
+        same sheet without the enhanced-specificity attribute. The host mixes sheet-level and rule-level permission; Persona assumes
         an existing bucket is a suitable destination. Neither decision checks the other's contract.</p>
       <p>The main-snapshot guard changes Persona's choice of destination, not the host's policy.
         With the sheet-only host, Feedback still lacks permission. With either host variant,
-        other renderers can still adopt Persona's approved sheets.</p>
+        other renderers can still adopt Persona's sheets with the enhanced-specificity attribute.</p>
       <p>The lesson is not that sharing always breaks styles. It is that permission, sheet
         ownership and CSS containment are different guarantees. A coherent host contract and
-        integrations that honor it are needed; one marker or prefix does not provide all three.</p>
+        integrations that honor it are needed; one enhanced-specificity attribute or rule prefix does not provide all three.</p>
     </section>
     <section className="documentation-content" aria-label="Evidence and caveats">
       <h2>Look closer: evidence and limits</h2>
       <p>These are synthetic, local examples, not a complete product or incident replay.
-        Follow the generated width rule into native CSSOM rather than judging appearance:
+        Follow actual Fluent rules into native CSSOM rather than judging appearance.
+        A common 137px witness is supplemental instrumentation, not evidence of a product declaration:
         rejected rules can remain cached, and another matching rule can mask their absence.
         The reference below connects each distinction to live scenarios.</p>
       <MechanismGuide

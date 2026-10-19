@@ -41,6 +41,6 @@ test("Pages resolves legacy routes and aliases without server redirects", async 
   await waitForApplicationURL(app, `${origin}${base}?coverage=minimal`);
   await navigateApplication(app, `${base}?scenario=marker-guard&coverage=minimal`);
   await waitForApplicationURL(app,
-    `${origin}${base}?scenario=raw-marked-first&coverage=minimal&personaVersion=main-2026-10-16`);
+    `${origin}${base}?scenario=raw-marked-first&coverage=minimal&personaVersion=main-2026-10-16&hostPolicy=feedback-exception`);
   expect(applicationWindow(app).threeActorResult.id).toBe("raw-marked-first");
 });

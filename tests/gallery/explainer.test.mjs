@@ -21,10 +21,11 @@ test.for(cases)("explainer $chapter.id / $coverage matches live evidence", async
   expect(Object.keys(result.actors).sort()).toStrictEqual(final.attempts.map(attempt => attempt.actor).sort());
   for (const attempt of final.attempts) {
     const sheet = final.sheets.find(item => item.id === attempt.sheet);
-    const event = result.events.find(item => item.actor === attempt.actor && item.rule.includes("width:137px"));
-    const message = `${chapter.id} ${attempt.actor} width rule`;
+    const event = result.events.find(item => item.actor === attempt.actor && item.bucket === "d" &&
+      item.rule.includes("background-color:var(--colorBrandBackground)"));
+    const message = `${chapter.id} ${attempt.actor} Fluent Button rule`;
     expect(event.creator, `${message}: drawn sheet creator`).toBe(sheet.creator);
-    expect(event.enhanced, `${message}: drawn approval marker`).toBe(sheet.marked);
+    expect(event.enhanced, `${message}: drawn enhanced-specificity attribute`).toBe(sheet.marked);
     expect(event.feedbackPrefix, `${message}: drawn prefix`).toBe(attempt.prefix);
     expect(event.blocked, `${message}: drawn verdict`).toBe(attempt.verdict === "blocked");
     expect(event.present, `${message}: drawn CSSOM presence`).toBe(attempt.verdict === "inserted");
@@ -70,6 +71,7 @@ test("explainer steps through chapters with buttons, keyboard, and live links", 
     expect(link.hash).toBe(`#${chapter.scenario}`);
     expect(Object.fromEntries(link.searchParams)).toStrictEqual({
       coverage: "minimal", host: chapter.host, personaVersion: chapter.personaVersion,
+      hostPolicy: chapter.hostPolicy || "master",
     });
     for (let step = 0; step < chapter.steps.length; step++) {
       await expect.element(caption).toHaveTextContent(chapter.steps[step].caption);
@@ -79,6 +81,18 @@ test("explainer steps through chapters with buttons, keyboard, and live links", 
       await expect.poll(() => svg.getByCSS("[data-sheet]").elements().map(element => [
         element.dataset.sheet, element.dataset.creator, element.dataset.marked,
       ])).toStrictEqual(state.sheets.map(sheet => [sheet.id, sheet.creator, String(sheet.marked)]));
+      for (const sheet of svg.getByCSS("[data-sheet]").elements()) {
+        const label = sheet.querySelector("[data-sheet-attribute]");
+        expect(label.textContent).toBe(`enhanced-specificity attribute: ${sheet.dataset.marked === "true" ? '"true"' : "absent"}`);
+        const textBounds = label.getBBox();
+        const sheetBounds = sheet.querySelector("rect").getBBox();
+        expect(textBounds.x, "Attribute label starts inside its sheet").toBeGreaterThanOrEqual(sheetBounds.x);
+        expect(textBounds.x + textBounds.width, "Attribute label fits the sheet width")
+          .toBeLessThanOrEqual(sheetBounds.x + sheetBounds.width);
+        expect(textBounds.y, "Attribute label stays inside its sheet").toBeGreaterThanOrEqual(sheetBounds.y);
+        expect(textBounds.y + textBounds.height, "Attribute label fits the sheet height")
+          .toBeLessThanOrEqual(sheetBounds.y + sheetBounds.height);
+      }
       await expect.poll(() => svg.getByCSS("[data-cssom-rule]").elements().map(element => [
         element.dataset.cssomRule, element.dataset.present,
       ])).toStrictEqual(state.attempts.map(attempt => [attempt.actor, String(attempt.verdict === "inserted")]));
@@ -96,7 +110,7 @@ test("explainer steps through chapters with buttons, keyboard, and live links", 
   await expect.element(caption).toHaveAttribute("data-step", String(lastChapter.steps.length));
   const diagram = explainer.getByRole("img", { name: lastChapter.title }).element();
   await expect.poll(() => diagram.ownerDocument.getElementById(diagram.getAttribute("aria-describedby")).textContent)
-    .toBe("No filter installed. Host created an unmarked sheet. Feedback adopted Host's sheet. " +
+    .toBe("No filter installed. Host created a sheet without the enhanced-specificity attribute. Feedback adopted Host's sheet. " +
       "Persona adopted Host's sheet. Feedback's rule was inserted. Persona's rule was inserted.");
   await explainer.getByRole("link", { name: /Open this configuration/ }).click();
   await expect.poll(() => applicationWindow(app).location.hash).toBe(`#${lastChapter.scenario}`);

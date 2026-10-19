@@ -90,7 +90,7 @@ test.for(["extracted", "runtime"])("%s: eight archived extraction cases, layout,
     expect(result.events.length, "Real Fluent components emit rules, not only the probe").toBeGreaterThan(100);
     if (config.id === "permission") {
       expect(result.events.some(event => !event.blocked && event.approved)).toBeTruthy();
-      expect(result.events.some(event => event.blocked && !event.approved), "Approval of r/d does not approve additional Fluent buckets").toBeTruthy();
+      expect(result.events.some(event => event.blocked && !event.approved), "Enhanced-specificity attributes on r/d do not cover additional Fluent buckets").toBeTruthy();
     }
     if (!expected.width) expect(result.width, `${mode}/${config.id}: width must be missing`).not.toBe("137px");
     expect(result.staticCSS.length > 0).toBe(mode === "extracted");
@@ -181,7 +181,7 @@ test("eight archived mechanism cases and navigation back to the gallery", async 
   }).click();
   await waitForApplicationURL(app, `${url}/`);
   await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll("nav a")).map(link => link.getAttribute("href"))).toStrictEqual(["/", "/docs"]);
-  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll(".walkthrough")).length).toBe(13);
+  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll(".walkthrough")).length).toBe(14);
   task.meta.evidence = {
     kind: "archived-mechanism",
     results: mechanisms

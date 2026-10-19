@@ -6,7 +6,7 @@ export function Introduction() {
     <p>What happens when an application and two integrations add styles to the same page?
       The main examples compare <strong>Persona 1.20260927.13.2</strong>, pinned by the inspected
       consumer bootstrapper, with <strong>Persona main snapshot (2026-10-16)</strong>, which adds
-      the marker guard. A source merge is not a consumer upgrade or proof of deployment.
+      the enhanced-specificity attribute guard. A source merge is not a consumer upgrade or proof of deployment.
       Both versions show sheet sharing and host/Feedback filter compatibility; the owner
       proposal and collision experiments remain collapsed controls.</p>
     <details className="intro-help">
@@ -20,7 +20,7 @@ export function Introduction() {
       <strong> Rules</strong> reports the generated rules present in their destination CSSOM, and
       <strong> Ownership</strong> and <strong>Sharing</strong> report destination creators and
       other renderers retaining those sheets. <strong>Permission</strong> counts attempts that
-      rely on another actor's sheet marker rather than an independently accepted rule prefix.
+      rely on another actor's enhanced-specificity attribute rather than an independently accepted rule prefix.
       Statuses follow the CSS evidence, not computed widths, colors, or visual comparisons.
       A normal-looking control does not prove its own rules were inserted.</p>
     <p>The host also reports foreign writes into its sheets and foreign selectors matching its elements.
