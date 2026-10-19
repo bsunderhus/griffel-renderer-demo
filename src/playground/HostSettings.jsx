@@ -1,7 +1,7 @@
 import React from "react";
 import { hostPolicies, personaRevisions } from "../experiments/scenarios.js";
 
-export function HostSettings({ hostMode, coverage, personaVersion, hostPolicy, navigate, contract = "diagnostic" }) {
+export function HostSettings({ hostMode, coverage, personaVersion, hostPolicy, navigate }) {
   return (
     <details className="host-settings" open={hostMode === "runtime" || coverage === "minimal" ||
       (personaVersion && personaVersion !== "1.20260927.13.2")}>
@@ -15,8 +15,6 @@ export function HostSettings({ hostMode, coverage, personaVersion, hostPolicy, n
         </select>
         <p>Rerun the same baseline schedules with the consumer-pinned release or guarded
           upstream snapshot. The selection is preserved in the URL and isolated examples.
-          Counterfactual controls identify their overrides; the extra-actor seed also
-          follows the selected Persona revision.
           A main-branch fix does not establish consumer adoption or deployment.</p>
       </>}
       {hostPolicy && <>
@@ -26,7 +24,7 @@ export function HostSettings({ hostMode, coverage, personaVersion, hostPolicy, n
         </select>
         <p>Apply one host revision to every baseline schedule. The prefix exception is an
           unmerged candidate, not the baseline default. Runtime hosts install neither filter.
-          Counterfactual diagnostics keep their explicitly named configurations.</p>
+          This changes only the inspected host revision, not Feedback.</p>
       </>}
       <label htmlFor="host-coverage">Host component coverage </label>
       <select id="host-coverage" value={coverage} onChange={event => navigate({ coverage: event.target.value })}>
@@ -42,15 +40,10 @@ export function HostSettings({ hostMode, coverage, personaVersion, hostPolicy, n
         <option value="extracted">Extracted (main reproduction)</option>
         <option value="runtime">Runtime (non-extracted control)</option>
       </select>
-      {contract === "diagnostic" ? <p>Runtime mode changes only the host build, not the integrations or filter predicates.
-        The filter is deliberately installed after the host mounts: this is a diagnostic control,
-        not a claim that a non-extracted production host enables this filter.
-        Its pre-existing buckets without the enhanced-specificity attribute can cause even story 1 to lose persona overrides.</p> :
-        <p>The host installs its filter in a layout effect only when its production/extraction gate
+      <p>The host installs its filter in a layout effect only when its production/extraction gate
           is active. Extracted mode uses a no-op host renderer; runtime mode uses a DOM renderer
           with no host filter. The integration configurations do not change.
-          Explanatory controls explicitly retain their diagnostic overrides, including forced
-          filtering on runtime hosts, and are labeled on each card.</p>}
+          There are no forced-filter overrides.</p>
       <button onClick={() => location.reload()}>Replay all scenarios</button>
     </details>
   );

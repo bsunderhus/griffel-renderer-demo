@@ -4,7 +4,6 @@ import { createEvidenceController } from "../evidence/controller.js";
 import { resolveExperiment } from "./configuration.js";
 import { prepareExperiment } from "./layout.js";
 import { integrations, loadIntegration, mountHost, mountIntegration } from "./participants.js";
-import { createUnmarkedSeed } from "./seed.js";
 
 export async function runThreeActorCase(config) {
   const settings = resolveExperiment(config, location.search);
@@ -30,14 +29,10 @@ export async function runThreeActorCase(config) {
     window.removeEventListener("pagehide", dispose);
   }
   try {
-    if (settings.hostContract === "production-extraction") observation.connectHost(host);
-    const seed = settings.seed ? observation.withActor("unrelated", () => createUnmarkedSeed(document)) : null;
-    if (seed) observation.registerSheets("unrelated");
-    host.beginIntegrations();
     observation.connectHost(host);
     for (const { action, actor } of settings.schedule) {
       if (action === "load") {
-        const script = await loadIntegration(actor, settings);
+        const script = await loadIntegration(actor);
         execution.push({ action, actor, script });
       } else if (action === "unmount") {
         actors[actor].unmount();
@@ -65,22 +60,20 @@ export async function runThreeActorCase(config) {
         host: { script: settings.script, stylesheet: settings.stylesheet || null, contract: settings.hostContract,
           requestedPolicy: settings.policy },
         persona: { script: integrations.persona.script(), profile: settings.personaProfile, revision: settings.personaRevision },
-        feedback: { script: integrations.feedback.script(settings.feedback), profile: settings.feedbackProfile,
+        feedback: { script: integrations.feedback.script(), profile: settings.feedbackProfile,
           ...settings.feedback },
-        workload: settings.kind === "baseline" ? "canonical" : "explicit diagnostic/proposal",
+        workload: "canonical",
       },
       hostRuntimeCalls: host.runtimeCalls(), hostBuckets, actors: actorEvidence, events: observation.events,
       staticCSS: host.stylesheet ? Array.from(host.stylesheet.sheet.cssRules, rule => rule.cssText) : [],
     };
-    if (settings.hostContract === "production-extraction") {
-      result.simulation = {
-        host: host.policyState(), persona: settings.personaProfile, personaRevision: settings.personaRevision,
-        feedback: settings.feedbackProfile,
-        scope: "Sanitized renderer/insertion contracts, not a full product or incident-time deployment.",
-      };
-      result.policy = host.contract.effectivePolicy;
-    }
-    controller = createEvidenceController({ doc: document, result, actors, observation, baseline, seed }, config);
+    result.simulation = {
+      host: host.policyState(), persona: settings.personaProfile, personaRevision: settings.personaRevision,
+      feedback: settings.feedbackProfile,
+      scope: "Sanitized renderer/insertion contracts, not a full product or incident-time deployment.",
+    };
+    result.policy = host.contract.effectivePolicy;
+    controller = createEvidenceController({ doc: document, result, actors, observation, baseline });
     window.threeActorResult = result;
     window.addEventListener("pagehide", dispose);
     return { result, dispose };

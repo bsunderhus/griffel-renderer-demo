@@ -1,25 +1,12 @@
 import React, { useLayoutEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
-import { makeResetStyles, makeStyles, mergeClasses, RendererProvider } from "@griffel/react";
+import { RendererProvider } from "@griffel/react";
 import { resolveHostContract } from "./contract.js";
 import { createHostRenderer } from "./renderer.js";
 import { installHostPolicy } from "./policy.js";
 
-const useBase = makeResetStyles({ backgroundColor: "#e8a33d" });
-const useOverrides = makeStyles({ root: { backgroundColor: "#b7e4c7" } });
-
 export function createHostModule(HostControls) {
-  function Host({ ownerDocument }) {
-    const overrides = useOverrides();
-    return <HostControls avatarClassName={overrides.root} ownerDocument={ownerDocument} />;
-  }
-  function DiagnosticHost({ ownerDocument }) {
-    const base = useBase();
-    const overrides = useOverrides();
-    return <HostControls avatarClassName={mergeClasses(base, overrides.root)} ownerDocument={ownerDocument} />;
-  }
-
   return {
     mount(container, options) {
       const ownerDocument = container.ownerDocument;
@@ -32,7 +19,7 @@ export function createHostModule(HostControls) {
       }
       function HostProvider({ children }) {
         useLayoutEffect(() => {
-          if (contract.contract === "production-extraction") activatePolicy();
+          activatePolicy();
         }, []);
         return <RendererProvider renderer={renderer} targetDocument={ownerDocument}>{children}</RendererProvider>;
       }
@@ -41,15 +28,11 @@ export function createHostModule(HostControls) {
       const insert = renderer.insertCSSRules.bind(renderer);
       renderer.insertCSSRules = rules => {
         runtimeCalls++;
-        if (options.extracted && contract.contract === "diagnostic") {
-          throw new Error("Extracted host unexpectedly attempted runtime insertion");
-        }
         insert(rules);
       };
       const root = createRoot(container);
-      const Workload = contract.contract === "diagnostic" ? DiagnosticHost : Host;
       try {
-        flushSync(() => root.render(<HostProvider><Workload ownerDocument={ownerDocument} /></HostProvider>));
+        flushSync(() => root.render(<HostProvider><HostControls ownerDocument={ownerDocument} /></HostProvider>));
       } catch (error) {
         policy?.();
         flushSync(() => root.unmount());
@@ -66,7 +49,6 @@ export function createHostModule(HostControls) {
         renderer,
         contract,
         policyState: () => ({ ...contract, installed: Boolean(policy) }),
-        beginIntegrations: activatePolicy,
         subscribeInsertions: listener => {
           if (!policy) throw new Error("Insertion policy is not installed");
           return policy.subscribe(listener);

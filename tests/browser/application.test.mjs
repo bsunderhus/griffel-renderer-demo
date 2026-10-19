@@ -8,11 +8,11 @@ test("navigation targets its application instance without replacing another docu
   const second = await openApplication({ signal });
   await navigateApplication(first, "/?scenario=persona-alone&coverage=minimal");
   const firstDocument = applicationWindow(first).document;
-  await navigateApplication(second, "/?scenario=owner-guard&coverage=minimal");
+  await navigateApplication(second, "/?scenario=raw-marked-first&coverage=minimal");
   expect(applicationWindow(first).document).toBe(firstDocument);
   expect(applicationWindow(first).threeActorResult.id).toBe("persona-alone");
-  expect(applicationWindow(second).threeActorResult.id).toBe("owner-guard");
-  await expect.element(first.getByCSS('[data-actor-probe="persona"]')).toHaveTextContent("View profile");
+  expect(applicationWindow(second).threeActorResult.id).toBe("raw-marked-first");
+  await expect.element(first.getByCSS('[data-fluent-owner="persona"] [data-fluent-secondary]')).toHaveTextContent("View profile");
 });
 
 test("navigation cancellation rejects promptly and removes load listeners", async ({ onTestFinished }) => {

@@ -31,7 +31,7 @@ test("retired diagnostic routes and bundle are not served", async ({ onTestFinis
   onTestFinished(() => new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve())));
   await once(server, "listening");
   const origin = `http://127.0.0.1:${server.address().port}`;
-  for (const route of ["/extracted", "/runtime", "/mechanisms", "/integration.js"]) {
+  for (const route of ["/extracted", "/runtime", "/mechanisms", "/integration.js", "/feedback-standard.js"]) {
     expect(Object.hasOwn(SITE_FILES, route)).toBe(false);
     expect((await fetch(`${origin}${route}`, { redirect: "manual" })).status).toBe(404);
   }

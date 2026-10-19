@@ -60,12 +60,8 @@ test.for(configurations)("$hostPolicy / $host / $coverage / $id: fixed actors an
     expect(result.configuration.feedback).toStrictEqual({
       script: "/feedback-raw.js", profile: "inspected", raw: true, salt: true, marker: true,
     });
-    const canonicalHost = window.document.querySelector('[data-fluent-owner="host"] [data-avatar-override]');
-    const orangeReset = result.events.filter(event => event.actor === "feedback" && event.rule.includes("#e8a33d"));
-    expect(orangeReset, "The canonical Feedback workload has no constructed collision reset").toHaveLength(0);
-    expect(result.staticCSS.filter(rule => rule.includes("rgb(232, 163, 61)"))
-      .every(rule => !canonicalHost.matches(rule.slice(0, rule.indexOf("{")).trim())),
-    "The host does not wear the diagnostic orange reset class").toBe(true);
+    expect(result.events.every(event => !event.rule.includes("width:137px") && !event.rule.includes("#e8a33d")),
+      "No supplemental or constructed declarations enter the actual renderer workload").toBe(true);
     expect(result.hostRuntimeCalls === 0).toBe(active);
     expect(result.hostEvidence.avatarBackground.changed).toBe(false);
     if (!active) expect(result.events.every(event => !event.blocked)).toBeTruthy();
@@ -76,9 +72,6 @@ test.for(configurations)("$hostPolicy / $host / $coverage / $id: fixed actors an
     for (const [actor, evidence] of Object.entries(result.actors)) {
       const attempts = result.events.filter(event => event.actor === actor && event.bucket);
       const blocked = actor === "persona" ? personaBlocked : feedbackBlocked;
-      const width = attempts.find(event => event.rule.includes("width:137px"));
-      expect(width.blocked).toBe(blocked);
-      expect(width.present).toBe(!blocked);
       const componentRule = attempts.find(event => event.bucket === "d" &&
         event.rule.includes("background-color:var(--colorBrandBackground)"));
       expect(componentRule, "A real Fluent Button declaration independently witnesses the outcome").toBeTruthy();
@@ -86,7 +79,7 @@ test.for(configurations)("$hostPolicy / $host / $coverage / $id: fixed actors an
       expect(componentRule.present).toBe(!blocked);
       expect(evidence.cache).toContain(componentRule.rule);
       expect(window.document.querySelector(`[data-fluent-rule="${actor}"]`).textContent).toContain(componentRule.rule);
-      expect(evidence.cache, "Blocked rules remain cached in the actual renderer").toContain(width.rule);
+      expect(evidence.cache, "Blocked Fluent rules remain cached in the actual renderer").toContain(componentRule.rule);
       if (blocked) expect(attempts.filter(event => event.blocked).length).toBeGreaterThan(100);
       if (actor === "feedback") {
         expect(attempts.every(event => event.feedbackPrefix)).toBeTruthy();
@@ -149,11 +142,10 @@ test("unified gallery, host selection, and legacy redirects", async ({
   await expect.poll(() => applicationWindow(app).document.querySelector('nav a[aria-current="page"]').getAttribute("href")).toBe("/?coverage=minimal");
   await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll("nav a")).length).toBe(2);
   await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-scenario-contract="source-aligned"]')).length).toBe(sourceExperiments.length);
-  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-scenario-contract="diagnostic"]')).length).toBe(6);
+  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-scenario-contract="diagnostic"]')).length).toBe(0);
   await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-scenario-kind="main"]')).length).toBe(0);
   await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-scenario-kind="release"]')).length).toBe(8);
-  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-scenario-kind="proposal"]')).length).toBe(1);
-  await app.getByCSS(".explanatory-controls > summary").click();
+  await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-scenario-kind="proposal"]')).length).toBe(0);
   for (const config of sourceExperiments) {
     await waitForElement(() => applicationWindow(applicationFrame(app, `#${config.id} iframe`)).document.querySelector("[data-host-contract]"));
   }
@@ -163,9 +155,9 @@ test("unified gallery, host selection, and legacy redirects", async ({
   await waitForApplicationURL(app, `${url}/?coverage=minimal&host=runtime`);
   await waitForElement(() => applicationWindow(applicationFrame(app, "#raw-marked-first iframe")).document.querySelector("[data-host-contract]"));
   await expect.poll(() => applicationWindow(applicationFrame(app, "#raw-marked-first iframe")).threeActorResult.simulation.host.shouldInstall).toBe(false);
-  await navigateApplication(app, `${url}/source?coverage=minimal#source-owner-guard`);
-  await expect.poll(() => applicationWindow(app).location.href).toBe(`${url}/?coverage=minimal#owner-guard`);
-  await expect.poll(() => visible(applicationWindow(app).document.querySelector("#owner-guard"))).toBe(true);
+  await navigateApplication(app, `${url}/source?coverage=minimal#source-persona-first`);
+  await expect.poll(() => applicationWindow(app).location.href).toBe(`${url}/?coverage=minimal&hostPolicy=feedback-exception#persona-first-raw`);
+  await expect.poll(() => visible(applicationWindow(app).document.querySelector("#persona-first-raw"))).toBe(true);
   await navigateApplication(app, `${url}/?scenario=marker-guard&host=extracted&coverage=minimal`);
   await expect.poll(() => {
     const window = applicationWindow(app);

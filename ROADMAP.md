@@ -70,8 +70,8 @@ its deploy job; [hosting details](README.md#build-and-hosting) remain in the REA
   and assumptions to live examples and recorded-rule assertions.
 - [x] Freeze baseline actors; vary validated load/mount/unmount schedules and
   independent version/policy/build/coverage controls.
-- [x] Cover preload equivalence, renderer lifetime and 128 baseline configurations,
-  with altered actors, seeds and ownership proposals separately labeled.
+- [x] Cover preload equivalence, renderer lifetime and 128 baseline configurations
+  without altered actors, seed sheets or ownership proposals.
 - [x] Explain causes from native evidence, independently reporting permission,
   insertion, CSSOM presence, cache, ownership, sharing and bounded host effects.
 - [x] Assert the documentation explainer against real Fluent rules and keep
@@ -82,22 +82,25 @@ configurations and assertions, not appearance or deployment assumptions.
 The canonical [contract matrix](docs/RESEARCH.md#source-aligned-contract-matrix),
 [paired controls](docs/RESEARCH.md#reproduction-contract-and-paired-controls) and
 [coverage map](docs/RESEARCH.md#single-runner-and-retained-mechanism-coverage)
-define the scope. The pinned release remains unguarded; upstream main's guard,
-the proposed owner cache and the candidate host exception are distinct.
+define the scope. The pinned release remains unguarded; upstream main's guard
+and the inspected candidate host exception are distinct controls.
 See the [dated source recheck](docs/RESEARCH.md#current-source-recheck-2026-10-16)
 for corroboration and deployment limits.
 
-Completed maintenance leaves one runner and seven participant build targets.
-Retired applications/capture comparison do not remove the unique cache-replay
-assertion. Appearance measurements are test-only; runtime evidence retains
-native observations and derives interpretation without duplicate snapshots.
-These are baseline fidelity/maintenance improvements, not a solution sign-off.
+The fidelity pass leaves one runner, eight schedules and six participant build
+targets. All 193 Vitest tests pass across 18 files, without skips. It removes
+precompiled/unsalted Feedback, the extra seed actor, forced host filtering,
+the proposed owner cache, constructed collisions and measurement declarations.
+Cache replay now exercises the actual candidate Feedback renderer. Native Fluent
+rules supply the evidence; appearance measurements remain test-only.
+The removed comparisons are no longer findings. This is not a solution sign-off.
 
 ## 3. Compare solution experiments
 
-**Next bounded task:** evaluate one supported host-contract experiment and one
-namespacing experiment. Preserve version-pinned failure cases unchanged and
-keep intentional changes in separately labeled configurations.
+**Next gate:** establish a source-backed, explicitly approved hypothesis before
+adding any solution experiment. The possible directions below are unimplemented
+research options, not baseline findings or authorization to invent actor behavior.
+Preserve the version-pinned failures and record who must change.
 
 | Candidate | Experiment | Required trade-off checks |
 | --- | --- | --- |
@@ -107,7 +110,7 @@ keep intentional changes in separately labeled configurations.
 | Shadow DOM | Separate matching and style destinations | Portals, theme propagation, focus, accessibility and renderer document/root support. |
 | Iframe | Separate documents/renderers | Layout, focus, accessibility, communication and resource cost. |
 
-- [ ] Implement the bounded host-contract and namespacing comparisons with residual failures visible.
+- [ ] Select a source-backed solution hypothesis before implementing a comparison.
 - [ ] Check ownership feasibility against the pinned public Griffel APIs.
 - [ ] Prototype containment alternatives only with portal, theme and interaction checks.
 - [ ] Compare correctness, compatibility, cost and migration requirements.
@@ -119,14 +122,14 @@ permission, replace the baseline, or call the insertion filter a security bounda
 
 ## 4. Build the multi-integration coexistence lab
 
-Add a third independently bundled actor, such as a fictional notification panel,
-only when it introduces a useful constraint rather than another copy of a card.
+Add another independently bundled actor only if an inspected integration supplies
+a necessary constraint. Do not invent a third actor to create a failure.
 
-- [ ] Host plus contact card, form and notification panel in one document.
+- [ ] Establish the additional integration's source-backed contract before adding it.
 - [ ] All six integration arrival orders across extracted/runtime hosts and
   minimal/shared coverage: 24 combinations per candidate configuration.
 - [ ] Mount, unmount and remount each actor without resetting the document.
-- [ ] Shared component styles, custom rules and deliberately overlapping resets.
+- [ ] Exercise only shared styles and custom rules present in the inspected workloads.
 - [ ] Portals, theme changes and keyboard/focus interactions.
 - [ ] Supported dependency-version combinations as an explicit axis; record unsupported ones.
 - [ ] Separate rejected rules, creators/reuse, computed appearance, cache/rule

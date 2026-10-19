@@ -5,7 +5,7 @@ findings, and evidence limits. Use the [README](../README.md) for setup and test
 commands, the [roadmap](../ROADMAP.md) for gates and next work, and
 [AGENTS.md](../AGENTS.md) for contributor rules.
 
-The public playground uses fictional host, Persona, and Feedback actors and
+The public playground uses sanitized host, Persona, and Feedback UI and
 pinned public dependencies. Inspected styling contracts inform the model, but
 no private source, capture, service, or earlier checkout is needed to run it.
 Historical source observations below do not establish deployed product behavior.
@@ -34,38 +34,36 @@ another participant, the gallery, evidence, or orchestration. Mounts expose
 renderer/lifecycle handles through bundle adapters; the host also exposes
 insertion decisions and runtime-call counts.
 
-Seven webpack targets preserve separate Griffel copies: minimal/shared hosts
-in extracted/runtime modes, Persona, and precompiled/raw Feedback. React is
+Six webpack targets preserve separate Griffel copies: minimal/shared hosts
+in extracted/runtime modes, Persona, and candidate-aligned raw Feedback. React is
 shared through browser globals; Griffel is not. The minimal host imports only
 its avatar UI, with no hidden Button/Label/Textarea imports or extracted CSS.
 The raw Feedback build substitutes public Fluent `.styles.raw.js` modules when
-available; salting cannot rename precompiled component classes.
+available. Feedback has no precompiled or unsalted variant in this experiment.
 [Architecture](../tests/architecture.test.mjs) and
 [artifact assertions](../tests/architecture-build.test.mjs) enforce these boundaries.
 Motion 14.3.0 (MIT) is limited to the esbuild app's documentation transitions;
 it does not enter participant bundles or affect class generation.
 
-Keep behavior inside participants, inputs in experiment definitions, prose in
-gallery content, and interpretation in evidence analysis. Add a named experiment,
-not a scenario-ID branch inside a participant or the runner.
+Keep behavior inside participants, schedules in experiment definitions, prose in
+gallery content, and interpretation in evidence analysis. Never branch actor
+code by scenario ID or introduce altered workloads to manufacture an outcome.
 
 ## Source-aligned contract matrix
 
 A baseline schedule changes only load/mount/unmount events. Four independent
 controls select `personaVersion`, `hostPolicy`, `host`, and `coverage`; defaults
 are the pinned release, sheet-only policy, extracted host and shared coverage.
-The [registry](../src/experiments/scenarios.js) has eight baseline schedules and
-six separately labeled diagnostics/proposals.
+The [registry](../src/experiments/scenarios.js) has eight schedules, all using
+these fixed actors. The UI, attribute names, salt and prefix are public
+sanitizations; they are not claims of byte-for-byte product equivalence.
 
 | Participant/profile | Contract under test |
 | --- | --- |
 | Host `production-extraction` | Production plus extraction selects a no-op renderer and installs the filter in a host layout effect. Runtime mode uses a DOM renderer and no filter. Installation is idempotent per document. |
-| Host `diagnostic` | Explicit forced-filter controls in either host build, installed after host mount; not a claim about the production gate. |
 | Persona `1.20260927.13.2` (`historical`) | Scoped renderer per provider mount, requesting the enhanced-specificity attribute, without an adopted-handle guard. Pinned by the inspected bootstrapper, not proof of deployed assets. |
 | Persona `main-2026-10-16` (`marker-guard`) | Same scoped workload; discards adopted handles whose enhanced-specificity attribute is not exactly `"true"`. A release or consumer deployment containing the guard is unverified. |
-| Persona `owner-guard` | Unmerged proposal: filter adoption by owner, cache one renderer per owner/document, and recreate it after retained sheets detach. |
-| Feedback `inspected` | Independently compiled raw Fluent styles, module-level salted renderer, prefixed atomic/reset rules, and no requested enhanced-specificity attribute. The precompiled bundle rejects this profile. |
-| Feedback `control` | Explicit raw/precompiled, salt and prefix alternatives for counterfactual diagnostics. |
+| Feedback `inspected` | Independently compiled raw Fluent styles, module-level salted renderer, prefixed atomic/reset rules, and no requested enhanced-specificity attribute. Mounts reject renderer/workload overrides. |
 
 Baseline validation rejects actor overrides, seeds and forced filtering. Every
 schedule retains the inspected Feedback actor. Configuration/artifacts are
@@ -90,32 +88,30 @@ Schedules are deterministic, not timing sleeps. The host is always ready first.
 In the pinned Griffel build, provider-time hydration selects existing sheets;
 construction alone does not freeze adoption.
 
-| Diagnostic/proposal ID | Deliberate deviation |
-| --- | --- |
-| `unmarked-d-first` | An extra unrelated renderer creates a default sheet without the enhanced-specificity attribute. |
-| `owner-guard` | Proposed Persona ownership/cache behavior, not either inspected revision. |
-| `precompiled-salted` | Precompiled Feedback with salt/prefix, under forced filtering. |
-| `raw-unsalted` | Raw Feedback without salt; shared classes can mask rejected rules. |
-| `host-collision` / `host-collision-salted` | Same constructed avatar reset, without/with salt, filter off. |
+The counterfactual cards `unmarked-d-first`, `owner-guard`, `precompiled-salted`,
+`raw-unsalted`, `host-collision` and `host-collision-salted` have been removed,
+including their implementations and aliases. They changed actor count, renderer
+lifetime, styles, or host gating rather than just loading/lifecycle. Labeling
+those changes as diagnostics did not make them baseline evidence.
 
-The seed runs after host mount under the source-aligned gate: its sheet can
-exist even if its seed rule was rejected. Observation attributes it to
-`unrelated`, not Persona. Canonical host/Feedback mounts never apply the orange
-collision reset. The common 137px width witness is supplemental; real Fluent
-Button rules and all-rule ledgers independently witness baseline outcomes.
+The artificial orange reset, green host override and shared 137px declaration
+are also removed, including from extracted CSS. Evidence instead follows an
+existing Fluent primary Button background rule and the native Fluent host avatar
+background declaration. The lab no longer establishes salt-off/precompiled
+comparisons, constructed collision prevention, or a proposed ownership fix.
 Native provider theme rules are distinct from Griffel rules; not all CSS in a
 mount carries renderer bucket metadata or the Feedback prefix.
 
 ### Compatibility
 
-`/source` and `/three-actors` redirect to the unified gallery. Fourteen scenario
+`/source` and `/three-actors` redirect to the unified gallery. Ten scenario
 aliases preserve known policy/version settings through server redirects and
 client normalization, including Pages sub-path hosting. Their authoritative maps
 are in [scenarios.js](../src/experiments/scenarios.js).
 For example, `master-rejects-marker` selects Feedback-first with the sheet-only
 policy, and `marker-guard` selects the main snapshot with the candidate exception.
-Former altered-Feedback arrival aliases now select the faithful baseline;
-`no-policy` selects the retained collision diagnostic. These are navigation
+Former arrival aliases select the faithful baseline.
+Counterfactual IDs and `no-policy` are not remapped. Retained aliases are navigation
 compatibility, not claims that old and new actor code is equivalent.
 
 ## Current findings and underlying mechanisms
@@ -124,7 +120,7 @@ compatibility, not claims that old and new actor code is equivalent.
 | --- | --- | --- |
 | Container scoping | Persona rewrites selectors beneath its parent, restricting matching and adding specificity. | Private sheets or insertion permission; portals must remain inside the scope. |
 | Enhanced-specificity attribute | The host can admit rules based on destination metadata. | Writer authentication, exclusive ownership, or CSS specificity by itself. Adoption does not copy requested attributes. |
-| Runtime salt | Changes generated class names and removes the constructed raw-style collision. | Renaming precompiled Fluent classes or preventing sheet adoption. |
+| Runtime salt | Feedback uses salted runtime-generated class names. | Preventing sheet adoption; this baseline does not isolate salt-off behavior or test precompiled Feedback. |
 | Rule prefix | The candidate host can admit a prefixed rule independently of its sheet. | Containment, ownership, permission for an unprefixed rule, or compatibility with a sheet-only host. |
 | Griffel cache | A generated rule can remain cached after host rejection. | Evidence of native insertion or automatic retry after restoring native insertion. |
 
@@ -136,7 +132,8 @@ Thus the string `"false"` passes host truthiness but fails Persona's guard.
 
 The host's `master` policy permits destinations with a truthy attribute.
 `feedback-exception` additionally accepts the exact leading
-`/* demo-feedback */` prefix; `off` disables filtering. A blocked `insertRule`
+`/* demo-feedback */` prefix. Filtering is disabled only by the host build gate,
+not a selectable `off` override. A blocked `insertRule`
 returns zero without native insertion or an exception. Native insertion can
 also successfully return index zero, so the return value alone is not a verdict.
 
@@ -149,15 +146,14 @@ Under the extracted, sheet-only host:
   buckets with the attribute; newly created Feedback-only buckets can still
   be rejected. No unprefixed actor substitution is required.
 - Selecting the prefix exception gives Feedback independent permission.
-  Main Persona can still accept another owner's sheet with the attribute, and
-  later foreign renderers can adopt its sheets. The guard is not ownership.
+  Feedback can still adopt Persona's sheets. Persona's attribute test does not
+  check owner identity. The guard is not ownership.
 
 The runtime-host baseline confirms that adoption alone does not reject rules.
 Shared matching CSS can mask rejection, which is why host coverage is independent
-of build mode. In the explicit collision diagnostic, the late unsalted reset
-overrides extracted host atomic CSS; runtime bucket order preserves
-reset-before-atomic order. Salt removes that selector collision, not shared writes.
-These are controlled findings, not universal Griffel guarantees or security boundaries.
+of build mode. The retained schedules do not establish a host-background change.
+Sharing and foreign selector matches remain reported rather than treated as
+damage. These are bounded findings, not universal Griffel guarantees or security boundaries.
 
 ## Evidence contract
 
@@ -165,7 +161,7 @@ Evidence flows observation -> snapshot -> analysis -> presentation. Observation
 retains native object identity privately. `window.threeActorResult` serializes
 configuration, execution, per-rule events, sheet creators/positions/rules,
 renderer caches, class overlap and bounded host cascade evidence.
-Matching width rules retain source metadata, not a second text-only array.
+Matching Fluent Button background rules retain source metadata.
 Permission counts/classification are derived by pure analysis, never copied back
 into observations or inferred from scenario IDs.
 
@@ -190,8 +186,8 @@ Keep these distinctions independent:
   reverse. Borrowed permission counts only allowed foreign-destination attempts
   relying on its attribute, without an independently accepted prefix.
 - **Host writes versus host damage:** a foreign insertion into host-created
-  storage need not match a host element. An extracted host can suffer a collision
-  without sharing its stylesheet.
+  storage need not match a host element. The retained schedules do not establish
+  host damage; matching selectors alone are not a changed declaration.
 - **Native rejection versus host rejection:** Chromium rejects Fluent's
   Firefox-only `::-moz-placeholder` rules separately from policy blocks; that
   alone does not establish a visible mismatch.
@@ -210,8 +206,8 @@ Provider unmount alone does not remove the host's document-lifetime policy.
 
 Computed appearance snapshots live only in
 [test instrumentation](../tests/browser/instrumentation.js), after each
-participant mount. They retain cross-build, arrival and coverage comparisons
-(including 32px phone width, theme Button background and 137px action width).
+participant mount. They support preload equivalence and control checks across
+builds and coverage (including 32px phone width and theme Button background).
 Avatar colors use the initials slot, not the potentially transparent root.
 They never drive runtime verdicts or ship in published artifacts. Fractional
 computed dimensions do not invalidate inserted CSS; gallery checks cover mobile,
@@ -220,54 +216,54 @@ computed dimensions do not invalidate inserted CSS; gallery checks cover mobile,
 ### Reproduction contract and paired controls
 
 Keep host build/coverage fixed within a pair and `hostPolicy` fixed unless
-explicitly comparing policies. Seeds, ownership proposals, forced filtering and
-alternative Feedback code are diagnostics, not baseline arrival schedules.
+explicitly comparing policies. Extra actors, ownership proposals, forced filtering
+and alternative Feedback code are excluded, not additional baseline schedules.
 
 | Pair/change | Assertion and executable evidence |
 | --- | --- |
-| `persona-alone` / `unmarked-d-first` | Existing incompatible destination changes adoption, not Persona's generated rule; [source tests](../tests/source/run.test.mjs) compare both revisions. |
+| `persona-alone` / Feedback-first | Feedback supplies the incompatible destination without a seed actor; [source tests](../tests/source/run.test.mjs) compare both revisions. |
 | Feedback-first, change Persona revision | Same generated scoped rule, host contract and Feedback actor; release rejection remains cached, main inserts. [Revision comparisons](../tests/source/current-main.mjs). |
 | Feedback-first / Persona-first | Same actor-generated CSS; destination and permission can change. [Baseline matrix](../tests/source/run.test.mjs), [schedule pairs](../tests/source/schedules.test.mjs). |
 | Feedback-first, change host policy | Prefix compatibility changes Feedback permission; main Persona inserts under both. [Baseline matrix](../tests/source/run.test.mjs). |
-| Main guard / `owner-guard` | Attribute acceptance versus ownership/cache reuse; [adoption](../tests/browser/adoption.test.mjs) and [lifecycle probes](../tests/source/lifecycle.mjs). |
-| `host-collision` / `host-collision-salted` | Salt removes matching, not necessarily shared storage. [Styling controls](../tests/experiments/run.test.mjs). |
 | Ordinary / preloaded schedules | Same configuration, generated CSS, permission, CSSOM, cache and sheet relationships across all 16 control inputs. [Preload comparisons](../tests/source/schedules.test.mjs). |
 | Ordinary / reopen or remount | Feedback reuses its renderer/cache without retrying rules; fresh Persona attempts Fluent rules again. [Baseline lifecycle cases](../tests/source/run.test.mjs). |
 
 Start with extracted/minimal to reduce masking, then compare shared coverage and
 the runtime host. Both inspected Persona revisions remain first-class; neither
-is silently replaced by the ownership proposal.
+is silently replaced by a proposed fix.
 
 ### Single runner and retained mechanism coverage
 
 Vitest covers 8 schedules x 2 revisions x 2 host policies x 2 host builds x 2
 coverage profiles = **128 baseline configurations**. Revision pairs are tested
 together. Preload equivalence repeats paired schedules under all 16 control
-inputs, not additional distinct configurations. Four styling controls cover 16
-build/coverage combinations; seed and owner-proposal checks are separate.
+inputs, not additional distinct configurations. There are no diagnostic actor
+variants or third-renderer probes in the application scenarios.
 These counts are not registered Vitest test counts or full-product coverage.
 
 The earlier `/extracted`, `/runtime`, `/mechanisms`, their integration bundle,
 and the optional pre-refactor capture comparison are retired. Those routes and
-`/integration.js` return 404 locally and in fresh Pages artifacts.
+`/integration.js` return 404 locally and in fresh Pages artifacts. The alternate
+`/feedback-standard.js` bundle is also retired.
 Current fixtures/assertions replace external captures; archived forms, class
 names and result schemas are not compatibility promises.
 
 | Retired claim | Retained assertion |
 | --- | --- |
-| New destinations permit insertion; adoption can reject/cache rules | Persona-alone/runtime baseline and release/main [adoption probes](../tests/browser/adoption.test.mjs). |
+| New destinations permit insertion; adoption can reject/cache rules | Persona-alone/runtime baseline and release/main [matrix cases](../tests/source/run.test.mjs). |
 | Foreign writers borrow permission while new buckets remain blocked | Persona-first, sheet-only [baseline cases](../tests/source/run.test.mjs). |
-| Salt affects runtime classes, not precompiled classes or adoption | [Styling controls](../tests/experiments/run.test.mjs), both builds/coverage profiles. |
 | A prefix admits its rule, not another actor's | Both baseline host policies and [exact predicate tests](../tests/policy/host-policy.test.mjs). |
-| Restoring native insertion does not retry cached rejection | [Cache replay](../tests/browser/adoption.test.mjs): actual Fluent rule, same/fresh renderers, native index zero. |
-| Extraction changes insertion/cascade order, not baseline host styling | Styling controls and [artifact checks](../tests/architecture-build.test.mjs). |
+| Restoring native insertion does not retry cached rejection | [Cache replay](../tests/browser/adoption.test.mjs): actual candidate Feedback rule/cache, restored native insertion, and a fresh runtime-host document as the accepted-rule control. |
+| Extracted versus runtime hosts retain the inspected gate and component coverage | [Matrix cases](../tests/source/run.test.mjs) and [artifact checks](../tests/architecture-build.test.mjs); native Fluent avatar declaration, not constructed colors. |
 | Controls keep local actions and usable layout | [Participant](../tests/experiments/run.test.mjs), [gallery](../tests/gallery/playground.test.mjs) and [lifecycle](../tests/source/lifecycle.mjs) checks. |
 
 [Gate tests](../tests/policy/host-contract.test.mjs) cover production/development/
 test environments with extraction enabled/disabled, idempotence, provider
-unmount versus sandbox disposal, and explicit diagnostic overrides.
-Other probes check exact attribute values, foreign owners, per-owner/document
-caches, detached-sheet recovery, raw-build enforcement and singleton retention.
+unmount versus sandbox disposal, native index zero, and rejection of forced-filter
+overrides. Participant checks enforce the raw build, fixed Feedback options and
+singleton retention; remount schedules enforce fresh Persona renderers.
+The salt/precompiled and ownership-proposal comparisons are removed, not replaced
+by purported equivalent evidence.
 [Evidence lifecycle tests](../tests/evidence/lifecycle.test.mjs) cover native
 replacement/removal, late insertion, unsupported cascade probes and disposal.
 
@@ -276,8 +272,8 @@ replacement/removal, late insertion, unsupported cascade probes and disposal.
 Vitest Browser Mode and its pinned Playwright provider own Chromium, interactions
 and failure screenshots. A [test-only plugin](../tests/browser/application-plugin.mjs)
 serves actual build artifacts through the server's allowlisted handler; Vite does
-not combine the participant renderers. Only adoption probes import an additional
-real Griffel renderer through Vitest. Servers bind ephemeral loopback ports.
+not combine the participant renderers. Cache replay uses the actual candidate
+Feedback renderer, not an additional test actor. Servers bind ephemeral loopback ports.
 
 [Application helpers](../tests/browser/application.mjs) create fresh same-origin
 iframes, wait for readiness and honor test cancellation. Instrumentation captures

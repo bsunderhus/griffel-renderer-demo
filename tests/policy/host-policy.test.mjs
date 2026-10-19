@@ -2,7 +2,7 @@ import { installHostPolicy } from "../../src/host/policy.js";
 import { expect, onTestFinished, test, vi } from "vitest";
 
 // Test exact predicate semantics, including truthy string dataset values and prefix position.
-test.each(["master", "feedback-exception", "off"])("host policy %s preserves exact insertion semantics", mode => {
+test.each(["master", "feedback-exception"])("host policy %s preserves exact insertion semantics", mode => {
   class Sheet {
     constructor(dataset, nodeName = "STYLE") { this.ownerNode = { dataset, nodeName }; this.calls = 0; }
     insertRule(rule) {
@@ -28,7 +28,7 @@ test.each(["master", "feedback-exception", "off"])("host policy %s preserves exa
     [{ makeStylesBucket: "d" }, ".x{color:red}", false, "LINK"],
   ]) {
     const sheet = new Sheet(dataset, nodeName);
-    const blocked = mode !== "off" && blockedByMaster &&
+    const blocked = blockedByMaster &&
       !(mode === "feedback-exception" && rule.startsWith("/* demo-feedback */"));
     expect(sheet.insertRule(rule, 0)).toBe(blocked ? 0 : 7);
     expect(sheet.calls).toBe(blocked ? 0 : 1);

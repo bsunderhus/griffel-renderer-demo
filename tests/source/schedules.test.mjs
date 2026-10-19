@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { personaRevisions } from "../../src/experiments/scenarios.js";
-import { openApplication, runExperiment } from "../browser/application.mjs";
+import { openApplication, runExperiment, appearanceStages } from "../browser/application.mjs";
 
 const configurations = Object.keys(personaRevisions).flatMap(personaVersion =>
   ["master", "feedback-exception"].flatMap(hostPolicy =>
@@ -16,8 +16,11 @@ test.for(configurations)("$personaVersion / $hostPolicy / $host / $coverage: pre
       ["raw-marked-first", "both-preloaded"],
     ]) {
       const before = await runExperiment(app, { ...settings, scenario: normal });
+      const beforeAppearance = appearanceStages(app);
       ordinary.push(before);
       const after = await runExperiment(app, { ...settings, scenario: preloaded });
+      expect(appearanceStages(app), "Preloading preserves appearance at every mount as well as native insertion")
+        .toStrictEqual(beforeAppearance);
       expect(after.configuration, "Exactly the same host, actor artifacts, options and workload").toStrictEqual(before.configuration);
       expect(after.execution).not.toStrictEqual(before.execution);
       const attempts = result => result.events.filter(event => event.bucket).map(event => ({

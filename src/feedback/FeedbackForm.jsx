@@ -1,30 +1,21 @@
 import React, { useState } from "react";
-import { Button, FluentProvider, Label, makeResetStyles, makeStyles, Textarea, webLightTheme } from "@fluentui/react-components";
+import { Button, FluentProvider, Label, Textarea, webLightTheme } from "@fluentui/react-components";
 import { PersonSummary } from "../shared/PersonSummary.jsx";
 
-const useStyles = makeStyles({ probe: { width: "137px" } });
-export function FeedbackForm({ avatarClassName }) {
-  const styles = useStyles();
+export function FeedbackForm() {
   const [submitted, setSubmitted] = useState(false);
   return <FluentProvider theme={webLightTheme} targetDocument={document} data-fluent-owner="feedback">
     <div className="fluent-card">
       <strong>Send us feedback</strong>
-      <PersonSummary avatarClassName={avatarClassName} callLabel="Call Alex (feedback)" />
+      <PersonSummary callLabel="Call Alex (feedback)" />
       <Label htmlFor="feedback-feedback">Share feedback</Label>
       <Textarea id="feedback-feedback" placeholder="What could be better?" resize="vertical" data-fluent-textarea />
       <div className="fluent-actions">
         <Button appearance="primary" data-fluent-primary onClick={() => setSubmitted(true)}>Send feedback</Button>
-        <Button id="clear-feedback" className={styles.probe} data-actor-probe="feedback"
+        <Button id="clear-feedback" data-fluent-secondary
           onClick={() => setSubmitted(false)}>Clear status</Button>
       </div>
       <span role="status">{submitted ? "Feedback submitted (local demo only)" : ""}</span>
     </div>
   </FluentProvider>;
-}
-
-const useCollisionReset = makeResetStyles({ backgroundColor: "#e8a33d" });
-
-export function DiagnosticFeedbackForm() {
-  const avatarClassName = useCollisionReset();
-  return <FeedbackForm avatarClassName={avatarClassName} />;
 }

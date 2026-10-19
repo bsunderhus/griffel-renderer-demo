@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import { Button, FluentProvider, Label, Textarea, webLightTheme } from "@fluentui/react-components";
 import { PersonSummary } from "../shared/PersonSummary.jsx";
 
-export function SharedHost({ avatarClassName, ownerDocument = document }) {
+export function SharedHost({ ownerDocument = document }) {
   const [submitted, setSubmitted] = useState(false);
   return <FluentProvider theme={webLightTheme} targetDocument={ownerDocument} data-fluent-owner="host">
     <div className="fluent-card">
       <strong>Host application</strong>
-      <PersonSummary avatarClassName={avatarClassName} host callLabel="Call Alex (host)" />
+      <PersonSummary host callLabel="Call Alex (host)" />
       <Label htmlFor="feedback-host">Share feedback</Label>
       <Textarea id="feedback-host" placeholder="What could be better?" resize="vertical" data-fluent-textarea />
       <div className="fluent-submit">

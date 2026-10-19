@@ -3,7 +3,6 @@ const sourceContract = {
   feedbackProfile: "inspected",
   personaRevision: "selected",
 };
-const historicalControl = { personaProfile: "historical" };
 
 export const hostPolicies = {
   master: "Sheet-only (baseline)",
@@ -37,37 +36,19 @@ export const baselineExperiments = [
     schedule: [...arrival("feedback"), ...arrival("persona"), unmount("persona"), mount("persona")] },
 ].map(config => ({ ...sourceContract, ...config, kind: "baseline", policy: "selected" }));
 
-export const diagnosticExperiments = [
-  { ...sourceContract, id: "unmarked-d-first", policy: "master", seed: true, order: ["persona"],
-    kind: "diagnostic" },
-  { ...sourceContract, id: "owner-guard", personaRevision: null, policy: "feedback-exception",
-    personaProfile: "owner-guard", kind: "proposal", order: ["feedback", "persona"] },
-  { ...historicalControl, id: "precompiled-salted", policy: "feedback-exception",
-    salt: true, marker: true, order: ["feedback", "persona"] },
-  { ...historicalControl, id: "raw-unsalted", policy: "feedback-exception",
-    raw: true, marker: true, order: ["feedback", "persona"] },
-  { ...historicalControl, id: "host-collision", policy: "off", raw: true, order: ["feedback", "persona"] },
-  { ...historicalControl, id: "host-collision-salted", policy: "off", raw: true, salt: true, order: ["feedback", "persona"] },
-].map(config => ({ kind: "diagnostic", ...config,
-  schedule: config.order.flatMap(arrival) }));
-
-export const experiments = [...baselineExperiments, ...diagnosticExperiments];
+export const experiments = baselineExperiments;
 export const sourceExperiments = baselineExperiments;
 
 export const scenarioAliases = {
   "feedback-first": "raw-marked-first",
   "persona-first": "persona-first-raw",
-  "no-policy": "host-collision",
   "master-rejects-marker": "raw-marked-first",
   "source-persona-alone": "persona-alone",
-  "source-unmarked-first": "unmarked-d-first",
   "source-feedback-first": "raw-marked-first",
   "source-persona-first": "persona-first-raw",
   "source-prefix-unrecognized": "raw-marked-first",
   "source-marker-guard": "raw-marked-first",
-  "source-owner-guard": "owner-guard",
   "marker-guard": "raw-marked-first",
-  "historical-unmarked-first": "unmarked-d-first",
   "historical-feedback-first": "raw-marked-first",
 };
 
@@ -86,9 +67,7 @@ export const scenarioAliasPolicies = {
 export const scenarioAliasVersions = {
   "feedback-first": "1.20260927.13.2",
   "persona-first": "1.20260927.13.2",
-  "no-policy": "1.20260927.13.2",
   "source-marker-guard": "main-2026-10-16",
   "marker-guard": "main-2026-10-16",
-  "historical-unmarked-first": "1.20260927.13.2",
   "historical-feedback-first": "1.20260927.13.2",
 };

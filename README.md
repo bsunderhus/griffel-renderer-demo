@@ -3,7 +3,8 @@
 A local research playground for CSS interactions between a host application,
 a contact card ("Persona"), and a feedback form ("Feedback"). It uses actual
 public React, Fluent UI, Griffel, and Stylis packages with independently bundled
-renderers. These are fictional actors, not a complete product or incident replay.
+renderers. Sanitized local UI models inspected styling contracts, not a complete
+product or incident replay.
 
 **[Open the hosted playground](https://bsunderhus.github.io/griffel-renderer-demo/)**
 or run it locally below. Everything runs in the browser: no backend, network
@@ -79,9 +80,8 @@ also an unmerged candidate. See the
 Eight baseline schedules vary loading and lifecycle events, **not actor code**:
 single actors, both arrival orders, script preloading, Feedback reopening, and
 Persona remounting. They keep the same raw-style, salted, prefixed Feedback
-singleton. Six collapsed diagnostics/proposals explicitly vary other inputs,
-including an extra actor, an owner guard, and constructed avatar collisions.
-The orange collision reset is never part of the canonical baseline workload.
+singleton. There are no alternate Feedback builds, extra actors, constructed
+collisions, forced-filter hosts, or ownership-fix scenarios.
 
 Each example starts in a fresh iframe. Settings survive navigation and reload:
 
@@ -89,8 +89,8 @@ Each example starts in a fresh iframe. Settings survive navigation and reload:
 /?scenario=raw-marked-first&host=extracted&coverage=minimal&personaVersion=1.20260927.13.2&hostPolicy=master
 ```
 
-Fragment links such as `/#host-collision` reveal the relevant control group.
-The [schedule and diagnostic reference](docs/RESEARCH.md#source-aligned-contract-matrix)
+Fragment links such as `/#raw-marked-first` select a live schedule.
+The [schedule reference](docs/RESEARCH.md#source-aligned-contract-matrix)
 lists IDs and expected comparisons.
 
 ### Read the results
@@ -105,8 +105,8 @@ permission, native insertion, CSSOM presence, and cache state.
   of a recorded native rule while equivalent CSS remains.
 - Neither shared storage nor matching appearance proves success or failure.
 
-A real Fluent Button rule witnesses baseline outcomes; the common 137px action
-rule is supplemental instrumentation. Host results separately report foreign
+A real Fluent Button background rule witnesses outcomes, without an added
+measurement declaration. Host results separately report foreign
 writes, selector matches, and a bounded avatar-background cascade check, not
 complete host correctness. Computed appearance snapshots are test-only and do
 not ship in runtime JSON. See the
@@ -128,7 +128,7 @@ privileges.
 
 | Command | Scope |
 | --- | --- |
-| `npm test` | Build all seven participant targets and the app, then run all tests. |
+| `npm test` | Build all six participant targets and the app, then run all tests. |
 | `npm run test:unit` | Fast Node checks without a build or browser. |
 | `npm run test:watch` | Watch the unit project. |
 | `npm run test:integration` | Build, then run artifact and browser projects. |
@@ -148,7 +148,7 @@ started preview server, fixed port, or separate browser fixture is required.
 Expected red/amber examples are regression evidence, not necessarily test failures.
 
 The [coverage reference](docs/RESEARCH.md#single-runner-and-retained-mechanism-coverage)
-distinguishes the 128 baseline configurations from preload repeats, diagnostics,
+distinguishes the 128 baseline configurations from preload repeats
 and registered Vitest test counts. No external historical capture is required.
 
 Ordinary runs do not export success reports. Browser failures produce screenshots
@@ -159,8 +159,8 @@ No TypeScript, lint, or formatting runner is configured.
 
 ## Build and hosting
 
-The [build manifest](build/targets.mjs) keeps seven webpack targets independent:
-four host build/coverage combinations, Persona, and standard/raw Feedback.
+The [build manifest](build/targets.mjs) keeps six webpack targets independent:
+four host build/coverage combinations, Persona, and candidate-aligned raw Feedback.
 esbuild separately bundles the playground app. Do not combine the renderers.
 Pinned dependencies and generated classes are experimental inputs; preserve the
 lockfile rather than applying automatic upgrades.
@@ -183,10 +183,12 @@ compatibility normalization runs in the client, and hosted assets may be cached.
 [Pages tests](tests/browser/pages.test.mjs) check sub-path assets, navigation,
 and result parity.
 
-`/source`, `/three-actors`, and existing scenario aliases remain compatible.
-The retired `/extracted`, `/runtime`, `/mechanisms`, and `/integration.js` return
-404. The [retained coverage map](docs/RESEARCH.md#single-runner-and-retained-mechanism-coverage)
-records which assertions replaced those applications.
+`/source`, `/three-actors`, and aliases for retained schedules remain compatible.
+Retired counterfactual IDs are not aliases for superficially similar baselines.
+The retired `/extracted`, `/runtime`, `/mechanisms`, `/integration.js`, and
+`/feedback-standard.js` return 404. The
+[coverage map](docs/RESEARCH.md#single-runner-and-retained-mechanism-coverage)
+distinguishes retained assertions from removed comparisons.
 
 ## Troubleshooting
 

@@ -2,13 +2,13 @@ import { analyzeEvidence } from "./analysis.js";
 import { refreshEvidence } from "./snapshot.js";
 import { renderEvidence } from "./presentation.js";
 
-export function createEvidenceController(context, config) {
+export function createEvidenceController(context) {
   const view = context.doc.defaultView;
   let frame;
   function refresh() {
     refreshEvidence(context);
     const analysis = analyzeEvidence(context.result);
-    renderEvidence(context.result, config, analysis);
+    renderEvidence(context.result, analysis);
   }
   function schedule() {
     view.cancelAnimationFrame(frame);

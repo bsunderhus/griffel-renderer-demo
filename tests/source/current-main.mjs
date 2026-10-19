@@ -25,9 +25,8 @@ export function assertCurrentMainComparisons(results, configurations = sourceExp
           event.rule.includes("background-color:var(--colorBrandBackground)"));
         expect(component(current).rule, "The revision changes destination handling, not the actual Fluent rule")
           .toBe(component(historical).rule);
-        const width = result => result.events.find(event => event.actor === "persona" && event.rule.includes("width:137px"));
-        const currentRule = width(current);
-        const historicalRule = width(historical);
+        const currentRule = component(current);
+        const historicalRule = component(historical);
         expect(
           currentRule.rule,
           "The guard changes the destination, not the generated scoped rule",
@@ -38,7 +37,7 @@ export function assertCurrentMainComparisons(results, configurations = sourceExp
         const rejected = hostMode === "extracted" && config.order[0] === "feedback";
         expect(historicalRule.present).toBe(!rejected);
         expect(historicalRule.blocked).toBe(Boolean(rejected));
-        for (const result of [current, historical]) expect(result.actors.persona.cache).toContain(width(result).rule);
+        for (const result of [current, historical]) expect(result.actors.persona.cache).toContain(component(result).rule);
         comparisons.push({ currentId, historicalId, hostMode, coverage,
           currentPresent: currentRule.present, historicalPresent: historicalRule.present });
       }

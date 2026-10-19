@@ -1,3 +1,3 @@
-import { createFeedbackModule } from "./mount.jsx";
+import { mount } from "./mount.jsx";
 
-window.feedbackActor = createFeedbackModule({ rawStyles: true });
+window.feedbackActor = { build: { rawStyles: true }, mount };

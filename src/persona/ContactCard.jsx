@@ -1,12 +1,9 @@
 import React, { useState } from "react";
-import { Button, FluentProvider, makeStyles, webLightTheme } from "@fluentui/react-components";
+import { Button, FluentProvider, webLightTheme } from "@fluentui/react-components";
 import { PersonSummary } from "../shared/PersonSummary.jsx";
 import { PERSONA_SCOPE } from "./renderer.js";
 
-const useStyles = makeStyles({ probe: { width: "137px" } });
-
 export function ContactCard({ ownerDocument = document }) {
-  const styles = useStyles();
   const [submitted, setSubmitted] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   return <FluentProvider theme={webLightTheme} targetDocument={ownerDocument}
@@ -17,7 +14,7 @@ export function ContactCard({ ownerDocument = document }) {
       <p>Design team<br />alex.taylor@example.com</p>
       <div className="fluent-actions">
         <Button appearance="primary" data-fluent-primary onClick={() => setSubmitted(true)}>Message</Button>
-        <Button id="clear-persona" className={styles.probe} data-actor-probe="persona"
+        <Button id="clear-persona" data-fluent-secondary
           onClick={() => setProfileOpen(open => !open)} aria-expanded={profileOpen}>View profile</Button>
       </div>
       {profileOpen && <p>Alex Taylor designs accessible collaboration experiences.</p>}

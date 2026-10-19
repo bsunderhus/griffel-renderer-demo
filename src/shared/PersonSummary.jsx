@@ -7,11 +7,10 @@ function CallIcon() {
   </svg>;
 }
 
-export function PersonSummary({ avatarClassName, host = false, callLabel }) {
+export function PersonSummary({ host = false, callLabel }) {
   return <div className="fluent-person">
     <Avatar name="Alex Taylor" badge={{ status: "available" }} data-fluent-avatar
-      initials={{ className: avatarClassName, "data-host": host ? "" : undefined,
-        "data-avatar-override": avatarClassName ? "" : undefined }} />
+      initials={{ "data-host-avatar": host ? "" : undefined }} />
     <span>Alex Taylor<br /><small>Product designer</small></span>
     <span className="fluent-call">
       <Button icon={<CallIcon />} aria-label={callLabel} data-fluent-icon />

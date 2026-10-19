@@ -8,8 +8,9 @@ architecture and decisions, and [ROADMAP.md](ROADMAP.md) for progress and gates.
 Do not rely on a previous conversation, another checkout, or private services.
 
 The baseline technique/fidelity gate is complete for the modeled cases.
-Follow [roadmap phase 3](ROADMAP.md#3-compare-solution-experiments) for the next
-bounded research task; preserve the baseline when adding candidate experiments.
+Before [roadmap phase 3](ROADMAP.md#3-compare-solution-experiments), obtain an
+explicitly approved, source-backed hypothesis. Do not invent actor variants,
+workloads or ownership fixes to create a comparison.
 Publication of the source baseline is complete; licensing remains open.
 
 ## Preserve the experiment
@@ -18,6 +19,9 @@ Publication of the source baseline is complete; licensing remains open.
   CSS insertion. Never fabricate a regression using scenario-specific CSS.
 - Keep baseline failures reproducible. Add solutions as explicitly labeled
   configurations, not silent replacements or relaxed assertions.
+- Keep Feedback's raw build, salt, prefix and module-level renderer fixed.
+  Vary only schedules and the inspected host/Persona controls. Do not restore
+  counterfactual cards, extra seed actors or measurement CSS in participant bundles.
 - Report insertion, appearance, and sheet ownership independently. Matching
   appearance can mask rejected rules; sharing a sheet need not cause damage.
 - Keep host build mode and component coverage independent. Minimal hosts must
@@ -37,9 +41,9 @@ Publication of the source baseline is complete; licensing remains open.
   inputs. Document and test deliberate upgrades.
 - Setup: `npm ci`, then `npx playwright install chromium`. Linux may need
   `npx playwright install --with-deps chromium`.
-- Full validation: `npm test` builds all seven targets and runs Vitest, including
-  128 baseline schedule/configuration executions, paired preload checks and
-  separate diagnostics. See the README for focused checks and preview commands.
+- Full validation: `npm test` builds all six targets and runs Vitest, including
+  128 baseline schedule/configuration executions and paired preload checks.
+  See the README for focused checks and preview commands.
 - Run `npm run test:unit` for checks without a build or browser.
   After source changes, rebuild before running integration tests directly with
   `npx vitest run`; `npm run test:integration` includes the build.

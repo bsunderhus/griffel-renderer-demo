@@ -11,20 +11,15 @@ test.each(["production", "development", "test"])("host contract gates extraction
       expect(contract.renderer).toBe(active ? "noop" : "dom");
       expect(contract.effectivePolicy).toBe(active ? policy : "off");
     }
-    const diagnostic = resolveHostContract({ extracted, policy: "master", contract: "diagnostic" }, environment);
-    expect(
-      diagnostic.shouldInstall,
-      "Forced runtime filtering is a diagnostic override, not the source contract",
-    ).toBe(true);
-    expect(diagnostic.renderer).toBe("dom");
   }
 });
 
 test("production filtering cannot be disabled through the production contract", () => {
   expect(
     () => resolveHostContract({ extracted: true, contract: "production-extraction", policy: "off" }, "production"),
-  ).toThrow(/diagnostic contract/);
-  expect(resolveHostContract({ extracted: true, policy: "off" }, "production").shouldInstall).toBe(false);
+  ).toThrow(/Unknown host policy/);
+  expect(() => resolveHostContract({ extracted: true, contract: "diagnostic" }, "production"))
+    .toThrow(/Unknown host contract/);
 });
 
 test("host policy installation and sandbox disposal are idempotent", () => {

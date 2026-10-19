@@ -23,15 +23,19 @@ test("extracted and runtime artifacts retain their original compilation contract
   const extractedCSS = await readFile("dist/griffel.css", "utf8");
   const require = createRequire(import.meta.url);
   expect(require("@fluentui/react-components/package.json").version).toBe("9.74.9");
-  expect(extractedCSS).toMatch(/background-color:#b7e4c7/);
-  expect(extractedCSS).toMatch(/background-color:#e8a33d/);
   expect(extractedCSS, "Real Fluent theme-based rules must be extracted").toMatch(/--colorBrandBackground/);
   const hostBundle = await readFile("dist/host-extracted.js", "utf8");
-  expect(hostBundle, "Host declarations must leave extracted JavaScript").not.toMatch(/#e8a33d|#b7e4c7/);
   expect(hostBundle).toMatch(/__resetCSS/);
   expect(hostBundle).toMatch(/__css/);
   for (const filename of ["host-runtime", "feedback-raw"]) {
-    expect(await readFile(`dist/${filename}.js`, "utf8"), `${filename}: raw styles retained`).toMatch(/#e8a33d/);
+    expect(await readFile(`dist/${filename}.js`, "utf8"), `${filename}: actual Fluent styles retained`).toMatch(/--colorBrandBackground/);
+  }
+});
+
+test("actor artifacts contain no constructed collisions, width witnesses or ownership proposal", async () => {
+  for (const file of [...targets.map(target => `dist/${target.name}.js`), "dist/griffel.css", "dist/shared/griffel.css"]) {
+    expect(await readFile(file, "utf8"), `${file}: source-aligned actors only`)
+      .not.toMatch(/#e8a33d|#b7e4c7|width:137px|data-demo-renderer-owner|owner-guard|DiagnosticFeedbackForm/);
   }
 });
 

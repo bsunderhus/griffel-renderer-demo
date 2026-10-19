@@ -2,14 +2,14 @@ import { avatarBackgroundEvidence, describeRule, hostRuleEvidence, readStyleRule
 
 export function captureHostBaseline(doc, observation) {
   const provider = doc.querySelector('[data-fluent-owner="host"]');
-  const avatar = provider.querySelector("[data-avatar-override]");
+  const avatar = provider.querySelector("[data-host-avatar]");
   return {
     provider, avatar,
     background: avatarBackgroundEvidence(avatar, readStyleRules(doc), observation.ruleSource),
   };
 }
 
-export function refreshEvidence({ doc, result, actors, observation, baseline, seed }) {
+export function refreshEvidence({ doc, result, actors, observation, baseline }) {
   const { events, creators, sheetIds, nativeRules, ruleSource } = observation;
   const entries = readStyleRules(doc);
   const liveRules = new Map(Array.from(doc.styleSheets, sheet => [sheet, new Set(Array.from(sheet.cssRules))]));
@@ -26,16 +26,17 @@ export function refreshEvidence({ doc, result, actors, observation, baseline, se
     evidence.sheets = Object.entries(renderer.stylesheets).map(([key, sheet]) => ({
       key, id: sheetIds.get(sheet.element), creator: creators.get(sheet.element),
       documentIndex: Array.from(doc.styleSheets).indexOf(sheet.element.sheet),
-      enhanced: Boolean(sheet.element.dataset.demoAllowRules), seed: sheet.element === seed,
+      enhanced: Boolean(sheet.element.dataset.demoAllowRules),
       rules: Array.from(sheet.element.sheet?.cssRules || [], rule => rule.cssText),
       sharedWith: [...new Set([creators.get(sheet.element),
         ...Object.entries(actors).filter(([, other]) => Object.values(other.renderer.stylesheets)
           .some(otherSheet => otherSheet.element === sheet.element)).map(([name]) => name)])]
         .filter(name => name !== actor),
     }));
-    const probe = doc.querySelector(`[data-actor-probe="${actor}"]`);
-    evidence.matchingWidthEvidence = entries.filter(entry => entry.rule.style.width === "137px" &&
-      probe.matches(entry.rule.selectorText)).map(entry => describeRule(entry, ruleSource));
+    const primary = doc.querySelector(`[data-fluent-owner="${actor}"] [data-fluent-primary]`);
+    evidence.matchingComponentRules = entries.filter(entry =>
+      entry.rule.style.backgroundColor === "var(--colorBrandBackground)" &&
+      primary.matches(entry.rule.selectorText)).map(entry => describeRule(entry, ruleSource));
   }
   result.hostEvidence = hostRuleEvidence([baseline.provider, ...baseline.provider.querySelectorAll("*")],
     baseline.avatar, entries, ruleSource, events, baseline.background);

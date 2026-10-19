@@ -11,7 +11,6 @@ export const SITE_FILES = {
   "/host-extracted.js": ["host-extracted.js", "text/javascript"],
   "/host-runtime.js": ["host-runtime.js", "text/javascript"],
   "/persona.js": ["persona.js", "text/javascript"],
-  "/feedback-standard.js": ["feedback-standard.js", "text/javascript"],
   "/feedback-raw.js": ["feedback-raw.js", "text/javascript"],
   "/feedback-raw-modules.json": ["feedback-raw-modules.json", "application/json"],
   "/griffel.css": ["griffel.css", "text/css"],

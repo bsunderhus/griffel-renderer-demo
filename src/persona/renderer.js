@@ -2,8 +2,6 @@ import { createDOMRenderer } from "@fluentui/react-components";
 import { compile, serialize, stringify } from "stylis";
 
 export const PERSONA_SCOPE = "demo-contact-scope";
-const OWNER_ATTRIBUTE = "data-demo-renderer-owner";
-const ownerRenderers = new WeakMap();
 
 function withScope(original, beforeInsert = () => {}) {
   return {
@@ -19,10 +17,10 @@ function withScope(original, beforeInsert = () => {}) {
   };
 }
 
-function createMarkedRenderer(doc, attributes = {}) {
+function createMarkedRenderer(doc) {
   return createDOMRenderer(doc, {
     insertionPoint: doc.head.firstChild,
-    styleElementAttributes: { "data-demo-allow-rules": "true", ...attributes },
+    styleElementAttributes: { "data-demo-allow-rules": "true" },
   });
 }
 
@@ -41,36 +39,12 @@ function createMarkerGuardRenderer(doc) {
   });
 }
 
-function getOwnerGuardRenderer(doc, owner) {
-  if (typeof owner !== "string" || !owner) throw new Error("Owner-guard renderer requires a nonempty string owner");
-  let cache = ownerRenderers.get(doc);
-  if (!cache) {
-    cache = new Map();
-    ownerRenderers.set(doc, cache);
-  }
-  const existing = cache.get(owner);
-  if (existing && Object.values(existing.stylesheets).every(sheet => !sheet.element || sheet.element.isConnected)) {
-    return existing;
-  }
-  const renderer = createMarkedRenderer(doc, { [OWNER_ATTRIBUTE]: owner });
-  renderer.stylesheets = new Proxy(renderer.stylesheets, {
-    set(buckets, key, handle) {
-      if (handle?.elementAttributes?.[OWNER_ATTRIBUTE] === owner) Reflect.set(buckets, key, handle);
-      return true;
-    },
-  });
-  const scoped = withScope(renderer);
-  cache.set(owner, scoped);
-  return scoped;
-}
-
 const profiles = {
   historical: doc => createPersonaRenderer(doc),
   "marker-guard": doc => createMarkerGuardRenderer(doc),
-  "owner-guard": (doc, owner) => getOwnerGuardRenderer(doc, owner),
 };
 
-export function getPersonaRenderer(doc, { profile = "marker-guard", owner = "contact-card" } = {}) {
+export function getPersonaRenderer(doc, { profile = "marker-guard" } = {}) {
   if (!Object.hasOwn(profiles, profile)) throw new Error(`Unknown Persona renderer profile: ${profile}`);
-  return profiles[profile](doc, owner);
+  return profiles[profile](doc);
 }

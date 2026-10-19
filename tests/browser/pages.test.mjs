@@ -7,11 +7,11 @@ const base = "/pages-preview/";
 
 test("the Pages artifact runs a live scenario under its sub-path", async ({ signal }) => {
   const root = await openApplication({ signal });
-  await navigateApplication(root, "/?scenario=owner-guard&coverage=minimal");
+  await navigateApplication(root, "/?scenario=raw-marked-first&coverage=minimal");
   const pages = await openApplication({ signal });
-  await navigateApplication(pages, `${base}?scenario=owner-guard&coverage=minimal`);
+  await navigateApplication(pages, `${base}?scenario=raw-marked-first&coverage=minimal`);
   const result = applicationWindow(pages).threeActorResult;
-  expect(result.id).toBe("owner-guard");
+  expect(result.id).toBe("raw-marked-first");
   expect(JSON.stringify(result).replaceAll(base, "/")).toBe(JSON.stringify(applicationWindow(root).threeActorResult));
   const resources = applicationWindow(pages).performance.getEntriesByType("resource")
     .map(entry => new URL(entry.name).pathname).filter(pathname => /\.(?:js|css)$/.test(pathname));
@@ -46,7 +46,7 @@ test("Pages resolves legacy routes and aliases without server redirects", async 
 });
 
 test("Pages omits the retired diagnostic routes and bundle", async () => {
-  for (const route of ["extracted", "runtime", "mechanisms", "integration.js"]) {
+  for (const route of ["extracted", "runtime", "mechanisms", "integration.js", "feedback-standard.js"]) {
     expect((await fetch(`${base}${route}`)).status).toBe(404);
   }
 });

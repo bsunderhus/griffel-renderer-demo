@@ -1,7 +1,7 @@
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { targets } from "../build/targets.mjs";
-import { baselineExperiments, diagnosticExperiments, experiments, sourceExperiments, scenarioAliases, personaRevisions } from "../src/experiments/scenarios.js";
+import { baselineExperiments, experiments, sourceExperiments, scenarioAliases, personaRevisions } from "../src/experiments/scenarios.js";
 import { threeActorCases, getThreeActorCases } from "../src/playground/scenarios.js";
 import { resolveExperiment, resolveHostSettings, validateSchedule } from "../src/experiments/configuration.js";
 import { expect, test } from "vitest";
@@ -35,13 +35,13 @@ test("participant imports respect module boundaries", async () => {
 });
 
 test("scenario definitions and configuration validation preserve the research contract", async () => {
-  expect(targets).toHaveLength(7);
-  expect(new Set(targets.map(target => target.name)).size).toBe(7);
+  expect(targets).toHaveLength(6);
+  expect(new Set(targets.map(target => target.name)).size).toBe(6);
   expect(experiments.map(({ id }) => id)).toStrictEqual(threeActorCases.map(({ id }) => id));
-  expect(experiments).toHaveLength(14);
+  expect(experiments).toHaveLength(8);
   expect(new Set(experiments.map(config => config.id)).size).toBe(experiments.length);
   expect(sourceExperiments).toHaveLength(8);
-  expect(threeActorCases.filter(config => config.primaryExample)).toHaveLength(8);
+  expect(threeActorCases).toHaveLength(8);
   expect(resolveHostSettings("").hostPolicy).toBe("master");
   expect(resolveHostSettings("").personaVersion).toBe("1.20260927.13.2");
   for (const version of Object.keys(personaRevisions)) {
@@ -65,42 +65,29 @@ test("scenario definitions and configuration validation preserve the research co
     resolveExperiment(config, "");
     const content = threeActorCases.find(item => item.id === config.id);
     expect(content.title && content.takeaway && content.description).toBeTruthy();
-    expect(
-      Boolean(content.primaryExample),
-      "Only fixed-actor schedules are baseline examples",
-    ).toBe(config.kind === "baseline");
-    if (content.primaryExample) {
-      expect(config.feedbackProfile).toBe("inspected");
-      expect(config.personaProfile, "Primary profiles come from the shared version selection").toBeUndefined();
-    } else if (config.hostContract === "production-extraction") {
-      expect(["proposal", "diagnostic"]).toContain(config.kind);
-    } else {
-      expect(config.personaProfile, "Diagnostic baseline profiles must remain explicit").toBe("historical");
-    }
+    expect(config.kind).toBe("baseline");
+    expect(config.feedbackProfile).toBe("inspected");
+    expect(config.personaProfile, "Profiles come from the shared version selection").toBeUndefined();
   }
   for (const id of Object.values(scenarioAliases)) expect(experiments.some(config => config.id === id)).toBeTruthy();
-  expect(
-    resolveExperiment({ id: "default", policy: "off", order: ["persona"] }, "").personaProfile,
-  ).toBe("marker-guard");
   expect(() => resolveHostSettings("?host=unknown")).toThrow(/Unknown host mode/);
   expect(() => resolveHostSettings("?coverage=unknown")).toThrow(/Unknown host coverage/);
   expect(
-    () => resolveExperiment({ id: "bad", policy: "unknown", order: ["persona"] }, ""),
-  ).toThrow(/Unknown host policy/);
+    () => resolveExperiment({ ...sourceExperiments[0], policy: "unknown" }, ""),
+  ).toThrow(/Baseline actors cannot be overridden/);
   expect(
     () => resolveExperiment({ id: "bad", policy: "off", order: ["persona", "persona"] }, ""),
   ).toThrow(/Invalid integration order/);
   expect(
     () => resolveExperiment({ id: "bad", policy: "off", order: ["other"] }, ""),
   ).toThrow(/Invalid integration order/);
-  for (const [option, message] of [["hostContract", /Unknown host contract/],
-    ["personaProfile", /Unknown Persona renderer profile/], ["feedbackProfile", /Unknown Feedback renderer profile/],
-    ["personaRevision", /Unknown or incompatible Persona revision/]]) {
-    expect(() => resolveExperiment({ ...sourceExperiments[0], [option]: "unknown" }, "")).toThrow(message);
+  for (const option of ["hostContract", "personaProfile", "feedbackProfile", "personaRevision"]) {
+    expect(() => resolveExperiment({ ...sourceExperiments[0], [option]: "unknown" }, ""))
+      .toThrow(/Baseline actors cannot be overridden/);
   }
   expect(
     () => resolveExperiment({ ...sourceExperiments[0], personaProfile: "marker-guard" }, ""),
-  ).toThrow(/Unknown or incompatible Persona revision/);
+  ).toThrow(/Baseline actors cannot be overridden/);
   expect(() => resolveHostSettings("?personaVersion=unknown")).toThrow(/Unknown Persona version/);
   expect(() => resolveHostSettings("?hostPolicy=unknown")).toThrow(/Unknown host filter revision/);
   expect(await readFile("src/experiments/run.js", "utf8"), "The harness must not install or implement the participant-owned insertion policy").not.toMatch(/installHostPolicy|CSSStyleSheet/);
@@ -122,7 +109,7 @@ test("baseline schedules freeze actors and cannot enable counterfactual override
           for (const settings of resolved) {
             expect(actorConfiguration(settings)).toStrictEqual(actorConfiguration(resolved[0]));
             expect(settings.feedback).toStrictEqual({ raw: true, salt: true, marker: true });
-            expect(settings.seed).toBe(false);
+            expect(settings).not.toHaveProperty("seed");
           }
         }
       }
@@ -132,11 +119,12 @@ test("baseline schedules freeze actors and cannot enable counterfactual override
     { raw: false }, { salt: false }, { marker: false }, { seed: true },
     { feedbackProfile: "control" }, { hostContract: "diagnostic" }, { policy: "master" },
     { personaProfile: "owner-guard", personaRevision: null },
+    { kind: "diagnostic" }, { diagnostic: true }, { seed: false },
   ]) {
     expect(() => resolveExperiment({ ...baselineExperiments[0], ...overrides }, ""))
       .toThrow(/Baseline actors cannot be overridden/);
   }
-  expect(diagnosticExperiments.every(config => config.kind !== "baseline")).toBe(true);
+  expect(experiments.every(config => config.kind === "baseline")).toBe(true);
 });
 
 test("schedules reject impossible lifecycle events instead of silently changing the experiment", () => {

@@ -10,20 +10,19 @@ export async function assertPresentedEvidence(app, result) {
   }
   const hostEvidence = result.hostEvidence;
   const background = hostEvidence.avatarBackground;
-  const collision = result.hostMode === "extracted" && ["raw-unsalted", "host-collision"].includes(result.id);
   expect(background.baseline.resolved, "Baseline background is proven from CSS declarations").toBe(true);
   expect(background.current.resolved, "Fixture stays inside the bounded cascade probe").toBe(true);
-  expect(background.baseline.value).toBe("rgb(183, 228, 199)");
-  expect(background.current.value).toBe(collision ? "rgb(232, 163, 61)" : background.baseline.value);
-  expect(background.changed, "CSSOM cascade, not computed color, establishes the collision").toBe(collision);
-  expect(background.current.actor).toBe(collision ? "feedback" : "host");
+  expect(background.baseline.value, "The host probe follows an actual Fluent declaration").toBeTruthy();
+  expect(background.current.value).toBe(background.baseline.value);
+  expect(background.changed, "The candidate schedules do not establish a host collision").toBe(false);
+  expect(background.current.actor).toBe("host");
   expect(hostEvidence.foreignWrites)
     .toBe(result.events.filter(event => event.actor !== "host" && event.creator === "host" && event.inserted).length);
   const host = () => document.querySelector('[data-actor-status="host"]');
-  await expect.poll(() => host().classList.contains("missing")).toBe(collision);
+  await expect.poll(() => host().classList.contains("missing")).toBe(false);
   await expect.poll(() => host().classList.contains("bypass"))
-    .toBe(!collision && Boolean(hostEvidence.foreignWrites || hostEvidence.foreignRules.length || hostEvidence.sharedWith.length));
-  await expect.poll(() => host().querySelector("[data-host-background]").textContent).toMatch(collision ? /CHANGED/ : /unchanged/);
+    .toBe(Boolean(hostEvidence.foreignWrites || hostEvidence.foreignRules.length || hostEvidence.sharedWith.length));
+  await expect.poll(() => host().querySelector("[data-host-background]").textContent).toMatch(/unchanged/);
   await expect.poll(() => host().textContent).toContain(`${hostEvidence.foreignWrites} native foreign insertions into host-created sheets.`);
   const provider = document.querySelector('[data-fluent-owner="host"]');
   const hostMatches = hostEvidence.foreignRules.map(entry => {
@@ -36,10 +35,6 @@ export async function assertPresentedEvidence(app, result) {
   expect(hostMatches.every(rule => rule.present && rule.matches), "Host cross-matches reference actual native rules").toBeTruthy();
   expect(hostEvidence.foreignRules.every(rule => rule.actor === "feedback"),
     "Persona's real scope prevents its selectors from matching the host").toBeTruthy();
-  if (result.id === "host-collision-salted") {
-    expect(hostEvidence.foreignRules, "Raw salt prevents host selector overlap, not sheet writes").toHaveLength(0);
-    if (result.hostMode === "runtime") expect(hostEvidence.foreignWrites).toBeGreaterThan(0);
-  }
   for (const [actor, evidence] of Object.entries(result.actors)) {
     const selector = `section:has(> #${actor}-mount) .result`;
     const status = () => document.querySelector(selector);
@@ -59,7 +54,7 @@ export async function assertPresentedEvidence(app, result) {
         "a rule prefix cannot bypass it" : "blocked rules have no Feedback prefix");
       for (const creator of new Set(attempts.filter(event => event.blocked && event.creator !== actor)
         .map(event => event.creator))) {
-        const name = { host: "the host", unrelated: "the unrelated renderer" }[creator] || creator;
+        const name = { host: "the host" }[creator] || creator;
         expect(cause().textContent.toLowerCase()).toContain(`adopted from ${name}`.toLowerCase());
       }
     } else if (failed) {
@@ -106,21 +101,22 @@ export async function assertPresentedEvidence(app, result) {
     await expect.poll(() => trace().open).toBe(true);
     expect(trace().contains(status().querySelector(".actor-outcomes")),
       "Technical counters stay available without crowding the primary cause").toBe(true);
-    const widthRule = attempts.find(event => event.rule.includes("width:137px"));
-    await expect.poll(() => trace().querySelector("code").textContent).toBe(widthRule.rule);
-    await expect.poll(() => trace().textContent).toContain(`${widthRule.blocked ? "blocked" : "allowed"} (${widthRule.reason})`);
+    const componentRule = attempts.find(event => event.bucket === "d" &&
+      event.rule.includes("background-color:var(--colorBrandBackground)"));
+    await expect.poll(() => trace().querySelector("code").textContent).toBe(componentRule.rule);
+    await expect.poll(() => trace().textContent).toContain(`${componentRule.blocked ? "blocked" : "allowed"} (${componentRule.reason})`);
     await expect.poll(() => trace().textContent).not.toContain("Computed width:");
     await expect.poll(() => trace().textContent).not.toContain("VISIBLE WIDTH MISMATCH");
     await expect.poll(() => trace().textContent).toMatch(/Selected rule only:/);
-    await expect.poll(() => trace().textContent).toContain(`Native insertion: ${widthRule.blocked ? "not attempted" : "succeeded"}`);
-    await expect.poll(() => trace().textContent).toContain(`Recorded rule in destination CSSOM: ${widthRule.blocked ? "no" : "yes"}`);
-    await expect.poll(() => trace().querySelector("[data-matching-width-rules]").textContent)
-      .toBe(evidence.matchingWidthEvidence.map(entry => entry.cssText).join("\n") || "No matching 137px CSSOM rules.");
+    await expect.poll(() => trace().textContent).toContain(`Native insertion: ${componentRule.blocked ? "not attempted" : "succeeded"}`);
+    await expect.poll(() => trace().textContent).toContain(`Recorded rule in destination CSSOM: ${componentRule.blocked ? "no" : "yes"}`);
+    await expect.poll(() => trace().querySelector("[data-matching-component-rules]").textContent)
+      .toBe(evidence.matchingComponentRules.map(entry => entry.cssText).join("\n") || "No matching Fluent Button background rules.");
     const ledger = () => trace().querySelector("[data-rule-ledger]");
     await expect.poll(() => ledger().querySelector("summary").textContent).toBe(`All recorded insertion attempts (${attempts.length})`);
     await expect.poll(() => (ledger().querySelector("pre").textContent.match(/^#\d+ /gm) || []).length).toBe(attempts.length);
-    if (widthRule.blocked && evidence.matchingWidthEvidence.length) {
-      await expect.poll(() => trace().textContent).toContain("Other width rules match the action, but this actor's recorded rule was still blocked.");
+    if (componentRule.blocked && evidence.matchingComponentRules.length) {
+      await expect.poll(() => trace().textContent).toContain("Other rules match the Button, but this actor's recorded rule was still blocked.");
     }
     for (const event of attempts) {
       if (event.inserted) {

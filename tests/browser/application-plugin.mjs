@@ -47,7 +47,7 @@ export function applicationPlugin() {
         if (htmlRoute && !Object.hasOwn(scenarioAliases, url.searchParams.get("scenario"))) {
           response.writeHead(200, { "Content-Type": "text/html", "Cache-Control": "no-store" }).end(html);
         } else if (["/source", "/three-actors"].includes(url.pathname) || htmlRoute ||
-          /^\/(?:shared\/)?(?:app|host-extracted|host-runtime|persona|feedback-raw|feedback-standard)\.js$/.test(url.pathname) ||
+          /^\/(?:shared\/)?(?:app|host-extracted|host-runtime|persona|feedback-raw)\.js$/.test(url.pathname) ||
           /^\/(?:shared\/)?griffel\.css$/.test(url.pathname)) {
           serveReproRequest(request, response).catch(next);
         } else {

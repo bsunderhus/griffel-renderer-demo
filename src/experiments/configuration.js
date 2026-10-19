@@ -22,47 +22,24 @@ export function resolveHostSettings(search) {
 }
 
 export function resolveExperiment(config, search) {
-  if (!["selected", "master", "feedback-exception", "off"].includes(config.policy)) {
-    throw new Error(`Unknown host policy: ${config.policy}`);
-  }
   if (!Array.isArray(config.order) || !config.order.length || new Set(config.order).size !== config.order.length ||
       config.order.some(actor => !["persona", "feedback"].includes(actor))) {
     throw new Error(`Invalid integration order for ${config.id}`);
   }
-  const hostContract = config.hostContract || "diagnostic";
   const hostSettings = resolveHostSettings(search);
-  const policy = config.policy === "selected" ? hostSettings.hostPolicy : config.policy;
-  const personaRevision = config.personaRevision === "selected" ?
-    hostSettings.personaVersion : config.personaRevision ?? null;
-  const personaProfile = config.personaProfile || personaRevisions[personaRevision]?.profile || "marker-guard";
-  const feedbackProfile = config.feedbackProfile || "control";
-  if (!["diagnostic", "production-extraction"].includes(hostContract)) throw new Error(`Unknown host contract: ${hostContract}`);
-  if (!["historical", "marker-guard", "owner-guard"].includes(personaProfile)) {
-    throw new Error(`Unknown Persona renderer profile: ${personaProfile}`);
-  }
-  if (personaRevision != null &&
-      (!Object.hasOwn(personaRevisions, personaRevision) ||
-        personaRevisions[personaRevision].profile !== personaProfile)) {
-    throw new Error(`Unknown or incompatible Persona revision: ${personaRevision}`);
-  }
-  if (!["control", "inspected"].includes(feedbackProfile)) throw new Error(`Unknown Feedback renderer profile: ${feedbackProfile}`);
-  const schedule = config.schedule === undefined ? config.order.flatMap(actor => [
-    { action: "load", actor }, { action: "mount", actor },
-  ]) : config.schedule;
-  validateSchedule(schedule, config.order);
-  if (config.kind === "baseline" && (hostContract !== "production-extraction" ||
-      feedbackProfile !== "inspected" || config.personaRevision !== "selected" ||
-      config.personaProfile && config.personaProfile !== personaRevisions[personaRevision].profile ||
-      config.seed || config.policy !== "selected" ||
-      ["raw", "salt", "marker"].some(key => Object.hasOwn(config, key)))) {
+  const personaRevision = hostSettings.personaVersion;
+  const personaProfile = personaRevisions[personaRevision].profile;
+  if (config.kind !== "baseline" || config.hostContract !== "production-extraction" ||
+      config.feedbackProfile !== "inspected" || config.personaRevision !== "selected" ||
+      config.personaProfile && config.personaProfile !== personaProfile || config.policy !== "selected" ||
+      ["raw", "salt", "marker", "seed", "diagnostic"].some(key => Object.hasOwn(config, key))) {
     throw new Error(`Baseline actors cannot be overridden: ${config.id}`);
   }
+  validateSchedule(config.schedule, config.order);
   return {
-    ...hostSettings, id: config.id, kind: config.kind || "diagnostic", policy, order: config.order, schedule,
-    hostContract, personaProfile, personaRevision, feedbackProfile,
-    seed: Boolean(config.seed),
-    feedback: feedbackProfile === "inspected" ? inspectedFeedbackOptions :
-      { raw: Boolean(config.raw), salt: Boolean(config.salt), marker: Boolean(config.marker) },
+    ...hostSettings, id: config.id, kind: "baseline", policy: hostSettings.hostPolicy,
+    order: config.order, schedule: config.schedule, hostContract: "production-extraction",
+    personaProfile, personaRevision, feedbackProfile: "inspected", feedback: inspectedFeedbackOptions,
   };
 }
 

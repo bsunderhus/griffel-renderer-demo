@@ -1,5 +1,5 @@
 function insertionCause(actor, attempts, policy, sharedWith) {
-  const names = { host: "the host", persona: "Persona", feedback: "Feedback", unrelated: "the unrelated renderer" };
+  const names = { host: "the host", persona: "Persona", feedback: "Feedback" };
   const blocked = attempts.filter(event => event.blocked);
   const allowed = attempts.filter(event => !event.blocked);
   const failed = allowed.filter(event => !event.inserted);
@@ -70,13 +70,11 @@ export function analyzeEvidence(result) {
     const sharedWith = [...new Set(evidence.sheets.flatMap(sheet => sheet.sharedWith))];
     const missing = attempts.some(event => event.blocked || event.inserted && !event.equivalentPresent);
     const warning = failed || sharedWith.length || attempts.some(event => event.inserted && !event.present);
-    const widthRule = attempts.find(event => event.rule.includes("width:137px"));
-    if (!widthRule) throw new Error(`Missing recorded width insertion for ${actor}`);
     const componentRule = attempts.find(event => event.bucket === "d" &&
       event.rule.includes("background-color:var(--colorBrandBackground)"));
-    if (result.kind === "baseline" && !componentRule) throw new Error(`Missing Fluent Button rule for ${actor}`);
+    if (!componentRule) throw new Error(`Missing Fluent Button rule for ${actor}`);
     return [actor, {
-      attempts, blocked, failed, foreignSheets, foreignAllowed, presentRules, sharedWith, widthRule, componentRule,
+      attempts, blocked, failed, foreignSheets, foreignAllowed, presentRules, sharedWith, componentRule,
       cause: insertionCause(actor, attempts, result.policy, sharedWith),
       borrowedPermission: attempts.filter(event => !event.blocked &&
         event.reason === "enhanced sheet" && event.creator !== actor &&

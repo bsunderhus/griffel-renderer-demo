@@ -1,6 +1,5 @@
-export function renderEvidence(result, config, analysis) {
+export function renderEvidence(result, analysis) {
   const { hostMode, hostBuckets, policy, order, actors: actorEvidence, hostEvidence } = result;
-  const feedback = result.configuration.feedback;
   const openTraces = new Set(Array.from(document.querySelectorAll("[data-rule-trace][open], [data-host-rule-trace][open]"),
     element => element.dataset.ruleTrace || "host"));
   const openLedgers = new Set(Array.from(document.querySelectorAll("[data-rule-ledger][open]"),
@@ -45,8 +44,7 @@ export function renderEvidence(result, config, analysis) {
   }
   document.getElementById("host-mount").parentElement.appendChild(hostStatus);
   for (const [actor, evidence] of Object.entries(actorEvidence)) {
-    const actionLabel = { persona: "View profile", feedback: "Clear status" }[actor];
-    const { attempts, blocked, failed, foreignSheets, foreignAllowed, presentRules, sharedWith, widthRule, componentRule, cause, tone, borrowedPermission } = analysis.actors[actor];
+    const { attempts, blocked, failed, foreignSheets, foreignAllowed, presentRules, sharedWith, componentRule, cause, tone, borrowedPermission } = analysis.actors[actor];
     const status = document.createElement("div");
     status.dataset.actorStatus = actor;
     status.className = `result ${tone}`;
@@ -78,48 +76,38 @@ export function renderEvidence(result, config, analysis) {
       "No shared destination handles recorded.");
     addOutcome("Permission", `${borrowedPermission} attempts rely on another actor's enhanced-specificity attribute.`);
     if (result.simulation) addOutcome("Profile", result.simulation[actor]);
-    const componentTrace = document.createElement("p");
-    if (componentRule) {
-      componentTrace.dataset.fluentRule = actor;
-      componentTrace.textContent = `Fluent primary Button background rule (not a custom probe): ` +
-        `${componentRule.blocked ? "blocked" : "allowed"}; native CSSOM=${componentRule.present ? "present" : "absent"}; ` +
-        `destination=${componentRule.destination}; creator=${componentRule.creator}. `;
-      const componentCSS = document.createElement("code");
-      componentCSS.textContent = componentRule.rule;
-      componentTrace.append(componentCSS);
-    }
     const trace = document.createElement("details");
     trace.dataset.ruleTrace = actor;
     const traceLabel = document.createElement("summary");
     traceLabel.textContent = "Generated CSS and rule evidence";
     const explanation = document.createElement("p");
-    const widthInCSSOM = widthRule.present;
-    const matchingWidth = evidence.matchingWidthEvidence.length > 0;
-    explanation.textContent = `Selected rule only: supplemental 137px witness on ${actionLabel}, identical in every workload. ` +
-      `${actor} generated width:137px -> ${widthRule.destination}, bucket ${widthRule.bucket}/${widthRule.priority}, ` +
-      `created by ${widthRule.creator} -> enhanced-specificity attribute ${widthRule.enhanced ? "truthy" : "absent or empty"}, ` +
-      `feedback prefix ${widthRule.feedbackPrefix ? "present" : "absent"} -> ` +
-      `${widthRule.blocked ? "blocked" : "allowed"} (${widthRule.reason}). ` +
-      `Native insertion: ${widthRule.inserted ? "succeeded" : widthRule.blocked ? "not attempted" : `failed (${widthRule.error})`}. ` +
-      `Recorded rule in destination CSSOM: ${widthInCSSOM ? "yes" : "no"}. ` +
-      `Equivalent serialized rule in destination CSSOM: ${widthRule.equivalentPresent ? "yes" : "no"}. ` +
-      `Renderer cache contains rule: ${evidence.cache.includes(widthRule.rule) ? "yes" : "no"}. ` +
-      `Matching 137px CSSOM rules: ${evidence.matchingWidthEvidence.length}. ` +
-      (widthRule.blocked && matchingWidth ?
-        "Other width rules match the action, but this actor's recorded rule was still blocked." :
-        widthInCSSOM ? "The generated width rule is present in destination CSSOM." :
-        widthRule.equivalentPresent ? "The original native rule is gone, but equivalent CSS remains in its destination." :
-        "The generated width rule is absent from destination CSSOM.");
+    explanation.dataset.fluentRule = actor;
+    explanation.textContent = `Selected rule only: actual Fluent primary Button background. ` +
+      `${actor} -> ${componentRule.destination}, bucket ${componentRule.bucket}/${componentRule.priority}, ` +
+      `created by ${componentRule.creator} -> enhanced-specificity attribute ${componentRule.enhanced ? "truthy" : "absent or empty"}, ` +
+      `feedback prefix ${componentRule.feedbackPrefix ? "present" : "absent"} -> ` +
+      `${componentRule.blocked ? "blocked" : "allowed"} (${componentRule.reason}). ` +
+      `Native insertion: ${componentRule.inserted ? "succeeded" : componentRule.blocked ? "not attempted" : `failed (${componentRule.error})`}. ` +
+      `Recorded rule in destination CSSOM: ${componentRule.present ? "yes" : "no"}. ` +
+      `Equivalent serialized rule in destination CSSOM: ${componentRule.equivalentPresent ? "yes" : "no"}. ` +
+      `Renderer cache contains rule: ${evidence.cache.includes(componentRule.rule) ? "yes" : "no"}. ` +
+      `Matching Fluent Button background rules: ${evidence.matchingComponentRules.length}. ` +
+      (componentRule.blocked && evidence.matchingComponentRules.length ?
+        "Other rules match the Button, but this actor's recorded rule was still blocked." :
+        componentRule.present ? "The generated Fluent rule is present in destination CSSOM." :
+        componentRule.equivalentPresent ? "The original native rule is gone, but equivalent CSS remains in its destination." :
+        "The generated Fluent rule is absent from destination CSSOM.");
     const rule = document.createElement("code");
-    rule.textContent = widthRule.rule;
+    rule.textContent = componentRule.rule;
+    explanation.append(rule);
     const counts = document.createElement("p");
     counts.textContent = `${attempts.length - blocked} rules allowed; ${attempts.filter(event => event.inserted).length} native insertions succeeded; ${foreignSheets.length} foreign sheets; ` +
       `${foreignAllowed} insertions allowed into foreign sheets.`;
     const matchingRules = document.createElement("pre");
-    matchingRules.dataset.matchingWidthRules = actor;
-    matchingRules.textContent = evidence.matchingWidthEvidence.map(entry => entry.cssText).join("\n") || "No matching 137px CSSOM rules.";
+    matchingRules.dataset.matchingComponentRules = actor;
+    matchingRules.textContent = evidence.matchingComponentRules.map(entry => entry.cssText).join("\n") || "No matching Fluent Button background rules.";
     const matchingSources = document.createElement("p");
-    matchingSources.textContent = `Matching width rule writers: ${[...new Set(evidence.matchingWidthEvidence
+    matchingSources.textContent = `Matching Fluent rule writers: ${[...new Set(evidence.matchingComponentRules
       .map(entry => entry.actor))].join(", ") || "none"}. Matching is not proof of the selected insertion.`;
     const ledger = document.createElement("details");
     ledger.dataset.ruleLedger = actor;
@@ -135,19 +123,16 @@ export function renderEvidence(result, config, analysis) {
       `cached=${evidence.cache.includes(event.rule)}\n${event.rule}`).join("\n\n");
     ledger.append(ledgerLabel, ledgerRules);
     trace.open = openTraces.has(actor);
-    trace.append(traceLabel, outcomes, counts, explanation, rule, matchingSources, matchingRules, ledger);
-    if (componentRule) trace.append(componentTrace);
+    trace.append(traceLabel, outcomes, counts, explanation, matchingSources, matchingRules, ledger);
     status.append(trace);
     document.getElementById(`${actor}-mount`).parentElement.appendChild(status);
   }
   const output = document.getElementById("actor-evidence");
   const description = document.createElement("p");
   description.className = "note";
-  description.textContent = `Policy: ${policy}. Order: host -> ${config.seed ? "unrelated d0 -> " : ""}${order.join(" -> ")}. ` +
-    `Feedback: ${feedback.raw ? "raw" : "precompiled"} Fluent, salt ${feedback.salt ? "on" : "off"}, rule prefix ${feedback.marker ? "on" : "off"}. ` +
-    (feedback.raw && feedback.salt && feedback.marker ?
-      "Synthetic form profile: raw styles, salted classes, and prefixed rules." :
-      "Configuration control: varies the synthetic form profile.");
+  description.textContent = `Policy: ${policy}. Order: host -> ${order.join(" -> ")}. ` +
+    "Feedback: raw Fluent, fixed salt and rule prefix. " +
+    "Fixed candidate profile: raw styles, salted classes, prefixed rules, and a module-level renderer.";
   const schedule = document.createElement("pre");
   schedule.dataset.executionSchedule = "";
   schedule.textContent = `Workload: ${result.configuration.workload}\nHost ready\n` +

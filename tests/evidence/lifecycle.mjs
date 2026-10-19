@@ -6,11 +6,12 @@ export async function assertEvidenceLifecycle(app, url) {
   const window = applicationWindow(app);
   const document = window.document;
   const result = window.threeActorResult;
-  const event = result.events.find(event => event.rule.includes("width:137px"));
+  const event = result.events.find(event => event.actor === "persona" && event.bucket === "d" &&
+    event.rule.includes("background-color:var(--colorBrandBackground)"));
   const destination = result.actors.persona.sheets.find(sheet => sheet.id === event.destination);
   const sheet = document.styleSheets[destination.documentIndex];
   const index = Array.from(sheet.cssRules).findIndex(rule => rule.cssText === event.cssText);
-  expect(index, "Width rule exists before CSSOM removal").toBeGreaterThanOrEqual(0);
+  expect(index, "Actual Fluent rule exists before CSSOM removal").toBeGreaterThanOrEqual(0);
   sheet.insertRule(event.rule, sheet.cssRules.length);
   sheet.deleteRule(index);
   await refreshEvidence(window);
@@ -59,7 +60,7 @@ export async function assertEvidenceLifecycle(app, url) {
     .toContain("rule removal, not blocked insertion");
   expect(document.querySelector("[data-rule-trace]").textContent)
     .toContain("Equivalent serialized rule in destination CSSOM: no");
-  document.querySelector('[data-fluent-owner="host"] [data-avatar-override]').style.backgroundColor = "inherit";
+  document.querySelector("[data-host-avatar]").style.backgroundColor = "inherit";
   await refreshEvidence(window);
   expect(document.querySelector("[data-host-background]").textContent).toMatch(/unresolved/);
   expect(document.querySelector('[data-actor-status="host"]').classList.contains("bypass"),

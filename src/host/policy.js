@@ -5,7 +5,7 @@ const installations = new WeakMap();
 // Instrumentation is separate from the policy decision.
 export function installHostPolicy(doc, mode, onAttempt) {
   if (!doc.defaultView) throw new Error("Host policy needs a window-backed document");
-  if (!["master", "feedback-exception", "off"].includes(mode)) throw new Error(`Unknown host policy: ${mode}`);
+  if (!["master", "feedback-exception"].includes(mode)) throw new Error(`Unknown host policy: ${mode}`);
   const installed = installations.get(doc);
   if (installed) {
     if (onAttempt) installed.subscribe(onAttempt);
@@ -19,9 +19,9 @@ export function installHostPolicy(doc, mode, onAttempt) {
     const node = this.ownerNode;
     const dataset = node?.nodeName === "STYLE" ? node.dataset : undefined;
     const shouldPrevent = Boolean(dataset?.makeStylesBucket) && !dataset.demoAllowRules;
-    const blocked = mode !== "off" && shouldPrevent &&
+    const blocked = shouldPrevent &&
       !(mode === "feedback-exception" && rule.startsWith(FEEDBACK_PREFIX));
-    const reason = blocked ? "blocked" : mode === "off" ? "filter disabled" :
+    const reason = blocked ? "blocked" :
       !dataset?.makeStylesBucket ? "not a Griffel bucket" : dataset.demoAllowRules ?
         "enhanced sheet" : "feedback rule prefix";
     if (blocked) {

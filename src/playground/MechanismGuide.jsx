@@ -40,8 +40,7 @@ export function ParticipantResponsibilities() {
             rule, not its destination sheet. Neither prevents adoption: Feedback still shares
             the page and may reuse another renderer's sheets.</p>
           <p>The sheet-only host does not recognize that comment. The proposed host exception
-            does, but only for Feedback's own prefixed rules. Salt cannot rename precompiled
-            component classes.</p>
+            does, but only for Feedback's own prefixed rules.</p>
         </article>
       </div>;
 }
@@ -83,13 +82,10 @@ export function MechanismGuide({ hostMode, personaVersion, expanded = false }) {
         <ul aria-label="Renderer counts">
           <li><strong>Persona alone:</strong> host + Persona = two active participant renderers.</li>
           <li><strong>Persona and Feedback:</strong> host + Persona + Feedback = three.</li>
-          <li><strong>Seed without the enhanced-specificity attribute first:</strong> host + unrelated seed + Persona = three;
-            Feedback is not mounted in that scenario.</li>
         </ul>
         <p>These counts include the extracted host's no-op renderer. Wrapping Persona's base
           renderer to rewrite rules is not an additional independent Griffel renderer.
-          More mounted providers can create more Persona renderers; the unmerged owner-guard
-          control deliberately has a different owner/document cache lifetime.</p>
+          More mounted providers can create more Persona renderers.</p>
         <h3>2. Follow one generated rule</h3>
         <ol className="mechanism-flow" aria-label="Style rule journey">
           <li><strong>Generate CSS</strong><span>Component styles produce class names and rules; Persona scopes its rules, while Feedback salts names and prefixes rules.</span></li>
@@ -109,10 +105,7 @@ export function MechanismGuide({ hostMode, personaVersion, expanded = false }) {
           The browser gives neither name special behavior. <strong>The attribute does not
           increase CSS specificity.</strong> Persona's extra parent selector does that; the
           attribute becomes an insertion-permission signal only because the host reads it.</p>
-        <pre aria-label="Scoped rule and sheet with the enhanced-specificity attribute example">{`Scoped selector (illustrative):
-  .demo-contact-scope .example { width: 137px; }
-
-New Persona bucket (local enhanced-specificity attribute name):
+        <pre aria-label="Sheet with the enhanced-specificity attribute example">{`New Persona bucket (local enhanced-specificity attribute name):
   <style data-make-styles-bucket="d"
          data-demo-allow-rules="true">...</style>
 
@@ -165,7 +158,6 @@ Existing Feedback bucket:
             <thead><tr><th scope="col">Existing scenario</th><th scope="col">Host filter</th><th scope="col">Feedback rule</th><th scope="col">Persona 1.20260927.13.2 rule</th><th scope="col">Persona main-snapshot rule</th></tr></thead>
             <tbody>
               <tr><th scope="row"><a href={scenarioLink("persona-alone", "master")}>Persona alone</a></th><td>Sheet-only</td><td>Not mounted</td><td>Inserts into sheet with the enhanced-specificity attribute</td><td>Inserts into sheet with the enhanced-specificity attribute</td></tr>
-              <tr><th scope="row"><a href={scenarioLink("unmarked-d-first")}>Seed without the enhanced-specificity attribute first (extra-actor diagnostic)</a></th><td>Sheet-only</td><td>Not mounted</td><td>Rejected in adopted sheet</td><td>Inserts into destination with the enhanced-specificity attribute</td></tr>
               <tr><th scope="row"><a href={scenarioLink("master-rejects-marker")}>Feedback first</a></th><td>Sheet-only (inspected host main)</td><td>Rejected</td><td>Rejected in adopted sheet</td><td>Inserts into destination with the enhanced-specificity attribute</td></tr>
               <tr><th scope="row"><a href={scenarioLink("raw-marked-first", "feedback-exception")}>Feedback first</a></th><td>Prefix exception (unmerged)</td><td>Inserts by prefix</td><td>Rejected in adopted sheet</td><td>Inserts into destination with the enhanced-specificity attribute</td></tr>
               <tr><th scope="row"><a href={scenarioLink("persona-first-raw", "master")}>Persona first</a></th><td>Sheet-only</td><td>Shared buckets allowed; new buckets rejected</td><td>Inserts</td><td>Inserts</td></tr>
@@ -174,13 +166,11 @@ Existing Feedback bucket:
           </table>
         </div>
         <p>This table follows a real Fluent primary Button background rule, not every rule a component needs.
-          The shared 137px action width is a supplemental witness, not a product declaration.
           An allowed call can still fail native parsing; parser errors are not host-policy
-          rejections. The unrelated seed's own rejection also stays separate from Persona's outcome.</p>
+          rejections.</p>
         <p className="note">Runtime-host comparison: the primary production/extraction gate
           disables filtering, and both Persona revisions insert the tracked rules across baseline schedules.
-          Adoption alone is not the missing-rule failure. Only explicitly labeled diagnostic
-          controls force filtering on a runtime host.</p>
+          Adoption alone is not the missing-rule failure.</p>
         <h3>5. Why can classes and cache survive a rejected rule?</h3>
         <pre aria-label="Rejected rule cache sequence">{`Griffel records rule in insertion cache
   -> calls the sheet's insertRule
@@ -191,18 +181,17 @@ Existing Feedback bucket:
           valid native insertion index: the return value alone cannot prove a rule exists.
           This explains how assigned atomic classes and a populated cache can coexist with
           missing scoped definitions. Compare the
-          {" "}<a href={versionLink("unmarked-d-first", "1.20260927.13.2")}>pinned release</a>
-          {" "}and <a href={versionLink("unmarked-d-first", "main-2026-10-16")}>main snapshot</a>
-          {" "}using the same seed, host build and coverage.</p>
+          {" "}<a href={versionLink("raw-marked-first", "1.20260927.13.2")}>pinned release</a>
+          {" "}and <a href={versionLink("raw-marked-first", "main-2026-10-16")}>main snapshot</a>
+          {" "}using the same Feedback actor, host build and coverage.</p>
         <h3>6. Separate missing rules, sharing and host damage</h3>
         <ul>
           <li><strong>Missing rule:</strong> this actor's generated rule never reached its
             destination CSSOM. Another actor's matching rule can mask that loss.</li>
           <li><strong>Shared storage:</strong> different renderers retain the same sheet.
             This does not by itself change a declaration or prove borrowed permission.</li>
-          <li><strong>Collision:</strong> a foreign selector matches host elements and changes
-            a winning declaration. The orange-avatar control deliberately constructs such a
-            reset collision; it is not required for the missing-Persona-rule mechanism.</li>
+          <li><strong>Host effect:</strong> foreign writes and matching selectors are recorded
+            separately from the host's background declaration. These schedules do not establish a host collision.</li>
         </ul>
         <p>Read <strong>Insertion</strong> for host/native decisions, <strong>Rules</strong> for
           destination CSSOM presence, <strong>Ownership</strong> and <strong>Sharing</strong>
@@ -217,11 +206,11 @@ Existing Feedback bucket:
               <thead><tr><th scope="col">Technique</th><th scope="col">What it establishes</th><th scope="col">Required assumption / live evidence</th></tr></thead>
               <tbody>
                 <tr><th scope="row">Container selectors</th><td>Limit matches and add selector specificity.</td>
-                  <td>Elements must remain inside the scope, and insertion must be allowed. <a href={versionLink("unmarked-d-first", "1.20260927.13.2")}>Scoped but rejected</a> is still missing CSS.</td></tr>
+                  <td>Elements must remain inside the scope, and insertion must be allowed. <a href={versionLink("raw-marked-first", "1.20260927.13.2")}>Scoped but rejected</a> is still missing CSS.</td></tr>
                 <tr><th scope="row">Enhanced-specificity attribute</th><td>Permits a destination under the host patch.</td>
                   <td>It does not identify its writer. <a href={sitePath("?hostPolicy=master#persona-first-raw")}>Unchanged Feedback, Persona first</a> demonstrates borrowed permission without removing the prefix.</td></tr>
                 <tr><th scope="row">Class salt</th><td>Changes runtime-generated names.</td>
-                  <td><a href={scenarioLink("precompiled-salted")}>Precompiled classes</a> stay fixed. <a href={scenarioLink("host-collision-salted")}>Salted collision control</a> checks matching independently.</td></tr>
+                  <td>Feedback always keeps its inspected salt. <a href={scenarioLink("persona-first-raw")}>Persona first</a> still demonstrates shared sheets; there is no salt-off comparison.</td></tr>
                 <tr><th scope="row">Rule prefix</th><td>Identifies a rule to a compatible host filter.</td>
                   <td>Compare <a href={scenarioLink("raw-marked-first", "feedback-exception")}>the proposed exception</a> with <a href={scenarioLink("master-rejects-marker")}>sheet-only rejection</a>.</td></tr>
               </tbody>
@@ -229,24 +218,19 @@ Existing Feedback bucket:
             <p><strong>None prevents sheet adoption.</strong> The
               {" "}<a href={versionLink("raw-marked-first", "main-2026-10-16")}>main enhanced-specificity attribute guard</a>
               {" "}restricts the handles Persona uses, but accepts another owner's sheet with the enhanced-specificity attribute.
-              The unmerged <a href={scenarioLink("owner-guard")}>owner guard</a> adds owner filtering and a
-              different renderer/cache lifetime, not a proven deployment or complete isolation.</p>
+              This lab does not implement a conjectural ownership fix.</p>
             <table>
               <caption>Best paired reproductions: change one mechanism at a time</caption>
               <thead><tr><th scope="col">Compare</th><th scope="col">Isolated question</th><th scope="col">Read the evidence</th></tr></thead>
               <tbody>
-                <tr><td><a href={scenarioLink("persona-alone")}>Persona alone</a> / <a href={scenarioLink("unmarked-d-first")}>seed first</a></td>
-                  <td>What does a destination without the enhanced-specificity attribute change?</td><td>The release loses atomic rules; main rejects the incompatible handle. Read the seed's outcome separately.</td></tr>
-                <tr><td><a href={versionLink("unmarked-d-first", "1.20260927.13.2")}>Pinned release</a> / <a href={versionLink("unmarked-d-first", "main-2026-10-16")}>main snapshot</a></td>
+                <tr><td><a href={scenarioLink("persona-alone")}>Persona alone</a> / <a href={scenarioLink("raw-marked-first")}>Feedback first</a></td>
+                  <td>What does Feedback's existing destination change?</td><td>The release loses scoped rules after Feedback; main rejects the incompatible handle.</td></tr>
+                <tr><td><a href={versionLink("raw-marked-first", "1.20260927.13.2")}>Pinned release</a> / <a href={versionLink("raw-marked-first", "main-2026-10-16")}>main snapshot</a></td>
                   <td>What does the guard change?</td><td>Same scoped rule and host gate; only Persona's selected revision changes.</td></tr>
                 <tr><td><a href={scenarioLink("raw-marked-first", "master")}>Feedback first</a>, compare extracted and runtime host builds</td>
                   <td>Is adoption sufficient to lose rules?</td><td>The production gate disables filtering without extraction. Adoption alone does not reject insertion; host build also changes.</td></tr>
                 <tr><td><a href={scenarioLink("raw-marked-first")}>Feedback first</a> / <a href={scenarioLink("persona-first-raw")}>Persona first</a></td>
-                  <td>What changes with arrival order?</td><td>The release loses its width rule only in the first order. Main inserts in both; reverse order can share sheets with the enhanced-specificity attribute in either revision.</td></tr>
-                <tr><td><a href={versionLink("raw-marked-first", "main-2026-10-16")}>Main snapshot</a> / <a href={scenarioLink("owner-guard")}>owner proposal</a></td>
-                  <td>What does owner filtering add?</td><td>The enhanced-specificity attribute does not establish owner identity; lifecycle probes also distinguish cache reuse.</td></tr>
-                <tr><td><a href={scenarioLink("host-collision")}>Unsalted</a> / <a href={scenarioLink("host-collision-salted")}>salted</a></td>
-                  <td>Can a foreign selector alter the host?</td><td>Compare selector matches and the host declaration trace, not just sheet membership.</td></tr>
+                  <td>What changes with arrival order?</td><td>The release loses its Fluent rule only in the first order. Main inserts in both; reverse order can share sheets with the enhanced-specificity attribute in either revision.</td></tr>
               </tbody>
             </table>
           </div>
@@ -259,8 +243,8 @@ Existing Feedback bucket:
         salt and prefix remain fictional. No full proprietary provider or SDK runs here.
         The inspected consumer pins Persona 1.20260927.13.2 with version locking enabled in
         checked-in defaults. Effective runtime overrides and deployed assets remain unverified.</p>
-      <p>The main snapshot has no verified released version here; the owner guard and host
-        prefix exception are unmerged proposals. Full-product renderer counts, embedded SDK
+      <p>The main snapshot has no verified released version here; the inspected host
+        prefix exception is an unmerged proposal. Full-product renderer counts, embedded SDK
         Griffel versions, portals, CSP/query sorting and theme/font customization are outside
         this model. Recorded attempts are not an exhaustive inventory of required styles,
         and an unchanged host probe is not a whole-host correctness guarantee.</p>

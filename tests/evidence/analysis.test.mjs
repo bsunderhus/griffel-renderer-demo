@@ -5,7 +5,7 @@ function result(overrides = {}) {
   return {
     policy: "master",
     events: [{
-      actor: "persona", bucket: "d", creator: "persona", rule: ".probe{width:137px}",
+      actor: "persona", bucket: "d", creator: "persona", rule: ".button{background-color:var(--colorBrandBackground)}",
       blocked: false, inserted: true, present: true, equivalentPresent: true, reason: "enhanced sheet", enhanced: true,
       ...overrides,
     }],

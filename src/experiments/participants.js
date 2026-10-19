@@ -13,17 +13,12 @@ export const integrations = {
     script: () => "/persona.js",
     mount: (container, settings) => window.personaActor.mount(container, { profile: settings.personaProfile }),
   },
-  feedback: {
-    script: options => options.raw ? "/feedback-raw.js" : "/feedback-standard.js",
-    mount: (container, settings) => window.feedbackActor.mount(container, {
-      ...settings.feedback, profile: settings.feedbackProfile, diagnostic: settings.feedbackProfile === "control",
-    }),
-  },
+  feedback: { script: () => "/feedback-raw.js", mount: container => window.feedbackActor.mount(container) },
 };
 
-export async function loadIntegration(name, settings) {
+export async function loadIntegration(name) {
   const participant = integrations[name];
-  const script = participant.script(settings.feedback);
+  const script = participant.script();
   await loadScript(script);
   return script;
 }

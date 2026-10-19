@@ -48,8 +48,7 @@ export function Documentation() {
       <h2>Look closer: evidence and limits</h2>
       <p>These are synthetic, local examples, not a complete product or incident replay.
         Follow actual Fluent rules into native CSSOM rather than judging appearance.
-        A common 137px witness is supplemental instrumentation, not evidence of a product declaration:
-        rejected rules can remain cached, and another matching rule can mask their absence.
+        Rejected rules can remain cached, and another matching rule can mask their absence.
         The reference below connects each distinction to live scenarios.</p>
       <MechanismGuide
         hostMode={settings.hostMode}

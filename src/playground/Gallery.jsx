@@ -9,8 +9,6 @@ import { sitePath } from "../site.js";
 export function ThreeActorGallery() {
   const settings = resolveHostSettings(location.search);
   const threeActorCases = getThreeActorCases(settings.personaVersion);
-  const primary = threeActorCases.filter(config => config.primaryExample);
-  const controls = threeActorCases.filter(config => !config.primaryExample);
   const cards = configs => configs.map((config, index) =>
     <ScenarioCard key={config.id} config={config} index={index} {...settings} />);
   function navigate(changes) {
@@ -32,7 +30,7 @@ export function ThreeActorGallery() {
       compares the pinned release with a guarded upstream main snapshot. The prefix-aware host
       filter is an unmerged proposal, not inspected host main. These are sanitized mechanisms,
       not a full SDK or proof of an incident-time deployment.</p>
-    <HostSettings {...settings} contract="production-extraction" navigate={navigate} />
+    <HostSettings {...settings} navigate={navigate} />
     <section aria-label="Primary integration examples">
       <h2 className="section-title">Baseline: fixed actors, different schedules</h2>
       <p>Use <strong>Persona version</strong> in Advanced host control to switch the same
@@ -42,17 +40,9 @@ export function ThreeActorGallery() {
         no scenario changes the actors to manufacture a timing failure.</p>
       {settings.hostMode === "runtime" && <p className="note">
         Extraction is disabled: primary scenarios use a DOM host renderer with no insertion filter.
-        Adoption alone does not reject rules. Explanatory controls retain their explicitly forced diagnostic policies.
+        Adoption alone does not reject rules.
       </p>}
-      {cards(primary)}
+      {cards(threeActorCases)}
     </section>
-    <details className="explanatory-controls" open={controls.some(config => location.hash === `#${config.id}`)}>
-      <summary>Counterfactual diagnostics and proposals ({controls.length}) — not baseline schedules</summary>
-      <p>The owner guard is an unmerged proposal.
-        Other controls use alternative Feedback settings, an unrelated seed renderer,
-        forced diagnostic policies or a constructed shared reset. They answer separate mechanism
-        questions and are not loading scenarios of the fixed baseline actors.</p>
-      {cards(controls)}
-    </details>
   </main>;
 }

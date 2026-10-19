@@ -5,36 +5,27 @@ import { sitePath } from "../site.js";
 
 export function ScenarioCard({ config, index, hostMode, coverage, personaVersion, hostPolicy }) {
   const url = sitePath(`?scenario=${config.id}&host=${hostMode}&coverage=${coverage}&personaVersion=${personaVersion}&hostPolicy=${hostPolicy}`);
-  const sourceAligned = config.hostContract === "production-extraction";
   const policy = config.policy === "selected" ? hostPolicy : config.policy;
-  const revision = personaRevisions[config.personaRevision === "selected" ? personaVersion : config.personaRevision];
-  const loadOrder = ["Host ready", ...(config.seed ? ["Unrelated style sheet"] : []),
+  const revision = personaRevisions[personaVersion];
+  const loadOrder = ["Host ready",
     ...config.schedule.map(({ action, actor }) => `${action} ${actor === "persona" ? "Persona" : "Feedback"}`)];
   return <section className="card walkthrough" id={config.id}
-    data-scenario-contract={config.kind === "baseline" ? "source-aligned" : "diagnostic"}
-    data-scenario-kind={config.kind === "baseline" ? revision.kind : config.kind}>
-    <h2>{config.primaryExample ? index + 1 : `Control ${index + 1}`}. {config.title}</h2>
-    <p className="note">{sourceAligned ?
+    data-scenario-contract="source-aligned" data-scenario-kind={revision.kind}>
+    <h2>{index + 1}. {config.title}</h2>
+    <p className="note">
       <>{revision?.kind === "release" ? "Pinned release renderer; deployment unverified." :
-        revision?.kind === "main" ? "Upstream main snapshot; consumer adoption unverified." :
-          `Explanatory ${config.controlKind} control.`}
-        {" "}Persona: <strong>{revision?.label || config.personaProfile}</strong>.
+        "Upstream main snapshot; consumer adoption unverified."}
+        {" "}Persona: <strong>{revision.label}</strong>.
         {" "}Feedback: <strong>{config.order.includes("feedback") ? "inspected profile" : "not mounted"}</strong>.
         {" "}Host: {policy === "master" ? "sheet-only (inspected host main)" : "sheet + Feedback prefix (unmerged host proposal)"} filter,
-        {hostMode === "extracted" ? " enabled by production/extraction." : " disabled without extraction."}</> :
-      <>Explanatory control. Host filtering is a diagnostic override
-        ({config.policy === "off" ? "off" : config.policy === "master" ? "sheet-only" : "sheet + Feedback prefix"}),
-        independent of the production/extraction gate. Persona uses the historical unguarded renderer;
-        Feedback settings are experimental. This is not a current-main scenario.</>}
+        {hostMode === "extracted" ? " enabled by production/extraction." : " disabled without extraction."}</>
     </p>
-    {config.kind !== "baseline" && <p className="note">Not a baseline schedule: this diagnostic changes
-      actor configuration, adds an actor, or evaluates a separate proposal.</p>}
     <ol className="load-order" aria-label="Execution schedule">
       {loadOrder.map((step, stepIndex) => <li key={stepIndex}>{step}</li>)}
     </ol>
     <p className="scenario-takeaway"><strong>What this demonstrates: </strong>{config.takeaway}
       {hostMode === "runtime" && <> This is the extracted-host takeaway; runtime mode changes
-        the available sheets{sourceAligned ? " and disables host filtering" : " while retaining this diagnostic policy"}.</>}
+        the available sheets and disables host filtering.</>}
     </p>
     <iframe className="walkthrough-frame" title={config.title}
       src={`${url}&view=walkthrough`} />

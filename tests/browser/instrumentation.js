@@ -15,12 +15,10 @@ function testMeasureAppearance(owner) {
       classes: Array.from(element.classList),
     };
   };
-  const probe = document.querySelector(`[data-actor-probe="${owner}"]`);
   return {
     icon: read("[data-fluent-icon]"), primary: read("[data-fluent-primary]"),
     avatar: read("[data-fluent-avatar]"),
-    avatarOverride: provider.querySelector("[data-avatar-override]") ? read("[data-avatar-override]") : null,
-    probeWidth: probe ? getComputedStyle(probe).width : null,
+    hostAvatar: read("[data-host-avatar]"),
     scoped: provider.classList.contains("demo-contact-scope"),
   };
 }
