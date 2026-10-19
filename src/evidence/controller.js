@@ -8,9 +8,6 @@ export function createEvidenceController(context, config) {
   function refresh() {
     refreshEvidence(context);
     const analysis = analyzeEvidence(context.result);
-    for (const [actor, evidence] of Object.entries(context.result.actors)) {
-      evidence.borrowedPermission = analysis.actors[actor].borrowedPermission;
-    }
     renderEvidence(context.result, config, analysis);
   }
   function schedule() {

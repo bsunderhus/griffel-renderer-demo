@@ -1,8 +1,6 @@
-import { feedbackProfile } from "../feedback/profile.js";
 import { createObservation } from "../evidence/observation.js";
 import { captureHostBaseline } from "../evidence/snapshot.js";
 import { createEvidenceController } from "../evidence/controller.js";
-import { measure } from "../evidence/legacy-diagnostics.js";
 import { resolveExperiment } from "./configuration.js";
 import { prepareExperiment } from "./layout.js";
 import { integrations, loadIntegration, mountHost, mountIntegration } from "./participants.js";
@@ -15,7 +13,6 @@ export async function runThreeActorCase(config) {
   const observation = createObservation(document, host.stylesheet);
   const baseline = captureHostBaseline(document, observation);
   const hostBuckets = document.querySelectorAll("[data-make-styles-bucket]").length;
-  const stages = [{ phase: "host", host: measure("host"), persona: null, feedback: null }];
   const actors = {};
   const execution = [];
   const previousRenderers = new Map();
@@ -56,11 +53,10 @@ export async function runThreeActorCase(config) {
         execution.push({ action, actor, mountIndex, renderer: rendererIds.get(mounted.renderer),
           reusesPreviousRenderer: previous ? previous === mounted.renderer : null });
         previousRenderers.set(actor, mounted.renderer);
-        stages.push({ phase: actor, host: measure("host"), persona: measure("persona"), feedback: measure("feedback") });
       }
     }
     const actorEvidence = Object.fromEntries(Object.entries(actors).map(([actor, { renderer }]) => [
-      actor, { measured: measure(actor), rendererSalt: renderer.classNameHashSalt || null },
+      actor, { rendererSalt: renderer.classNameHashSalt || null },
     ]));
     const result = {
       id: settings.id, hostMode: settings.hostMode, coverage: settings.coverage, policy: settings.policy, order: settings.order,
@@ -73,18 +69,8 @@ export async function runThreeActorCase(config) {
           ...settings.feedback },
         workload: settings.kind === "baseline" ? "canonical" : "explicit diagnostic/proposal",
       },
-      feedbackConfig: {
-        ...settings.feedback,
-        usesDemoProfile: settings.feedback.raw && settings.feedback.salt && settings.feedback.marker,
-        demoProfile: feedbackProfile,
-      },
-      hostRuntimeCalls: host.runtimeCalls(), hostBuckets, stages, actors: actorEvidence, events: observation.events,
+      hostRuntimeCalls: host.runtimeCalls(), hostBuckets, actors: actorEvidence, events: observation.events,
       staticCSS: host.stylesheet ? Array.from(host.stylesheet.sheet.cssRules, rule => rule.cssText) : [],
-      sharedFeedbackClasses: actorEvidence.feedback ? stages[0].host.avatar.classes.filter(name =>
-        !name.startsWith("fui-") && actorEvidence.feedback.measured.avatar.classes.includes(name)) : [],
-      sheetOrder: Array.from(document.head.querySelectorAll('link[rel="stylesheet"], style[data-make-styles-bucket]'),
-        element => element.tagName === "LINK" ? "extracted host CSS" :
-          `${element.dataset.makeStylesBucket}/${element.dataset.priority}: ${observation.creators.get(element)}`),
     };
     if (settings.hostContract === "production-extraction") {
       result.simulation = {

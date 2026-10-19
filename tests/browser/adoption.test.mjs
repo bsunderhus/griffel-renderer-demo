@@ -1,5 +1,5 @@
 import { createDOMRenderer } from "@griffel/core";
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import { openApplication, navigateApplication, applicationWindow } from "./application.mjs";
 test.for([["default", {}, false, false], ["historical", {}, true, true], ["marker-guard", {}, false, false], ["marker-guard", {
   "data-demo-allow-rules": "true"
@@ -18,6 +18,7 @@ test.for([["default", {}, false, false], ["historical", {}, true, true], ["marke
   const app = await openApplication({
     signal
   });
+
   await navigateApplication(app, "/?scenario=persona-alone&coverage=minimal");
   const window = applicationWindow(app);
   const doc = window.document;
@@ -55,4 +56,34 @@ test.for([["default", {}, false, false], ["historical", {}, true, true], ["marke
     cached: true,
     nativePresent: !blocked
   });
+});
+
+test("restoring native insertion does not retry cached Fluent rules", async ({ signal, onTestFinished }) => {
+  const app = await openApplication({ signal });
+  await navigateApplication(app, "/?scenario=persona-alone&coverage=minimal");
+  const window = applicationWindow(app);
+  const rule = window.threeActorResult.events.find(event => event.actor === "persona" &&
+    event.bucket === "d" && event.rule.includes("background-color:var(--colorBrandBackground)")).rule;
+  const renderer = createDOMRenderer(window.document);
+  renderer.insertCSSRules({ d: [rule] });
+  const sheet = renderer.stylesheets.d0.element.sheet;
+  expect(window.threeActorResult.events.at(-1).rule).toBe(rule);
+  expect(window.threeActorResult.events.at(-1).blocked).toBe(true);
+  expect(sheet.cssRules.length, "The host rejected the actual generated Fluent rule").toBe(0);
+  expect(renderer.insertionCache[rule], "Griffel caches even a rejected insertion").toBeTruthy();
+
+  window.testSourceHost.dispose();
+  expect(window.CSSStyleSheet.prototype.insertRule).toBe(window.testSourceNativeInsert);
+  const insert = vi.spyOn(window.CSSStyleSheet.prototype, "insertRule");
+  onTestFinished(() => insert.mockRestore());
+  renderer.insertCSSRules({ d: [rule] });
+  expect(insert, "Replaying the same rule does not reach native insertion").not.toHaveBeenCalled();
+  expect(sheet.cssRules.length).toBe(0);
+
+  const fresh = createDOMRenderer(window.document);
+  fresh.insertCSSRules({ d: [rule] });
+  expect(insert).toHaveBeenCalledTimes(1);
+  expect(insert.mock.results[0].value, "Native index zero is a successful insertion").toBe(0);
+  expect(fresh.stylesheets.d0.element.sheet.cssRules.length).toBe(1);
+  expect(fresh.insertionCache[rule]).toBeTruthy();
 });

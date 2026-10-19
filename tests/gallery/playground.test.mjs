@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import { applicationFrame, applicationWindow, navigateApplication, openApplication, waitForApplicationURL, waitForElement } from "../browser/application.mjs";
 import { personaRevisions } from "../../src/experiments/scenarios.js";
+import { analyzeEvidence } from "../../src/evidence/analysis.js";
 import { assertGalleryGuide, assertGalleryActions, assertGalleryStructure, assertGallerySettings, assertGalleryEvidence, assertGalleryResize, assertGalleryInteractions, assertGalleryScaling } from "./playground.mjs";
 test("gallery guide disclosures, technique links, and responsive overview", async ({
   signal
@@ -56,7 +57,7 @@ test("host filter revision is shared across baseline schedules and survives navi
   const frame = applicationFrame(app, "#persona-first-raw iframe");
   await waitForElement(() => applicationWindow(frame).document.querySelector("[data-host-contract]"));
   expect(applicationWindow(frame).threeActorResult.policy).toBe("master");
-  expect(applicationWindow(frame).threeActorResult.actors.feedback.borrowedPermission).toBeGreaterThan(0);
+  expect(analyzeEvidence(applicationWindow(frame).threeActorResult).actors.feedback.borrowedPermission).toBeGreaterThan(0);
 });
 const galleries = Object.keys(personaRevisions).flatMap(personaVersion => ["extracted", "runtime"].flatMap(hostMode => ["shared", "minimal"].map(coverage => ({
   personaVersion,

@@ -36,10 +36,12 @@ export function refreshEvidence({ doc, result, actors, observation, baseline, se
     const probe = doc.querySelector(`[data-actor-probe="${actor}"]`);
     evidence.matchingWidthEvidence = entries.filter(entry => entry.rule.style.width === "137px" &&
       probe.matches(entry.rule.selectorText)).map(entry => describeRule(entry, ruleSource));
-    evidence.matchingWidthRules = evidence.matchingWidthEvidence.map(entry => entry.cssText);
   }
   result.hostEvidence = hostRuleEvidence([baseline.provider, ...baseline.provider.querySelectorAll("*")],
     baseline.avatar, entries, ruleSource, events, baseline.background);
   result.hostEvidence.sharedWith = Object.entries(result.actors).filter(([, evidence]) =>
     evidence.sheets.some(sheet => sheet.creator === "host")).map(([actor]) => actor);
+  const feedbackAvatar = doc.querySelector('[data-fluent-owner="feedback"] [data-fluent-avatar]');
+  result.sharedFeedbackClasses = Array.from(baseline.provider.querySelector("[data-fluent-avatar]").classList).filter(name =>
+    !name.startsWith("fui-") && feedbackAvatar?.classList.contains(name));
 }

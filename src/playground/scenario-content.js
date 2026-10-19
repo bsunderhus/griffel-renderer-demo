@@ -1,6 +1,6 @@
 import { personaRevisions } from "../experiments/scenarios.js";
 
-export const scenarioContent = {
+const scenarioContent = {
   "unmarked-d-first": {
     "title": "Missing enhanced-specificity attribute",
     "takeaway": "The enhanced-specificity attribute guard discards incompatible adopted handles before inserting Persona's rules.",

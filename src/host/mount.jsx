@@ -23,8 +23,7 @@ export function createHostModule(HostControls) {
   return {
     mount(container, options) {
       const ownerDocument = container.ownerDocument;
-      const settings = typeof options === "boolean" ? { extracted: options } : options;
-      const contract = resolveHostContract(settings, process.env.NODE_ENV);
+      const contract = resolveHostContract(options, process.env.NODE_ENV);
       let policy;
       function activatePolicy() {
         if (contract.shouldInstall && !policy) {
@@ -42,7 +41,7 @@ export function createHostModule(HostControls) {
       const insert = renderer.insertCSSRules.bind(renderer);
       renderer.insertCSSRules = rules => {
         runtimeCalls++;
-        if (settings.extracted && contract.contract === "diagnostic") {
+        if (options.extracted && contract.contract === "diagnostic") {
           throw new Error("Extracted host unexpectedly attempted runtime insertion");
         }
         insert(rules);

@@ -5,6 +5,7 @@ import { resolveExperiment } from "../../src/experiments/configuration.js";
 import { assertPresentedEvidence } from "../evidence/assert-presented.mjs";
 import { assertSourceLifecycles } from "./lifecycle.mjs";
 import { assertCurrentMainComparisons } from "./current-main.mjs";
+import { analyzeEvidence } from "../../src/evidence/analysis.js";
 const configurations = ["master", "feedback-exception"].flatMap(hostPolicy =>
   ["extracted", "runtime"].flatMap(host => ["minimal", "shared"].flatMap(coverage => sourceExperiments.map(config => ({
   hostPolicy,
@@ -26,7 +27,7 @@ test.for(configurations)("$hostPolicy / $host / $coverage / $id: fixed actors an
     signal
   });
   const paired = [];
-  for (const personaVersion of config.personaRevision === "selected" ? Object.keys(personaRevisions) : ["1.20260927.13.2"]) {
+  for (const personaVersion of Object.keys(personaRevisions)) {
     const query = `scenario=${config.id}&host=${host}&coverage=${coverage}&personaVersion=${personaVersion}&hostPolicy=${hostPolicy}`;
     const resolved = resolveExperiment(config, query);
     const result = await runExperiment(app, {
@@ -65,20 +66,12 @@ test.for(configurations)("$hostPolicy / $host / $coverage / $id: fixed actors an
     expect(result.staticCSS.filter(rule => rule.includes("rgb(232, 163, 61)"))
       .every(rule => !canonicalHost.matches(rule.slice(0, rule.indexOf("{")).trim())),
     "The host does not wear the diagnostic orange reset class").toBe(true);
-    expect(result.feedbackConfig.raw).toBe(true);
-    expect(result.feedbackConfig.salt).toBe(true);
-    expect(result.feedbackConfig.marker).toBe(true);
     expect(result.hostRuntimeCalls === 0).toBe(active);
     expect(result.hostEvidence.avatarBackground.changed).toBe(false);
     if (!active) expect(result.events.every(event => !event.blocked)).toBeTruthy();
-    if (config.seed) {
-      const seedAttempt = result.events.find(event => event.actor === "unrelated");
-      expect(seedAttempt, "The source lab observes the seed renderer under the already-mounted host contract").toBeTruthy();
-      expect(seedAttempt.blocked).toBe(active);
-    }
     expect(result.simulation.personaRevision).toBe(resolved.personaRevision);
     expect(result.simulation.persona).toBe(resolved.personaProfile);
-    const personaBlocked = Boolean(active && resolved.personaProfile === "historical" && (config.seed || config.order[0] === "feedback"));
+    const personaBlocked = Boolean(active && resolved.personaProfile === "historical" && config.order[0] === "feedback");
     const feedbackBlocked = active && hostPolicy === "master" && config.order[0] === "feedback";
     for (const [actor, evidence] of Object.entries(result.actors)) {
       const attempts = result.events.filter(event => event.actor === actor && event.bucket);
@@ -106,11 +99,11 @@ test.for(configurations)("$hostPolicy / $host / $coverage / $id: fixed actors an
     if (config.order[0] === "persona" && config.order.includes("feedback")) {
       expect(result.actors.persona.sheets.some(sheet => sheet.sharedWith.includes("feedback"))).toBeTruthy();
       if (active && hostPolicy === "master") {
-        expect(result.actors.feedback.borrowedPermission,
+        expect(analyzeEvidence(result).actors.feedback.borrowedPermission,
           "Unchanged prefixed Feedback borrows sheet permission when the host ignores its prefix").toBeGreaterThan(0);
         expect(result.events.some(event => event.actor === "feedback" && event.blocked),
           "New Feedback-only buckets lack the enhanced-specificity attribute").toBe(true);
-      } else expect(result.actors.feedback.borrowedPermission).toBe(0);
+      } else expect(analyzeEvidence(result).actors.feedback.borrowedPermission).toBe(0);
     }
     for (const actor of config.order) {
       const mounts = result.execution.filter(event => event.actor === actor && event.action === "mount");

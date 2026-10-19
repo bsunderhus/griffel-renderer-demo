@@ -30,16 +30,6 @@ async function servePagesPreview(pathname, response) {
 export function applicationPlugin() {
   return {
     name: "built-research-application",
-    resolveId(id) {
-      if (id === "virtual:research-baseline") return "\0research-baseline";
-    },
-    async load(id) {
-      if (id !== "\0research-baseline") return;
-      const baseline = process.env.BASELINE_RESULTS
-        ? JSON.parse(await readFile(process.env.BASELINE_RESULTS, "utf8"))
-        : null;
-      return `export default ${JSON.stringify(baseline)};`;
-    },
     async configureServer(server) {
       const html = injectInstrumentation(await readFile(new URL("../../dist/index.html", import.meta.url), "utf8"));
       const instrumentation = await readFile(new URL("./instrumentation.js", import.meta.url), "utf8");
@@ -53,11 +43,11 @@ export function applicationPlugin() {
           servePagesPreview(url.pathname.slice(PAGES_PREVIEW.length), response).catch(next);
           return;
         }
-        const htmlRoute = ["/", "/docs", "/extracted", "/runtime", "/mechanisms"].includes(url.pathname);
+        const htmlRoute = ["/", "/docs"].includes(url.pathname);
         if (htmlRoute && !Object.hasOwn(scenarioAliases, url.searchParams.get("scenario"))) {
           response.writeHead(200, { "Content-Type": "text/html", "Cache-Control": "no-store" }).end(html);
         } else if (["/source", "/three-actors"].includes(url.pathname) || htmlRoute ||
-          /^\/(?:shared\/)?(?:app|host-extracted|host-runtime|persona|feedback-raw|feedback-standard|integration)\.js$/.test(url.pathname) ||
+          /^\/(?:shared\/)?(?:app|host-extracted|host-runtime|persona|feedback-raw|feedback-standard)\.js$/.test(url.pathname) ||
           /^\/(?:shared\/)?griffel\.css$/.test(url.pathname)) {
           serveReproRequest(request, response).catch(next);
         } else {

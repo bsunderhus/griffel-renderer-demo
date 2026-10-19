@@ -1,4 +1,4 @@
-export const FEEDBACK_PREFIX = "/* demo-feedback */";
+const FEEDBACK_PREFIX = "/* demo-feedback */";
 const installations = new WeakMap();
 
 // Demonstration policy based on destination metadata and an optional rule prefix.

@@ -16,7 +16,7 @@ function sheetY(state, id) {
   return SHEET_Y[state.sheets.findIndex(sheet => sheet.id === id)];
 }
 
-function describeState(chapter, state) {
+function describeState(state) {
   const sheets = state.sheets.map(sheet =>
     `${NAMES[sheet.creator]} created a sheet ${sheet.marked ? "with" : "without"} the enhanced-specificity attribute`);
   const handles = state.handles.filter(handle => handle.kind !== "created").map(handle => {
@@ -125,7 +125,7 @@ function Diagram({ chapter, state, titleId, descId }) {
   return <div className="explainer-figure"><svg className="explainer-diagram" viewBox="0 0 760 350" role="img"
     aria-labelledby={titleId} aria-describedby={descId} data-gate={state.gate || "none"}>
     <title id={titleId}>{chapter.title}</title>
-    <desc id={descId}>{describeState(chapter, state)}</desc>
+    <desc id={descId}>{describeState(state)}</desc>
     <text x="16" y="28" className="explainer-heading">Renderers</text>
     <text x={CSSOM_X} y="28" className="explainer-heading">Insertion</text>
     <text x={SHEET_X} y="28" className="explainer-heading">Document sheets</text>

@@ -7,8 +7,9 @@ Read [README.md](README.md) for setup, [docs/RESEARCH.md](docs/RESEARCH.md) for
 architecture and decisions, and [ROADMAP.md](ROADMAP.md) for progress and gates.
 Do not rely on a previous conversation, another checkout, or private services.
 
-The next research task is roadmap phase 2: connect each technique's guarantees
-and assumptions to live examples and assertions, before proposing a fix.
+The baseline technique/fidelity gate is complete for the modeled cases.
+Follow [roadmap phase 3](ROADMAP.md#3-compare-solution-experiments) for the next
+bounded research task; preserve the baseline when adding candidate experiments.
 Publication of the source baseline is complete; licensing remains open.
 
 ## Preserve the experiment
@@ -36,7 +37,7 @@ Publication of the source baseline is complete; licensing remains open.
   inputs. Document and test deliberate upgrades.
 - Setup: `npm ci`, then `npx playwright install chromium`. Linux may need
   `npx playwright install --with-deps chromium`.
-- Full validation: `npm test` builds all eight targets and runs Vitest, including
+- Full validation: `npm test` builds all seven targets and runs Vitest, including
   128 baseline schedule/configuration executions, paired preload checks and
   separate diagnostics. See the README for focused checks and preview commands.
 - Run `npm run test:unit` for checks without a build or browser.

@@ -11,6 +11,14 @@ test("Feedback uses the actual public Fluent raw-style modules", async () => {
   }
 });
 
+test("published artifacts exclude test-only appearance instrumentation", async () => {
+  for (const file of ["dist/app.js", "dist/pages/app.js", "dist/index.html", "dist/pages/index.html"]) {
+    const content = await readFile(file, "utf8");
+    expect(content, `${file} contains no test measurement helpers`).not.toMatch(/testMeasureAppearance|testAppearanceStages/);
+    expect(content, `${file} does not load test instrumentation`).not.toContain("/tests/browser/instrumentation.js");
+  }
+});
+
 test("extracted and runtime artifacts retain their original compilation contracts", async () => {
   const extractedCSS = await readFile("dist/griffel.css", "utf8");
   const require = createRequire(import.meta.url);
@@ -22,7 +30,7 @@ test("extracted and runtime artifacts retain their original compilation contract
   expect(hostBundle, "Host declarations must leave extracted JavaScript").not.toMatch(/#e8a33d|#b7e4c7/);
   expect(hostBundle).toMatch(/__resetCSS/);
   expect(hostBundle).toMatch(/__css/);
-  for (const filename of ["host-runtime", "integration"]) {
+  for (const filename of ["host-runtime", "feedback-raw"]) {
     expect(await readFile(`dist/${filename}.js`, "utf8"), `${filename}: raw styles retained`).toMatch(/#e8a33d/);
   }
 });
@@ -36,7 +44,7 @@ test("built targets contain independent renderers and preserve minimal-host cove
       `${target.name} contains its own Griffel renderer implementation, not an external/shared renderer`,
     ).toBeTruthy();
     const participant = target.entry.split("/")[0];
-    for (const other of ["host", "persona", "feedback", "archived"].filter(name => name !== participant)) {
+    for (const other of ["host", "persona", "feedback"].filter(name => name !== participant)) {
       expect(
         modules.some(name => name.startsWith(`./src/${other}/`)),
         `${target.name} must not bundle another participant (${other})`,

@@ -1,283 +1,160 @@
 # Roadmap: from failure demonstration to integration coexistence
 
-This sanitized project is the only active implementation. Do not import the
-investigation's history, captures, private citations, or product-specific
-provenance. The examples are synthetic experiments built with public libraries.
+Track verified gates and outstanding work here. The [README](README.md) owns
+operation/setup; the [research reference](docs/RESEARCH.md) owns current contracts,
+findings and evidence limits. This is a standalone public experiment, not a
+product integration or incident attribution.
 
 ## Goals
 
-1. Publish a clear, reproducible showcase of shared-renderer problems.
-2. Investigate reasonable solutions with measured trade-offs.
-3. Determine which assumptions in the scoped contact-card and prefixed,
-   salted form approaches fail, without attributing a synthetic result to a
-   particular real integration.
-4. Provide actionable options for library, host, and integration maintainers.
-5. Demonstrate a future where multiple independent integrations can coexist.
+- Reproduce independently bundled Griffel interactions with fixed actors.
+- Evaluate technique guarantees rather than inferring correctness from appearance.
+- Compare mitigations by residual failure, cost, compatibility and who must change.
+- Establish a future multi-integration coexistence contract before recommending
+  a durable solution.
 
 ## 1. Publication readiness - baseline published
 
-Keep the current failure examples as the baseline; publication does not depend
-on finding a complete solution.
+- [x] Sanitize the source, document scope and verify a fresh public-dependency install.
+- [x] Obtain explicit authorization for the public destination; review source-only
+  contents, disclosure boundaries and author metadata before creating fresh history.
+- [x] Triage baseline dependency advisories and observe hosted validation passing.
+- [x] Publish the playground through a validation-gated GitHub Pages workflow.
+- [ ] Select and add a license after ownership and authorization are confirmed.
 
-- [x] Create the sanitized, history-free source candidate.
-- [x] Remove private provenance and replace integration identifiers.
-- [x] Document setup, limitations, and the distinction between synthetic
-  mechanisms and real-product diagnosis.
-- [x] Pass the existing 72-case regression matrix in the sanitized candidate.
-- [x] Add a GitHub Actions workflow for a clean install, build, and browser tests.
-- [x] Verify the documented commands from a fresh source-only directory with
-  no reused dependencies or build output.
-- [x] Triage the eight moderate dependency advisories reported by the clean
-  installation; distinguish build/test dependencies from browser code and
-  validate any chosen updates against the baseline.
-- [x] Obtain the user's explicit authorization to publish this sanitized source
-  to their personal GitHub account. This is not an independent legal review.
-- [ ] Choose and add a license after ownership and authorization are confirmed.
-- [x] Review the exact first-commit file list and repeat the disclosure scan.
-- [x] Create a new Git history, review author metadata, and publish to an
-  explicitly approved GitHub destination.
-- [x] Observe the first hosted CI run passing.
-
-**Exit gate:** authorized destination and an explicit licensing status, reviewed source-only first
-commit, dependency advisories assessed, clean-install tests passing, and a
-passing hosted CI run.
-A GitHub Pages workflow deploys the static playground after `npm test`
-passes on `main`; no evidence upload is configured.
+**Gate status:** source publication is complete; licensing remains open.
+Sanitization and publication authorization are not an independent legal review.
 
 ### Verified starting point
 
-On 2026-10-16, a fresh source-only directory passed `npm ci` against the public
-npm registry, `npx playwright install chromium`, and `npm test`, using Node.js
-24.15.0 and npm 11.12.1. All eight bundles built, followed by 24 archived checks
-and 48 integration checks. No installed packages or build output were copied
-into that validation directory. The local machine already had the Chromium
-system libraries; CI explicitly installs them with `--with-deps`.
-
-The install reported eight moderate dependency advisories and a transitive
-Babel plugin deprecation warning. These were not silently fixed or treated as
-an external-release sign-off. The first hosted validation passed on 2026-10-16:
-[validation run](https://github.com/bsunderhus/griffel-renderer-demo/actions/runs/38928691644).
-It installed dependencies and Chromium system libraries, built the bundles,
-and passed all 72 cases.
+On 2026-10-16, a fresh source-only install passed `npm ci`,
+`npx playwright install chromium`, and `npm test` on Node.js 24.15.0/npm 11.12.1,
+without copied dependencies or output. The initial export built eight bundles
+and passed 72 checks (24 now-retired diagnostic checks and 48 integration checks).
+The machine already had browser libraries; CI installs them with `--with-deps`.
+The [first hosted validation](https://github.com/bsunderhus/griffel-renderer-demo/actions/runs/38928691644)
+also passed. This records that historical baseline, not the current suite count.
 
 ### Initial publication decision
 
-The user requested public publication to their personal GitHub account.
-The baseline is published at
-[bsunderhus/griffel-renderer-demo](https://github.com/bsunderhus/griffel-renderer-demo),
-with fresh history and a GitHub noreply author email.
-The initial source release has no project license: source visibility alone
-does not grant reuse or redistribution rights. Selecting an authorized license
-remains open; do not imply Griffel's license automatically covers this project.
+The user authorized source publication to the personal
+[bsunderhus/griffel-renderer-demo](https://github.com/bsunderhus/griffel-renderer-demo)
+repository with fresh history and a GitHub noreply author email.
+No project license was selected. Public visibility does not itself grant reuse
+or redistribution rights; upstream package licenses do not license this project.
 
-Dependency triage on 2026-10-16 traced all eight moderate audit entries to
-`sprintf-js` 1.0.3 through the development-only extraction chain:
-`@griffel/babel-preset` → `@linaria/babel-preset` → `cosmiconfig` →
-`js-yaml` → `argparse` → `sprintf-js`.
-The underlying advisory is
-[GHSA-hp3w-g68c-fv3c](https://github.com/advisories/GHSA-hp3w-g68c-fv3c),
-denial of service through unbounded precision specifiers.
-`npm ls --omit=dev sprintf-js` reports no production dependency.
-The audit offers no complete automatic fix for the direct extraction dependency.
-The pinned baseline is retained for reproducibility; this is a known build-tool
-risk, not a clean audit. Do not process untrusted source/configuration locally
-with this toolchain. CI has read-only repository permissions, does not persist
-checkout credentials, and does not publish artifacts. The separate Pages
-workflow grants `pages: write` and `id-token: write` only to its deploy job.
+The 2026-10-16 install reported eight moderate advisory entries and a transitive
+Babel plugin deprecation warning. Triage traced the advisory entries to the
+development-only extraction chain:
+
+```text
+@griffel/babel-preset -> @linaria/babel-preset -> cosmiconfig
+                    -> js-yaml -> argparse -> sprintf-js 1.0.3
+```
+
+[GHSA-hp3w-g68c-fv3c](https://github.com/advisories/GHSA-hp3w-g68c-fv3c)
+concerns denial of service through unbounded precision specifiers.
+`npm ls --omit=dev sprintf-js` reported no production dependency. The audit
+offered no complete automatic fix for the direct extraction dependency.
+The pinned baseline was retained for reproducibility: this is a known build-tool
+risk, not a clean audit or a new dependency scan. Do not process untrusted
+source/configuration with this toolchain.
+
+Validation CI has read-only repository permissions and does not persist checkout
+credentials or publish evidence. Pages write/token permissions belong only to
+its deploy job; [hosting details](README.md#build-and-hosting) remain in the README.
 
 ## 2. Evaluate the techniques, not the labels
 
-The current baseline establishes mechanisms, not a verdict that one real
-integration is solely responsible.
+- [x] Link scoping, enhanced-specificity attributes, salt and prefix guarantees
+  and assumptions to live examples and recorded-rule assertions.
+- [x] Freeze baseline actors; vary validated load/mount/unmount schedules and
+  independent version/policy/build/coverage controls.
+- [x] Cover preload equivalence, renderer lifetime and 128 baseline configurations,
+  with altered actors, seeds and ownership proposals separately labeled.
+- [x] Explain causes from native evidence, independently reporting permission,
+  insertion, CSSOM presence, cache, ownership, sharing and bounded host effects.
+- [x] Assert the documentation explainer against real Fluent rules and keep
+  independent bundles/minimal-host coverage enforced by architecture tests.
 
-| Technique | Intended benefit | Missing guarantee to investigate |
-| --- | --- | --- |
-| Contact-card selector scoping | Restrict matching to a container | Does not create private sheets or insertion permission. Portals may leave the container. |
-| Enhanced-specificity attribute | Let a host permit sheets with a truthy attribute value | Adoption may borrow permission or select a sheet without the attribute. |
-| Form class-name salt | Separate runtime-generated class names | Does not isolate sheets or rename precompiled component classes. |
-| Per-rule prefix | Identify rules to a compatible filter | Does not contain CSS or establish exclusive ownership; host compatibility is required. |
+**Exit gate met for the modeled baseline:** conclusions link to reproducible
+configurations and assertions, not appearance or deployment assumptions.
+The canonical [contract matrix](docs/RESEARCH.md#source-aligned-contract-matrix),
+[paired controls](docs/RESEARCH.md#reproduction-contract-and-paired-controls) and
+[coverage map](docs/RESEARCH.md#single-runner-and-retained-mechanism-coverage)
+define the scope. The pinned release remains unguarded; upstream main's guard,
+the proposed owner cache and the candidate host exception are distinct.
+See the [dated source recheck](docs/RESEARCH.md#current-source-recheck-2026-10-16)
+for corroboration and deployment limits.
 
-- [x] Add a reader-facing comparison connecting each guarantee to a live example
-  and recorded rule evidence.
-- [x] For each approach, identify the assumptions required from the host,
-  renderer, build pipeline, and integration.
-- [x] Separate observed behavior, interpretation, and remaining uncertainty.
-- [x] Describe the combined failure: shared-sheet adoption plus
-  destination-based permission, independently of class collision.
-- [x] Narrate the three-actor conflict visually: the documentation explainer
-  steps through five chapters whose final drawings are asserted against live
-  creator, enhanced-specificity attribute, prefix, verdict, presence and cache evidence in both
-  coverage profiles.
-
-**Exit gate:** every conclusion links to a reproducible configuration and an
-assertion. Do not infer isolation from appearance or blame from load order.
-
-Evidence maintenance: gallery examples wait for visible layout and refresh
-their CSS evidence on resize. Regression checks cover collapsed controls and
-desktop/mobile galleries across both host builds and coverage profiles.
-Rule traces separate native insertion and destination CSSOM presence from
-permission and cache. Statuses are based on generated CSS and actual destination
-rules, not computed dimensions, colors, or visual comparisons. Fractional
-scaling and pointer states must not change CSSOM-based outcomes.
-The host separately reports shared handles, native foreign writes, matching
-foreign rules, and the bounded avatar-background declaration cascade. Creators
-also report later adopters; sharing does not imply borrowed permission or damage.
-The integrated reader guide now explains participant responsibilities before
-following a rule through generation, sheet adoption, host filtering and native
-CSSOM presence. It distinguishes active renderer counts from sheet counts and
-maps the inspected enhanced-specificity attribute to the fictional live attribute name.
-Selector specificity, the enhanced-specificity attribute, runtime salt and rule-prefix compatibility
-are separate mechanisms; the overview does not infer a deployed fix or private
-sheets from any of them.
-Public participant names are restricted to host, persona and feedback in source,
-UI, tests and documentation; an automated repository check guards that convention.
-All-rule ledgers distinguish host rejection, native parser rejection, exact
-native-rule retention, equivalent CSS, and cache state. The gallery's paired
-controls and [research contract](docs/RESEARCH.md#reproduction-contract-and-paired-controls)
-separate the consumer-pinned release from upstream main without claiming a
-current product deployment or complete component correctness.
-
-The source is organized into independent host, Persona and Feedback modules,
-a sequential experiment harness, and separate observation/snapshot/analysis/
-presentation layers. Build targets explicitly preserve independent Griffel
-copies and host coverage; architecture checks enforce those boundaries.
-See the [module contracts](docs/RESEARCH.md#module-contracts-and-dependency-direction)
-before extending the lab. This structural refactor does not enable a solution
-experiment or change the baseline failure mechanisms.
-
-The playground at `/` separates eight fixed-actor baseline schedules from six
-counterfactual diagnostics/proposals. Host filter revision is independent of
-schedule, alongside Persona version, host build and coverage. The default is the
-pinned release with the sheet-only host, not a candidate prefix exception.
-Every baseline keeps the inspected Feedback profile and canonical workload.
-The unrelated seed is explicitly an extra-actor diagnostic; the owner guard is
-a proposal; four controls retain alternative builds/options and constructed
-collisions. The duplicate sheet-only Feedback-first card is removed; its URL
-selects the matching baseline schedule and filter revision.
-The altered-Feedback arrival-order cards are removed in favor of the faithful
-baseline comparisons; the redundant no-policy card is removed too. Old URLs
-redirect to the appropriate surviving baseline schedule or collision diagnostic,
-without claiming old actor configurations are equivalent.
-
-Fidelity implementation:
-
-- [x] Freeze baseline actor options and reject counterfactual overrides.
-- [x] Separate script evaluation, mount and unmount into validated schedules.
-- [x] Add Persona-first under the sheet-only filter with unchanged Feedback.
-- [x] Add preload equivalence and renderer-lifetime schedules.
-- [x] Keep the artificial matching avatar reset out of canonical mounts.
-- [x] Assert actual Fluent rules independently of the supplemental width witness.
-- [x] Record configuration, executed events, mount attribution and renderer reuse.
-- [x] Keep deployment claims, counterfactual diagnostics and proposals separate.
-
-The baseline matrix has 128 schedule/version/policy/build/coverage executions,
-with separate paired preload equivalence checks, diagnostic cases and 24 archived
-cases. Historical diagnostic comparisons normalize additive execution metadata
-but preserve rule, cache, permission and appearance evidence.
-Tests now use one [Vitest runner](vitest.config.js) with separate Node unit,
-Node artifact and real-Chromium Browser Mode projects. Parameterized checks preserve paired
-comparisons, independent compiled renderers and the expected baseline failures;
-this runner migration does not introduce a solution configuration.
-Assertions and spies use native Vitest APIs. Research evidence stays local to
-each test and can be exported through the built-in JSON reporter with
-`npm run test:report`; browser failures attach screenshots through Vitest.
-All browser suites use Vitest Browser Mode and its matching Playwright provider;
-there is no manually managed browser fixture or bundler invocation in test code.
-UI assertions retry against live elements, with regression checks for replaced
-evidence DOM. Gallery behaviors are independently named tests; browser setup
-resets pointer/viewport state and navigation supports test cancellation.
-The optional historical comparison executes fresh diagnostic combinations
-instead of trusting a previously generated report.
-See the
-[contract matrix](docs/RESEARCH.md#source-aligned-contract-matrix) for verified
-behavior and explicit limits; this is not incident-time deployment attribution
-or a complete coexistence sign-off.
-
-The 2026-10-16 authorized source recheck confirmed enhanced-specificity attribute guard behavior in the
-inspected main branch; owner-filtered adoption and shared renderer caching remain
-an unmerged proposal, not a deployed default. The verified enhanced-specificity attribute guard setups
-remain selectable across the baseline schedules. The inspected consumer
-instead pins Persona 1.20260927.13.2 with version locking enabled in checked-in
-defaults; its release build has no adopted-handle guard. Both revisions use the
-same schedules and Feedback code. Direct paired comparisons cover both versions.
-The duplicate `marker-guard` card redirects to the current Feedback-first case.
-Separate actual-source probes corroborated
-native insertion, cache and sharing outcomes. See the
-[current-source recheck](docs/RESEARCH.md#current-source-recheck-2026-10-16)
-for dependency and execution limits. The inspected host main still lacks the
-Feedback prefix exception; that unmerged host proposal is labeled separately.
-The published bootstrapper and release-build source are verified, but effective
-runtime overrides and deployed client assets remain unverified. Source merge
-status is not deployment evidence.
+Completed maintenance leaves one runner and seven participant build targets.
+Retired applications/capture comparison do not remove the unique cache-replay
+assertion. Appearance measurements are test-only; runtime evidence retains
+native observations and derives interpretation without duplicate snapshots.
+These are baseline fidelity/maintenance improvements, not a solution sign-off.
 
 ## 3. Compare solution experiments
 
-Preserve version-pinned failure cases unchanged. Put intentional behavior changes in
-separately labeled experiments with the same measurements.
+**Next bounded task:** evaluate one supported host-contract experiment and one
+namespacing experiment. Preserve version-pinned failure cases unchanged and
+keep intentional changes in separately labeled configurations.
 
-| Candidate | Experiment | Important trade-off |
+| Candidate | Experiment | Required trade-off checks |
 | --- | --- | --- |
-| Explicit renderer/sheet ownership | Prevent adoption of incompatible sheets | May require a supported library change; do not simulate ownership by relabeling adopted sheets. |
-| Supported host insertion contract | Permit legitimate runtime styles without borrowed markers | Compatibility, enforcement boundaries, and whether public APIs can express the contract. |
-| Consistent class namespacing | Isolate custom and component rules | Raw versus precompiled styles, build cost, and no sheet-isolation guarantee. |
-| Shadow DOM | Separate CSS matching and style destinations | Portals, theme propagation, focus, accessibility, and renderer document/root support. |
-| Iframe | Separate documents and renderers | Layout, focus, accessibility, communication, and resource cost. |
+| Explicit renderer/sheet ownership | Prevent incompatible adoption | Public library feasibility; never simulate ownership by relabeling adopted sheets. |
+| Supported host insertion contract | Permit legitimate runtime styles without borrowed permission | Compatibility, enforcement limits and public API support. |
+| Consistent class namespacing | Separate custom and component rules | Raw/precompiled differences, build cost and residual sheet sharing. |
+| Shadow DOM | Separate matching and style destinations | Portals, theme propagation, focus, accessibility and renderer document/root support. |
+| Iframe | Separate documents/renderers | Layout, focus, accessibility, communication and resource cost. |
 
-- [ ] Start with a host-contract experiment and a namespacing experiment using
-  supported APIs; record their residual failures rather than claiming a full fix.
-- [ ] Check feasibility of explicit ownership against the public Griffel version.
-- [ ] Prototype Shadow DOM and iframe alternatives only with explicit portal,
-  theme, and interaction checks.
-- [ ] Compare correctness, compatibility, cost, and migration requirements.
+- [ ] Implement the bounded host-contract and namespacing comparisons with residual failures visible.
+- [ ] Check ownership feasibility against the pinned public Griffel APIs.
+- [ ] Prototype containment alternatives only with portal, theme and interaction checks.
+- [ ] Compare correctness, compatibility, cost and migration requirements.
 
-**Exit gate:** each candidate has executable evidence, known limitations, and
-an explicit answer to who must change: library, host, integration, or build.
-Do not broaden insertion permission silently or call it a security boundary.
+**Exit gate:** each candidate has executable evidence, known limitations and an
+answer to who must change: library, host, integration or build. Verify enabled/
+disabled paths, arrival order and relevant host coverage. Do not silently broaden
+permission, replace the baseline, or call the insertion filter a security boundary.
 
 ## 4. Build the multi-integration coexistence lab
 
-Add a third independently bundled actor, such as a notification panel. Keep its
-behavior local and its data fictional. Add actors only when they introduce a
-useful constraint, not just another copy of the same card.
+Add a third independently bundled actor, such as a fictional notification panel,
+only when it introduces a useful constraint rather than another copy of a card.
 
-- [ ] Host plus contact card, form, and notification panel in one document.
-- [ ] All six arrival orders of the three integrations.
-- [ ] Both extracted and runtime hosts, with shared and minimal component
-  coverage: 24 combinations per candidate configuration.
-- [ ] Mount, unmount, and remount each integration without resetting the document.
-- [ ] Shared component styles, custom rules, and deliberately overlapping resets.
-- [ ] Portal rendering and theme changes, with keyboard/focus interaction checks.
-- [ ] Exercise supported dependency-version combinations as an explicit axis;
-  document any unsupported combination instead of assuming compatibility.
-- [ ] Report rejected rules, sheet creators/reuse, computed styles, rule/cache
-  growth, and interactions separately.
+- [ ] Host plus contact card, form and notification panel in one document.
+- [ ] All six integration arrival orders across extracted/runtime hosts and
+  minimal/shared coverage: 24 combinations per candidate configuration.
+- [ ] Mount, unmount and remount each actor without resetting the document.
+- [ ] Shared component styles, custom rules and deliberately overlapping resets.
+- [ ] Portals, theme changes and keyboard/focus interactions.
+- [ ] Supported dependency-version combinations as an explicit axis; record unsupported ones.
+- [ ] Separate rejected rules, creators/reuse, computed appearance, cache/rule
+  growth and interactions.
 
-**Success contract:** every integration retains intended styling, the host
-remains unchanged, and correctness does not depend on arrival order, masked
-rejections, or borrowing another integration's permission. Sheet reuse itself
-is acceptable only when it satisfies the candidate's explicit contract.
-
-For remounts, account for intentional renderer caches and retained CSS; compare
-against a measured steady state rather than requiring all styles to disappear.
+**Success contract:** every integration retains intended styling, the host stays
+unchanged, and correctness does not depend on arrival order, masked rejections
+or borrowed permission. Sharing is acceptable only under an explicit candidate
+contract. For remounts, account for intentional caches/retained CSS against a
+measured steady state; do not require all styles to disappear.
 
 ## 5. Publish options and a recommendation
 
-- [ ] Produce a decision table: demonstrated benefits, residual failures,
-  migration effort, and ownership of required changes.
-- [ ] Distinguish an immediately usable mitigation from a durable architecture.
-- [ ] Recommend next steps only for configurations that passed their stated
-  contract, with rollback and compatibility considerations.
-- [ ] Keep unsolved cases visible and make future experiments easy to replay.
+- [ ] Publish a decision table of benefits, residual failures, migration effort
+  and ownership of required changes.
+- [ ] Distinguish immediately usable mitigations from durable architecture.
+- [ ] Recommend only configurations that passed their stated contract, with
+  rollback and compatibility considerations.
+- [ ] Keep unresolved cases visible and replayable.
 
-**Exit gate:** readers can reproduce both the failure and the proposed behavior,
-understand its cost, and identify what remains unresolved.
+**Exit gate:** readers can reproduce failure and proposed behavior, understand
+costs and identify what remains unresolved.
 
 ## Working rules
 
-- Finish one bounded experiment and its assertions before adding another.
-- Never manufacture a broken appearance with scenario-specific CSS.
-- Keep insertion, CSSOM rule presence, and ownership as separate outcomes;
-  appearance is not a correctness verdict.
-- Use the existing browser tests and build pipeline before introducing tooling.
-- Never upload private evidence or imply release approval from sanitization.
-- Update this roadmap when a gate is verified, not merely when code is written.
+Finish one bounded experiment and its assertions before adding another.
+Preserve the [module boundaries](docs/RESEARCH.md#module-contracts-and-dependency-direction)
+and [evidence distinctions](docs/RESEARCH.md#evidence-contract), use existing
+tooling, and never manufacture failures with scenario-specific CSS or import
+private evidence. Update gates only after verification. The full contributor
+rules are in [AGENTS.md](AGENTS.md).

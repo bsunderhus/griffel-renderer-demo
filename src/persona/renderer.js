@@ -26,7 +26,7 @@ function createMarkedRenderer(doc, attributes = {}) {
   });
 }
 
-export function createPersonaRenderer(doc) {
+function createPersonaRenderer(doc) {
   return withScope(createMarkedRenderer(doc));
 }
 

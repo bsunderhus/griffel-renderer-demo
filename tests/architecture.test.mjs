@@ -35,8 +35,8 @@ test("participant imports respect module boundaries", async () => {
 });
 
 test("scenario definitions and configuration validation preserve the research contract", async () => {
-  expect(targets).toHaveLength(8);
-  expect(new Set(targets.map(target => target.name)).size).toBe(8);
+  expect(targets).toHaveLength(7);
+  expect(new Set(targets.map(target => target.name)).size).toBe(7);
   expect(experiments.map(({ id }) => id)).toStrictEqual(threeActorCases.map(({ id }) => id));
   expect(experiments).toHaveLength(14);
   expect(new Set(experiments.map(config => config.id)).size).toBe(experiments.length);

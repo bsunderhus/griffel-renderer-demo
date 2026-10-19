@@ -20,7 +20,7 @@ export function assertCurrentMainComparisons(results, configurations = sourceExp
         expect(historical.simulation.personaRevision).toBe("1.20260927.13.2");
         expect(current.simulation.host).toStrictEqual(historical.simulation.host);
         expect(current.order).toStrictEqual(historical.order);
-        expect(current.feedbackConfig).toStrictEqual(historical.feedbackConfig);
+        expect(current.configuration.feedback).toStrictEqual(historical.configuration.feedback);
         const component = result => result.events.find(event => event.actor === "persona" && event.bucket === "d" &&
           event.rule.includes("background-color:var(--colorBrandBackground)"));
         expect(component(current).rule, "The revision changes destination handling, not the actual Fluent rule")
@@ -35,7 +35,7 @@ export function assertCurrentMainComparisons(results, configurations = sourceExp
         expect(currentRule.present).toBe(true);
         expect(currentRule.blocked).toBe(false);
         expect(currentRule.creator).toBe("persona");
-        const rejected = hostMode === "extracted" && (config.seed || config.order[0] === "feedback");
+        const rejected = hostMode === "extracted" && config.order[0] === "feedback";
         expect(historicalRule.present).toBe(!rejected);
         expect(historicalRule.blocked).toBe(Boolean(rejected));
         for (const result of [current, historical]) expect(result.actors.persona.cache).toContain(width(result).rule);

@@ -1,5 +1,6 @@
 export function renderEvidence(result, config, analysis) {
-  const { hostMode, hostBuckets, policy, order, stages, actors: actorEvidence, hostEvidence } = result;
+  const { hostMode, hostBuckets, policy, order, actors: actorEvidence, hostEvidence } = result;
+  const feedback = result.configuration.feedback;
   const openTraces = new Set(Array.from(document.querySelectorAll("[data-rule-trace][open], [data-host-rule-trace][open]"),
     element => element.dataset.ruleTrace || "host"));
   const openLedgers = new Set(Array.from(document.querySelectorAll("[data-rule-ledger][open]"),
@@ -45,7 +46,7 @@ export function renderEvidence(result, config, analysis) {
   document.getElementById("host-mount").parentElement.appendChild(hostStatus);
   for (const [actor, evidence] of Object.entries(actorEvidence)) {
     const actionLabel = { persona: "View profile", feedback: "Clear status" }[actor];
-    const { attempts, blocked, failed, foreignSheets, foreignAllowed, presentRules, sharedWith, widthRule, componentRule, cause, tone } = analysis.actors[actor];
+    const { attempts, blocked, failed, foreignSheets, foreignAllowed, presentRules, sharedWith, widthRule, componentRule, cause, tone, borrowedPermission } = analysis.actors[actor];
     const status = document.createElement("div");
     status.dataset.actorStatus = actor;
     status.className = `result ${tone}`;
@@ -75,7 +76,7 @@ export function renderEvidence(result, config, analysis) {
       sharedWith.length ? "Creates its sheets, but does not use them exclusively." : "Own sheets only.");
     addOutcome("Sharing", sharedWith.length ? `Sheet handles also held by ${sharedWith.join(", ")}.` :
       "No shared destination handles recorded.");
-    addOutcome("Permission", `${evidence.borrowedPermission} attempts rely on another actor's enhanced-specificity attribute.`);
+    addOutcome("Permission", `${borrowedPermission} attempts rely on another actor's enhanced-specificity attribute.`);
     if (result.simulation) addOutcome("Profile", result.simulation[actor]);
     const componentTrace = document.createElement("p");
     if (componentRule) {
@@ -93,7 +94,7 @@ export function renderEvidence(result, config, analysis) {
     traceLabel.textContent = "Generated CSS and rule evidence";
     const explanation = document.createElement("p");
     const widthInCSSOM = widthRule.present;
-    const matchingWidth = evidence.matchingWidthRules.length > 0;
+    const matchingWidth = evidence.matchingWidthEvidence.length > 0;
     explanation.textContent = `Selected rule only: supplemental 137px witness on ${actionLabel}, identical in every workload. ` +
       `${actor} generated width:137px -> ${widthRule.destination}, bucket ${widthRule.bucket}/${widthRule.priority}, ` +
       `created by ${widthRule.creator} -> enhanced-specificity attribute ${widthRule.enhanced ? "truthy" : "absent or empty"}, ` +
@@ -103,7 +104,7 @@ export function renderEvidence(result, config, analysis) {
       `Recorded rule in destination CSSOM: ${widthInCSSOM ? "yes" : "no"}. ` +
       `Equivalent serialized rule in destination CSSOM: ${widthRule.equivalentPresent ? "yes" : "no"}. ` +
       `Renderer cache contains rule: ${evidence.cache.includes(widthRule.rule) ? "yes" : "no"}. ` +
-      `Matching 137px CSSOM rules: ${evidence.matchingWidthRules.length}. ` +
+      `Matching 137px CSSOM rules: ${evidence.matchingWidthEvidence.length}. ` +
       (widthRule.blocked && matchingWidth ?
         "Other width rules match the action, but this actor's recorded rule was still blocked." :
         widthInCSSOM ? "The generated width rule is present in destination CSSOM." :
@@ -116,7 +117,7 @@ export function renderEvidence(result, config, analysis) {
       `${foreignAllowed} insertions allowed into foreign sheets.`;
     const matchingRules = document.createElement("pre");
     matchingRules.dataset.matchingWidthRules = actor;
-    matchingRules.textContent = evidence.matchingWidthRules.join("\n") || "No matching 137px CSSOM rules.";
+    matchingRules.textContent = evidence.matchingWidthEvidence.map(entry => entry.cssText).join("\n") || "No matching 137px CSSOM rules.";
     const matchingSources = document.createElement("p");
     matchingSources.textContent = `Matching width rule writers: ${[...new Set(evidence.matchingWidthEvidence
       .map(entry => entry.actor))].join(", ") || "none"}. Matching is not proof of the selected insertion.`;
@@ -143,8 +144,8 @@ export function renderEvidence(result, config, analysis) {
   const description = document.createElement("p");
   description.className = "note";
   description.textContent = `Policy: ${policy}. Order: host -> ${config.seed ? "unrelated d0 -> " : ""}${order.join(" -> ")}. ` +
-    `Feedback: ${result.feedbackConfig.raw ? "raw" : "precompiled"} Fluent, salt ${result.feedbackConfig.salt ? "on" : "off"}, rule prefix ${result.feedbackConfig.marker ? "on" : "off"}. ` +
-    (result.feedbackConfig.usesDemoProfile ?
+    `Feedback: ${feedback.raw ? "raw" : "precompiled"} Fluent, salt ${feedback.salt ? "on" : "off"}, rule prefix ${feedback.marker ? "on" : "off"}. ` +
+    (feedback.raw && feedback.salt && feedback.marker ?
       "Synthetic form profile: raw styles, salted classes, and prefixed rules." :
       "Configuration control: varies the synthetic form profile.");
   const schedule = document.createElement("pre");
@@ -152,10 +153,6 @@ export function renderEvidence(result, config, analysis) {
   schedule.textContent = `Workload: ${result.configuration.workload}\nHost ready\n` +
     result.execution.map(event => `${event.action} ${event.actor}` +
       (event.renderer ? ` (${event.renderer}${event.reusesPreviousRenderer === true ? ", renderer reused" : ""})` : "")).join("\n");
-  const summary = document.createElement("pre");
-  summary.textContent = stages.map(stage =>
-    `After ${stage.phase}: ${["host", "persona", "feedback"].filter(actor => stage[actor]).join(", ")} mounted.`
-  ).join("\n");
   const decisions = document.createElement("pre");
   decisions.textContent = Object.keys(actorEvidence).map(actor => {
     const { attempts, blocked, foreignAllowed } = analysis.actors[actor];
@@ -167,9 +164,9 @@ export function renderEvidence(result, config, analysis) {
   const details = document.createElement("details");
   details.open = Boolean(fullEvidenceOpen);
   const label = document.createElement("summary");
-  label.textContent = "Full stages, per-rule decisions, destination origins, cache, and CSS";
+  label.textContent = "Full configuration, execution, per-rule decisions, destination origins, cache, and CSS";
   const json = document.createElement("pre");
   json.textContent = JSON.stringify(result, null, 2);
   details.append(label, json);
-  output.replaceChildren(description, schedule, summary, decisions, details);
+  output.replaceChildren(description, schedule, decisions, details);
 }

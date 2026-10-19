@@ -282,8 +282,9 @@ export async function assertGalleryEvidence(app, url, configuration) {
     const result = applicationWindow(frame).threeActorResult;
     await assertPresentedEvidence(frame, result);
     if (config.id === "persona-alone") {
-      expect(result.actors.persona.measured.icon.width).toBe("32px");
-      expect(result.actors.persona.measured.probeWidth, "The healthy reference inserts in both source-aligned host modes").toBe("137px");
+      const persona = applicationWindow(frame).testMeasureAppearance("persona");
+      expect(persona.icon.width).toBe("32px");
+      expect(persona.probeWidth, "The healthy reference inserts in both source-aligned host modes").toBe("137px");
     }
     if (config.hostContract === "production-extraction") {
       expect(result.simulation.host.contract).toBe("production-extraction");

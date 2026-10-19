@@ -1,4 +1,4 @@
-import { openApplication, runExperiment, navigateApplication, applicationWindow } from "../browser/application.mjs";
+import { openApplication, runExperiment, navigateApplication, applicationWindow, appearanceStages } from "../browser/application.mjs";
 import { assertPresentedEvidence } from "../evidence/assert-presented.mjs";
 import { expect, test } from "vitest";
 import { threeActorCases } from "../../src/playground/scenarios.js";
@@ -13,29 +13,35 @@ test.for(controlCases)("$id preserves diagnostics across both host builds and co
   });
   const url = location.origin;
   const minimalResults = {};
+  const minimalAppearances = {};
   const sharedResults = [];
   {
     const result = await runExperiment(app, {
       scenario: config.id,
       coverage: "minimal"
     });
+    const stages = appearanceStages(app);
+    const appearance = stages.at(-1);
+    minimalAppearances.extracted = stages;
     await assertPresentedEvidence(app, result);
     expect(result.hostRuntimeCalls).toBe(0);
     await expect.poll(() => Array.from(applicationWindow(app).document.querySelector('[data-fluent-owner="host"]').querySelectorAll("button, textarea, input")).length).toBe(0);
     await expect.element(app.getByCSS('[data-fluent-owner="host"]')).toHaveTextContent(/Host application/);
     await expect.poll(() => Array.from(applicationWindow(app).document.querySelector('[data-fluent-owner="host"]').querySelectorAll("[data-fluent-avatar]")).length).toBe(1);
     expect(result.hostBuckets).toBe(0);
-    expect(result.feedbackConfig.usesDemoProfile).toBe(Boolean(config.raw && config.salt && config.marker));
-    expect(result.feedbackConfig.demoProfile).toStrictEqual(feedbackProfile);
+    expect(result.configuration.feedback).toStrictEqual({
+      script: config.raw ? "/feedback-raw.js" : "/feedback-standard.js", profile: "control",
+      raw: Boolean(config.raw), salt: Boolean(config.salt), marker: Boolean(config.marker),
+    });
     expect(result.staticCSS.length, "Actual Fluent CSS extracted").toBeGreaterThan(100);
-    expect(result.stages.map(stage => stage.phase)).toStrictEqual(["host", ...config.order]);
-    expect(result.sheetOrder).toContain("extracted host CSS");
-    for (const stage of result.stages) {
+    expect(stages.map(stage => stage.phase)).toStrictEqual(["host", ...config.order]);
+    expect(applicationWindow(app).document.querySelector('link[rel="stylesheet"]').getAttribute("href")).toBe(result.configuration.host.stylesheet);
+    for (const stage of stages) {
       expect(stage.host.icon, "Minimal host renders no phone button").toBeNull();
       expect(stage.host.primary, "Minimal host renders no submit button").toBeNull();
     }
-    const headerBefore = result.stages[0].host.avatarOverride;
-    const headerAfter = result.stages.at(-1).host.avatarOverride;
+    const headerBefore = stages[0].host.avatarOverride;
+    const headerAfter = appearance.host.avatarOverride;
     const hostCollision = ["raw-unsalted", "host-collision"].includes(config.id);
     expect(headerBefore.background).toBe("rgb(183, 228, 199)");
     expect(headerAfter.background, `${config.id}: late unsalted reset affects extracted host`).toBe(hostCollision ? "rgb(232, 163, 61)" : headerBefore.background);
@@ -93,28 +99,30 @@ test.for(controlCases)("$id preserves diagnostics across both host builds and co
       expect(Math.abs(layout.primaryTop - layout.clearTop), "Actions share one row").toBeLessThan(1);
       expect(layout.clearLeft, "Actions do not overlap").toBeGreaterThan(layout.primaryRight);
     }
-    expect(persona.measured.scoped, "Scope class actually wraps persona controls").toBeTruthy();
+    expect(appearance.persona.scoped, "Scope class actually wraps persona controls").toBeTruthy();
     const personaBlocked = result.events.filter(event => event.actor === "persona" && event.bucket && event.blocked);
     const allPersonaBlocked = ["precompiled-salted", "raw-unsalted"].includes(config.id);
-    expect(persona.measured.icon.width).toBe("32px");
-    expect(persona.measured.primary.background).toBe("rgb(15, 108, 189)");
+    expect(appearance.persona.icon.width).toBe("32px");
+    expect(appearance.persona.primary.background).toBe("rgb(15, 108, 189)");
     if (allPersonaBlocked) {
       expect(personaBlocked.length).toBeGreaterThan(100);
       expect(persona.sheets.find(sheet => sheet.key === "d0").creator).toBe("feedback");
       // Unsalted feedback may mask even the probe through a shared atomic class.
-      expect(persona.measured.probeWidth === "137px").toBe(config.id === "raw-unsalted");
+      expect(appearance.persona.probeWidth === "137px").toBe(config.id === "raw-unsalted");
     } else {
       expect(personaBlocked).toHaveLength(0);
-      expect(persona.measured.probeWidth).toBe("137px");
+      expect(appearance.persona.probeWidth).toBe("137px");
     }
     if (result.actors.feedback) {
       const feedback = result.actors.feedback;
       expect(feedback.rendererSalt).toBe(config.salt ? feedbackProfile.salt : null);
       const feedbackBlocked = result.events.filter(event => event.actor === "feedback" && event.bucket && event.blocked);
       expect(result.sharedFeedbackClasses.length === 0, "Only raw + salt isolates actual Fluent classes").toBe(Boolean(config.raw && config.salt));
-      expect(feedback.measured.scoped).toBe(false);
+      expect(result.sharedFeedbackClasses).toStrictEqual(stages[0].host.avatar.classes.filter(name =>
+        !name.startsWith("fui-") && appearance.feedback.avatar.classes.includes(name)));
+      expect(appearance.feedback.scoped).toBe(false);
       expect(feedbackBlocked).toHaveLength(0);
-      expect(feedback.measured.probeWidth).toBe("137px");
+      expect(appearance.feedback.probeWidth).toBe("137px");
     }
     minimalResults.extracted = result;
   }
@@ -124,19 +132,21 @@ test.for(controlCases)("$id preserves diagnostics across both host builds and co
       host: "runtime",
       coverage: "minimal"
     });
+    const stages = appearanceStages(app);
+    minimalAppearances.runtime = stages;
     expect(result.hostMode).toBe("runtime");
     expect(result.hostRuntimeCalls).toBeGreaterThan(0);
     expect(result.hostBuckets).toBeGreaterThan(0);
     expect(result.staticCSS).toStrictEqual([]);
-    expect(result.stages[0].host, "Changing host build preserves exact baseline Fluent styles and classes").toStrictEqual(minimalResults.extracted.stages[0].host);
-    expect(result.stages.at(-1).host.avatarOverride, "Runtime host ordering prevents the late-reset collision").toStrictEqual(result.stages[0].host.avatarOverride);
-    expect(result.actors.persona.sheets.find(sheet => sheet.key === "d0").creator).toBe(config.seed ? "unrelated" : "host");
+    expect(stages[0].host, "Changing host build preserves exact baseline Fluent styles and classes").toStrictEqual(minimalAppearances.extracted[0].host);
+    expect(stages.at(-1).host.avatarOverride, "Runtime host ordering prevents the late-reset collision").toStrictEqual(stages[0].host.avatarOverride);
+    expect(result.actors.persona.sheets.find(sheet => sheet.key === "d0").creator).toBe("host");
     for (const event of result.events.filter(event => event.bucket)) {
       expect(event.blocked).toBe(config.policy !== "off" && !event.enhanced && !(config.policy === "feedback-exception" && event.feedbackPrefix));
     }
     const blockedPersona = result.events.filter(event => event.actor === "persona" && event.blocked);
     expect(blockedPersona.length > 100).toBe(config.policy !== "off");
-    expect(result.actors.persona.measured.probeWidth === "137px").toBe(config.policy === "off" || config.id === "raw-unsalted");
+    expect(stages.at(-1).persona.probeWidth === "137px").toBe(config.policy === "off" || config.id === "raw-unsalted");
     minimalResults.runtime = result;
     await assertPresentedEvidence(app, result);
   }
@@ -146,27 +156,29 @@ test.for(controlCases)("$id preserves diagnostics across both host builds and co
       host: hostMode,
       coverage: "shared"
     });
+    const appearance = appearanceStages(app).at(-1);
     expect(result.coverage).toBe("shared");
     await assertPresentedEvidence(app, result);
     await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-fluent-owner="host"] textarea')).length).toBe(1);
     const minimal = minimalResults[hostMode];
     expect(result.order).toStrictEqual(minimal.order);
     expect(result.policy).toBe(minimal.policy);
-    expect(result.feedbackConfig).toStrictEqual(minimal.feedbackConfig);
-    expect(result.stages.at(-1).host.avatarOverride.background, "Host collision survives both coverage profiles").toBe(minimal.stages.at(-1).host.avatarOverride.background);
+    expect(result.configuration.feedback).toStrictEqual(minimal.configuration.feedback);
+    const minimalAppearance = minimalAppearances[hostMode].at(-1);
+    expect(appearance.host.avatarOverride.background, "Host collision survives both coverage profiles").toBe(minimalAppearance.host.avatarOverride.background);
     for (const actor of Object.keys(result.actors)) {
-      expect(result.actors[actor].measured.primary.classes, "Coverage does not change integration class generation").toStrictEqual(minimal.actors[actor].measured.primary.classes);
-      expect(result.actors[actor].measured.probeWidth, "Coverage preserves the custom-width outcome").toBe(minimal.actors[actor].measured.probeWidth);
+      expect(appearance[actor].primary.classes, "Coverage does not change integration class generation").toStrictEqual(minimalAppearance[actor].primary.classes);
+      expect(appearance[actor].probeWidth, "Coverage preserves the custom-width outcome").toBe(minimalAppearance[actor].probeWidth);
       expect(result.events.some(e => e.actor === actor && e.blocked), "Coverage may pre-create textarea buckets; each actual destination still controls permission").toBe(minimal.events.some(e => e.actor === actor && e.blocked));
     }
-    const persona = result.actors.persona.measured;
-    expect(persona.icon.width).toBe(hostMode === "extracted" && config.seed ? "96px" : "32px");
-    expect(persona.primary.background).toBe(hostMode === "extracted" && config.seed ? "rgb(255, 255, 255)" : "rgb(15, 108, 189)");
+    const persona = appearance.persona;
+    expect(persona.icon.width).toBe("32px");
+    expect(persona.primary.background).toBe("rgb(15, 108, 189)");
     await expect.poll(() => Array.from(applicationWindow(app).document.querySelectorAll('[data-fluent-owner="persona"] textarea')).length, {
       message: "Persona is a contact card, not a feedback form"
     }).toBe(0);
     if (result.actors.feedback) {
-      expect(result.actors.feedback.measured.icon.width).toBe("32px");
+      expect(appearance.feedback.icon.width).toBe("32px");
     }
     sharedResults.push(result);
   }

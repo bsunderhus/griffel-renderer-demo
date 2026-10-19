@@ -7,13 +7,9 @@ import { scenarioAliases, scenarioAliasVersions, scenarioAliasPolicies } from ".
 export const SITE_FILES = {
   "/": ["index.html", "text/html"],
   "/docs": ["index.html", "text/html"],
-  "/extracted": ["index.html", "text/html"],
-  "/runtime": ["index.html", "text/html"],
-  "/mechanisms": ["index.html", "text/html"],
   "/app.js": ["app.js", "text/javascript"],
   "/host-extracted.js": ["host-extracted.js", "text/javascript"],
   "/host-runtime.js": ["host-runtime.js", "text/javascript"],
-  "/integration.js": ["integration.js", "text/javascript"],
   "/persona.js": ["persona.js", "text/javascript"],
   "/feedback-standard.js": ["feedback-standard.js", "text/javascript"],
   "/feedback-raw.js": ["feedback-raw.js", "text/javascript"],

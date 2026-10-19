@@ -5,6 +5,9 @@ export async function assertPresentedEvidence(app, result) {
   // Normalize snapshots from different iframe realms without weakening strict equality.
   result = structuredClone(result);
   const document = applicationWindow(app).document;
+  for (const key of ["stages", "feedbackConfig", "sheetOrder"]) {
+    expect(result, "Runtime evidence excludes test-only snapshots and duplicate representations").not.toHaveProperty(key);
+  }
   const hostEvidence = result.hostEvidence;
   const background = hostEvidence.avatarBackground;
   const collision = result.hostMode === "extracted" && ["raw-unsalted", "host-collision"].includes(result.id);
@@ -85,13 +88,15 @@ export async function assertPresentedEvidence(app, result) {
     const sharedWith = [...new Set(evidence.sheets.flatMap(sheet => sheet.sharedWith))];
     await expect.poll(() => status().querySelector('[data-outcome="sharing"]').textContent)
       .toBe(sharedWith.length ? `Sheet handles also held by ${sharedWith.join(", ")}.` : "No shared destination handles recorded.");
-    expect(evidence.borrowedPermission)
-      .toBe(attempts.filter(event => !event.blocked && event.reason === "enhanced sheet" && event.creator !== actor &&
-        !(result.policy === "feedback-exception" && event.feedbackPrefix)).length);
+    for (const key of ["measured", "matchingWidthRules", "borrowedPermission"]) {
+      expect(evidence, "Actor evidence contains observations, not cached analysis or appearance").not.toHaveProperty(key);
+    }
+    const borrowedPermission = attempts.filter(event => !event.blocked && event.reason === "enhanced sheet" && event.creator !== actor &&
+      !(result.policy === "feedback-exception" && event.feedbackPrefix)).length;
     await expect.poll(() => status().querySelector('[data-outcome="permission"]').textContent)
-      .toBe(`${evidence.borrowedPermission} attempts rely on another actor's enhanced-specificity attribute.`);
+      .toBe(`${borrowedPermission} attempts rely on another actor's enhanced-specificity attribute.`);
     if (result.id === "persona-first-raw" && result.policy === "feedback-exception") {
-      expect(evidence.borrowedPermission, "Accepted prefixes do not depend on borrowed sheet permission").toBe(0);
+      expect(borrowedPermission, "Accepted prefixes do not depend on borrowed sheet permission").toBe(0);
       expect(sharedWith).toContain(actor === "persona" ? "feedback" : "persona");
       await expect.poll(() => status().querySelector('[data-outcome="ownership"]').textContent).not.toContain("Own sheets only.");
     }
@@ -110,11 +115,11 @@ export async function assertPresentedEvidence(app, result) {
     await expect.poll(() => trace().textContent).toContain(`Native insertion: ${widthRule.blocked ? "not attempted" : "succeeded"}`);
     await expect.poll(() => trace().textContent).toContain(`Recorded rule in destination CSSOM: ${widthRule.blocked ? "no" : "yes"}`);
     await expect.poll(() => trace().querySelector("[data-matching-width-rules]").textContent)
-      .toBe(evidence.matchingWidthRules.join("\n") || "No matching 137px CSSOM rules.");
+      .toBe(evidence.matchingWidthEvidence.map(entry => entry.cssText).join("\n") || "No matching 137px CSSOM rules.");
     const ledger = () => trace().querySelector("[data-rule-ledger]");
     await expect.poll(() => ledger().querySelector("summary").textContent).toBe(`All recorded insertion attempts (${attempts.length})`);
     await expect.poll(() => (ledger().querySelector("pre").textContent.match(/^#\d+ /gm) || []).length).toBe(attempts.length);
-    if (widthRule.blocked && evidence.matchingWidthRules.length) {
+    if (widthRule.blocked && evidence.matchingWidthEvidence.length) {
       await expect.poll(() => trace().textContent).toContain("Other width rules match the action, but this actor's recorded rule was still blocked.");
     }
     for (const event of attempts) {

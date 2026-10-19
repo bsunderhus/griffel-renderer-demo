@@ -1,5 +1,6 @@
 import { beforeEach, expect, onTestFinished } from "vitest";
 import { locators, page, userEvent } from "vitest/browser";
+import { siteRoute } from "../../src/site.js";
 
 locators.extend({
   getByCSS(selector) {
@@ -123,9 +124,9 @@ async function waitForApplicationReady(app) {
       return Boolean(window.threeActorResult);
     }).toBe(true);
   } else {
-    const route = current.pathname.replace(/^\/pages-preview(?=\/)/, "");
-    const selector = route === "/" ? ".walkthrough iframe" :
-      route === "/docs" ? ".conflict-guide" : ".grid > .card iframe";
+    const route = siteRoute(current.pathname.replace(/^\/pages-preview(?=\/)/, ""));
+    if (!["", "docs"].includes(route)) throw new Error(`Unknown application route: ${route}`);
+    const selector = route === "" ? ".walkthrough iframe" : ".conflict-guide";
     await expect.poll(() => applicationWindow(app).document.querySelectorAll(selector).length).toBeGreaterThan(0);
   }
 }
@@ -133,6 +134,10 @@ async function waitForApplicationReady(app) {
 export async function runExperiment(app, settings) {
   await navigateApplication(app, `/?${new URLSearchParams(settings)}`);
   return structuredClone(applicationWindow(app).threeActorResult);
+}
+
+export function appearanceStages(app) {
+  return structuredClone(applicationWindow(app).testAppearanceStages);
 }
 
 export async function waitForApplicationURL(app, url) {

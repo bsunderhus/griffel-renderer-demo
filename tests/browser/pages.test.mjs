@@ -21,13 +21,13 @@ test("the Pages artifact runs a live scenario under its sub-path", async ({ sign
 
 test("Pages navigation keeps the base for the playground and documentation", async ({ signal }) => {
   const app = await openApplication({ signal });
-  await navigateApplication(app, `${base}docs?coverage=shared`);
+  await navigateApplication(app, `${base}docs.html?coverage=shared`);
   const document = applicationWindow(app).document;
   const links = Array.from(document.querySelectorAll("a[href]"), link => new URL(link.href))
     .filter(url => url.origin === location.origin).map(url => url.pathname);
   expect(links.length).toBeGreaterThan(0);
   expect(links.filter(pathname => !pathname.startsWith(base))).toEqual([]);
-  await navigateApplication(app, base);
+  await navigateApplication(app, `${base}index.html`);
   expect(applicationWindow(app).document.querySelectorAll(".walkthrough iframe").length).toBeGreaterThan(0);
   for (const frame of applicationWindow(app).document.querySelectorAll("iframe")) {
     expect(new URL(frame.src).pathname.startsWith(base)).toBe(true);
@@ -43,4 +43,10 @@ test("Pages resolves legacy routes and aliases without server redirects", async 
   await waitForApplicationURL(app,
     `${origin}${base}?scenario=raw-marked-first&coverage=minimal&personaVersion=main-2026-10-16&hostPolicy=feedback-exception`);
   expect(applicationWindow(app).threeActorResult.id).toBe("raw-marked-first");
+});
+
+test("Pages omits the retired diagnostic routes and bundle", async () => {
+  for (const route of ["extracted", "runtime", "mechanisms", "integration.js"]) {
+    expect((await fetch(`${base}${route}`)).status).toBe(404);
+  }
 });
