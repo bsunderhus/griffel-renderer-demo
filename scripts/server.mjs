@@ -1,7 +1,7 @@
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { scenarioAliases, scenarioAliasVersions, scenarioAliasPolicies } from "./src/experiments/scenarios.js";
+import { scenarioAliases, scenarioAliasVersions, scenarioAliasPolicies } from "../src/experiments/scenarios.js";
 
 // Public allowlist shared by the local server and the static GitHub Pages artifact.
 export const SITE_FILES = {
@@ -43,7 +43,7 @@ export async function serveReproRequest(request, response) {
     return;
   }
   try {
-    const content = await readFile(new URL(`./dist/${file[0]}`, import.meta.url));
+    const content = await readFile(new URL(`../dist/${file[0]}`, import.meta.url));
     response.writeHead(200, { "Content-Type": file[1], "Cache-Control": "no-store" });
     response.end(content);
   } catch (error) {

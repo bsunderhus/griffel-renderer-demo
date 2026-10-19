@@ -3,8 +3,8 @@ import { copyFile, mkdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { SITE_FILES } from "./server.mjs";
 import webpack from "webpack";
-import { targets } from "./build/targets.mjs";
-import { createWebpackConfig } from "./build/webpack-config.mjs";
+import { targets } from "../build/targets.mjs";
+import { createWebpackConfig } from "../build/webpack-config.mjs";
 
 await mkdir("dist", { recursive: true });
 await build({

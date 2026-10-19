@@ -1,4 +1,4 @@
-import { serveReproRequest } from "../../server.mjs";
+import { serveReproRequest } from "../../scripts/server.mjs";
 import { readFile } from "node:fs/promises";
 import { extname } from "node:path";
 import { scenarioAliases } from "../../src/experiments/scenarios.js";

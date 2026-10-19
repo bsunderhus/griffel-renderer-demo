@@ -166,7 +166,7 @@ Pinned dependencies and generated classes are experimental inputs; preserve the
 lockfile rather than applying automatic upgrades.
 
 `npm run build` creates ignored local output in `dist/` and a static Pages
-artifact in `dist/pages/`, using the [server allowlist](server.mjs).
+artifact in `dist/pages/`, using the [server allowlist](scripts/server.mjs).
 Source maps are neither generated nor served. The unserved module inventory
 supports build assertions; it is not needed in a source export.
 

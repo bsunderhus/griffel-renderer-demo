@@ -1,6 +1,6 @@
 import { once } from "node:events";
 import { expect, test } from "vitest";
-import { createReproServer, SITE_FILES } from "../server.mjs";
+import { createReproServer, SITE_FILES } from "../scripts/server.mjs";
 import { scenarioAliases, scenarioAliasVersions, scenarioAliasPolicies } from "../src/experiments/scenarios.js";
 
 test("legacy HTTP redirects preserve status, settings and revision aliases", async ({ onTestFinished }) => {

@@ -23,7 +23,7 @@ Historical source observations below do not establish deployed product behavior.
 | Interpretation/UI | [analysis.js](../src/evidence/analysis.js), [presentation.js](../src/evidence/presentation.js), [controller.js](../src/evidence/controller.js) | Pure classification, cause-first rendering, refresh and disclosure state. |
 | Participants | [host/](../src/host/), [persona/](../src/persona/), [feedback/](../src/feedback/) | Each actor's UI, renderer, policy or transform, and lifecycle. |
 | Shared UI | [shared/](../src/shared/) | Neutral primitives compiled independently into each importing participant. |
-| Build/serve | [targets.mjs](../build/targets.mjs), [webpack-config.mjs](../build/webpack-config.mjs), [build.mjs](../build.mjs), [server.mjs](../server.mjs) | Independent builds, extraction/raw transforms, allowlisted local and Pages artifacts. |
+| Build/serve | [targets.mjs](../build/targets.mjs), [webpack-config.mjs](../build/webpack-config.mjs), [build.mjs](../scripts/build.mjs), [server.mjs](../scripts/server.mjs) | Independent builds, extraction/raw transforms, allowlisted local and Pages artifacts. |
 | Validation | [vitest.config.js](../vitest.config.js), [tests/](../tests/) | Unit, artifact and real-Chromium evidence checks. |
 
 ### Module contracts and dependency direction

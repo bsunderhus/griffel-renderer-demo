@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node build.mjs",
-    "start": "node server.mjs",
+    "build": "node scripts/build.mjs",
+    "start": "node scripts/server.mjs",
     "test": "npm run build && vitest run",
     "test:unit": "vitest run --project unit",
     "test:integration": "npm run build && vitest run --project integration --project browser",
