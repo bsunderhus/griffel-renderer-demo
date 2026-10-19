@@ -1,7 +1,7 @@
 import React from "react";
 import { hostPolicies, personaRevisions } from "../experiments/scenarios.js";
 
-export function HostSettings({ hostMode, coverage, personaVersion, hostPolicy, navigate }) {
+export function HostSettings({ hostMode, coverage, personaVersion, selectedHostPolicy, navigate }) {
   return (
     <details
       className="host-settings"
@@ -33,12 +33,12 @@ export function HostSettings({ hostMode, coverage, personaVersion, hostPolicy, n
           </p>
         </>
       )}
-      {hostPolicy && (
+      {selectedHostPolicy && (
         <>
           <label htmlFor="host-policy">Host filter revision </label>
           <select
             id="host-policy"
-            value={hostPolicy}
+            value={selectedHostPolicy}
             onChange={(event) => navigate({ hostPolicy: event.target.value })}
           >
             {Object.entries(hostPolicies).map(([value, label]) => (

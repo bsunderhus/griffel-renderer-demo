@@ -214,7 +214,7 @@ test("gallery host selection and canonical scenario navigation", async ({ signal
     .toBe("/?coverage=minimal");
   await expect
     .poll(() => Array.from(applicationWindow(app).document.querySelectorAll("nav a")).length)
-    .toBe(2);
+    .toBe(3);
   await expect
     .poll(
       () =>

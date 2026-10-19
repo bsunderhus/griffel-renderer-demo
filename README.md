@@ -58,20 +58,21 @@ not the identity of the writer. Rejected rules can remain cached, and existing
 matching CSS can mask their absence.
 
 The `/docs` page introduces the actors, animates their encounter, and provides
-a collapsed technical reference. The playground at `/` focuses on controls,
-live examples, and evidence.
+a collapsed technical reference. The baseline playground at `/` focuses on the
+reported failure. The separate `/proposal` playground models the proposed
+markerless prefix + salt solution.
 
-### Choose a configuration
+### Baseline playground
 
-**Advanced host control** applies four independent choices to the same baseline
-schedules:
+Its **Advanced host control** applies four independent settings to the same
+baseline schedules:
 
-| Choice               | Values                                           | Default               |
-| -------------------- | ------------------------------------------------ | --------------------- |
-| Persona version      | Pinned unguarded release / guarded main snapshot | `1.20260927.13.2`     |
-| Host filter revision | Sheet-only baseline / candidate prefix exception | `master` (sheet-only) |
-| Host CSS             | Extracted / runtime                              | Extracted             |
-| Component coverage   | Shared form controls / minimal avatar-only host  | Shared                |
+| Choice               | Values                                          | Default               |
+| -------------------- | ----------------------------------------------- | --------------------- |
+| Persona version      | Pinned release / guarded main snapshot          | `1.20260927.13.2`     |
+| Host filter revision | Sheet-only / Feedback-prefix exception          | `master` (sheet-only) |
+| Host CSS             | Extracted / runtime                             | Extracted             |
+| Component coverage   | Shared form controls / minimal avatar-only host | Shared                |
 
 The main snapshot is selected with `personaVersion=main-2026-10-16`; it is not
 evidence of a released or deployed consumer upgrade. The prefix exception is
@@ -81,8 +82,25 @@ also an unmerged candidate. See the
 Eight baseline schedules vary loading and lifecycle events, **not actor code**:
 single actors, both arrival orders, script preloading, Feedback reopening, and
 Persona remounting. They keep the same raw-style, salted, prefixed Feedback
-singleton. There are no alternate Feedback builds, extra actors, constructed
-collisions, forced-filter hosts, or ownership-fix scenarios.
+singleton. The baseline has no alternate Feedback build, extra actor, constructed
+collision, forced-filter host, or ownership-fix scenario. The opt-in candidate
+is kept in its own playground rather than as an advanced baseline setting.
+
+### Proposal playground
+
+Open `/proposal` or choose **Proposal playground** in the navigation. It keeps
+the candidate fixed: Persona uses actual Fluent raw-style modules in a separate
+bundle, retains its selector scope, adds an exact leading Persona comment,
+applies a distinct Griffel hash salt, and does not request the
+enhanced-specificity marker. The extracted host recognizes both exact
+integration prefixes. Only host build mode and host component coverage vary;
+Feedback and all eight schedules remain unchanged. Runtime mode is the control
+where the host filter is absent.
+
+The prefix permits insertion under the candidate host policy; the salt changes
+generated class names. Salt alone does not grant permission, prevent sheet
+sharing, or authenticate a rule prefix. This playground tests the proposed
+combined change, not production behavior or deployment readiness.
 
 Each example starts in a fresh iframe. Settings survive navigation and reload:
 
@@ -154,18 +172,19 @@ On supported Linux systems missing browser libraries, use
 `npx playwright install --with-deps chromium`; this may require administrator
 privileges.
 
-| Command                    | Scope                                                              |
-| -------------------------- | ------------------------------------------------------------------ |
-| `npm test`                 | Build all six participant targets and the app, then run all tests. |
-| `npm run test:unit`        | Fast Node checks without a build or browser.                       |
-| `npm run test:watch`       | Watch the unit project.                                            |
-| `npm run test:integration` | Build, then run artifact and browser projects.                     |
-| `npm run test:report`      | Build and run all tests with JSON and replayable blob reports.     |
+| Command                    | Scope                                                                |
+| -------------------------- | -------------------------------------------------------------------- |
+| `npm test`                 | Build all seven participant targets and the app, then run all tests. |
+| `npm run test:unit`        | Fast Node checks without a build or browser.                         |
+| `npm run test:watch`       | Watch the unit project.                                              |
+| `npm run test:integration` | Build, then run artifact and browser projects.                       |
+| `npm run test:report`      | Build and run all tests with JSON and replayable blob reports.       |
 
 After a fresh build, use Vitest file/name filters without rebuilding:
 
 ```sh
 npx vitest run tests/source/run.test.mjs tests/source/schedules.test.mjs
+npx vitest run tests/source/solution.test.mjs
 npx vitest run tests/browser/adoption.test.mjs
 npx vitest run --project browser -t raw-marked-first
 ```
@@ -187,9 +206,10 @@ Lint and formatting checks are separate commands; `npm test` remains the behavio
 
 ## Build and hosting
 
-The [build manifest](build/targets.mjs) keeps six webpack targets independent:
-four host build/coverage combinations, Persona, and candidate-aligned raw Feedback.
-esbuild separately bundles the playground app. Do not combine the renderers.
+The [build manifest](build/targets.mjs) keeps seven webpack targets independent:
+four host build/coverage combinations, baseline Persona, a separate raw-style
+Persona bundle for prefix profiles, and raw Feedback. esbuild separately
+bundles the playground app. Do not combine the renderers.
 Pinned dependencies and generated classes are experimental inputs; preserve the
 lockfile rather than applying automatic upgrades.
 

@@ -48,14 +48,14 @@ export async function assertGalleryGuide(app, url) {
   }
   await app
     .getByRole("link", {
-      name: "Playground",
+      name: "Baseline playground",
       exact: true,
     })
     .click();
   await expect
     .element(
       app.getByRole("link", {
-        name: "Playground",
+        name: "Baseline playground",
         exact: true,
       }),
     )
@@ -78,7 +78,7 @@ export async function assertGalleryGuide(app, url) {
   await expect
     .element(
       app.getByRole("link", {
-        name: "Playground",
+        name: "Baseline playground",
         exact: true,
       }),
     )

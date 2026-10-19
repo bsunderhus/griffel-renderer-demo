@@ -86,7 +86,7 @@ test(
     }
     await app.getByRole("link", { name: "Documentation", exact: true }).click();
     await waitForApplicationURL(app, `${location.origin}/docs?hostPolicy=feedback-exception`);
-    await app.getByRole("link", { name: "Playground", exact: true }).click();
+    await app.getByRole("link", { name: "Baseline playground", exact: true }).click();
     await waitForApplicationURL(app, `${location.origin}/?hostPolicy=feedback-exception`);
     await app.getByCSS(".host-settings > summary").click();
     await app.getByLabelText("Host filter revision", { exact: true }).selectOptions("master");
@@ -101,6 +101,45 @@ test(
     ).toBeGreaterThan(0);
   },
 );
+test("proposal playground is a separate route with a fixed candidate and baseline navigation", async ({
+  signal,
+}) => {
+  const app = await openApplication({ signal });
+  await navigateApplication(app, "/");
+  expect(applicationWindow(app).document.querySelector("#solution")).toBeNull();
+  await app.getByRole("link", { name: "Proposal playground", exact: true }).click();
+  await waitForApplicationURL(app, `${location.origin}/proposal`);
+  await expect
+    .element(app.getByRole("heading", { name: "Test the prefix + salt proposal" }))
+    .toBeVisible();
+  const proposalDocument = applicationWindow(app).document;
+  expect(proposalDocument.querySelector("#solution")).toBeNull();
+  expect(proposalDocument.querySelector("#persona-version")).toBeNull();
+  expect(proposalDocument.querySelector("#host-policy")).toBeNull();
+  const candidateFrame = applicationFrame(app, "#raw-marked-first iframe");
+  await waitForElement(() =>
+    applicationWindow(candidateFrame).document.querySelector("[data-host-contract]"),
+  );
+  const candidate = applicationWindow(candidateFrame).threeActorResult;
+  expect(candidate.policy).toBe("integration-prefixes");
+  expect(candidate.solution).toBe("prefix-salted");
+  expect(candidate.configuration.persona.profile).toBe("prefix-salted");
+  expect(
+    new URL(
+      applicationWindow(app).document.querySelector("#raw-marked-first a").href,
+    ).searchParams.get("scenario"),
+  ).toBe("raw-marked-first");
+  await app.getByRole("link", { name: "Baseline playground", exact: true }).click();
+  await waitForApplicationURL(app, `${location.origin}/`);
+  const baselineFrame = applicationFrame(app, "#raw-marked-first iframe");
+  await waitForElement(() =>
+    applicationWindow(baselineFrame).document.querySelector("[data-host-contract]"),
+  );
+  expect(applicationWindow(baselineFrame).threeActorResult.solution).toBe("baseline");
+  expect(applicationWindow(baselineFrame).threeActorResult.configuration.persona.profile).toBe(
+    "historical",
+  );
+});
 const galleries = Object.keys(personaRevisions).flatMap((personaVersion) =>
   ["extracted", "runtime"].flatMap((hostMode) =>
     ["shared", "minimal"].map((coverage) => ({

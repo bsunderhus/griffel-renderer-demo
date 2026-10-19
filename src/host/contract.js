@@ -5,7 +5,7 @@ export function resolveHostContract(
   if (contract !== "production-extraction") {
     throw new Error(`Unknown host contract: ${contract}`);
   }
-  if (!["master", "feedback-exception"].includes(policy)) {
+  if (!["master", "feedback-exception", "integration-prefixes"].includes(policy)) {
     throw new Error(`Unknown host policy: ${policy}`);
   }
   const usesExtraction = environment === "production" && extracted;

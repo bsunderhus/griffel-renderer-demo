@@ -69,6 +69,8 @@ export function createObservation(doc, hostStylesheet) {
       priority: element?.getAttribute("data-priority"),
       enhanced: Boolean(element?.dataset.demoAllowRules),
       feedbackPrefix: rule.startsWith("/* demo-feedback */"),
+      personaPrefix: rule.startsWith("/* demo-persona */"),
+      authorizedByPrefix: reason === "feedback rule prefix" || reason === "integration rule prefix",
       personaScope: rule.includes(".demo-contact-scope"),
     };
     events.push(event);

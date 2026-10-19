@@ -43,11 +43,20 @@ const baselineContent = {
   ],
 };
 
-export function getScenarioContent(config, personaVersion) {
+export function getScenarioContent(config, personaVersion, solution = "baseline") {
   const content = baselineContent[config.id];
   if (!content) {
     throw new Error(`Missing scenario content for ${config.id}`);
   }
   const [title, takeaway, description] = content;
-  return { title: `${personaRevisions[personaVersion].label}: ${title}`, takeaway, description };
+  const personaLabel =
+    solution === "baseline" ? personaRevisions[personaVersion].label : "Persona prefix + salt";
+  return {
+    title: `${personaLabel}: ${title}`,
+    takeaway,
+    description:
+      solution === "baseline"
+        ? description
+        : `Markerless Persona rules use an exact prefix and distinct hash salt. ${description}`,
+  };
 }

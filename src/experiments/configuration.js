@@ -1,6 +1,8 @@
 import { inspectedFeedbackOptions } from "../feedback/profile.js";
 import { hostPolicies, personaRevisions } from "./scenarios.js";
 
+export const SOLUTION_ROUTE = "proposal";
+
 const HOST_BUILDS = {
   extracted: {
     minimal: ["/host-extracted.js", "/griffel.css"],
@@ -9,30 +11,46 @@ const HOST_BUILDS = {
   runtime: { minimal: ["/host-runtime.js"], shared: ["/shared/host-runtime.js"] },
 };
 
-export function resolveHostSettings(search) {
+export function resolveHostSettings(search, solution = "baseline") {
   const params = new URLSearchParams(search);
   const hostMode = params.get("host") || "extracted";
   const coverage = params.get("coverage") || "shared";
-  const personaVersion = params.get("personaVersion") || "1.20260927.13.2";
-  const hostPolicy = params.get("hostPolicy") || "master";
+  const personaVersion =
+    solution === "baseline" ? params.get("personaVersion") || "1.20260927.13.2" : null;
+  const selectedHostPolicy = params.get("hostPolicy") || "master";
   if (!Object.hasOwn(HOST_BUILDS, hostMode)) {
     throw new Error(`Unknown host mode: ${hostMode}`);
   }
   if (!Object.hasOwn(HOST_BUILDS[hostMode], coverage)) {
     throw new Error(`Unknown host coverage: ${coverage}`);
   }
-  if (!Object.hasOwn(personaRevisions, personaVersion)) {
+  if (!["baseline", "prefix-salted"].includes(solution)) {
+    throw new Error(`Unknown solution experiment: ${solution}`);
+  }
+  if (solution === "prefix-salted" && (params.has("personaVersion") || params.has("hostPolicy"))) {
+    throw new Error("The proposal playground does not accept baseline-only settings");
+  }
+  if (solution === "baseline" && !Object.hasOwn(personaRevisions, personaVersion)) {
     throw new Error(`Unknown Persona version: ${personaVersion}`);
   }
-  if (!Object.hasOwn(hostPolicies, hostPolicy)) {
-    throw new Error(`Unknown host filter revision: ${hostPolicy}`);
+  if (solution === "baseline" && !Object.hasOwn(hostPolicies, selectedHostPolicy)) {
+    throw new Error(`Unknown host filter revision: ${selectedHostPolicy}`);
   }
   const [script, stylesheet] = HOST_BUILDS[hostMode][coverage];
+  const hostPolicy = solution === "prefix-salted" ? "integration-prefixes" : selectedHostPolicy;
   return {
     hostMode,
     coverage,
     personaVersion,
     hostPolicy,
+    selectedHostPolicy,
+    solution,
+    personaProfile:
+      solution === "baseline" ? personaRevisions[personaVersion].profile : "prefix-salted",
+    personaLabel:
+      solution === "baseline"
+        ? personaRevisions[personaVersion].label
+        : "Persona prefix + salt proposal",
     script,
     stylesheet,
     extracted: hostMode === "extracted",
@@ -40,7 +58,7 @@ export function resolveHostSettings(search) {
   };
 }
 
-export function resolveExperiment(config, search) {
+export function resolveExperiment(config, search, solution = "baseline") {
   if (
     !Array.isArray(config.order) ||
     !config.order.length ||
@@ -49,9 +67,9 @@ export function resolveExperiment(config, search) {
   ) {
     throw new Error(`Invalid integration order for ${config.id}`);
   }
-  const hostSettings = resolveHostSettings(search);
-  const personaRevision = hostSettings.personaVersion;
-  const personaProfile = personaRevisions[personaRevision].profile;
+  const hostSettings = resolveHostSettings(search, solution);
+  const personaRevision = hostSettings.solution === "baseline" ? hostSettings.personaVersion : null;
+  const personaProfile = hostSettings.personaProfile;
   if (
     config.kind !== "baseline" ||
     config.hostContract !== "production-extraction" ||
@@ -68,6 +86,7 @@ export function resolveExperiment(config, search) {
     ...hostSettings,
     id: config.id,
     kind: "baseline",
+    solution: hostSettings.solution,
     policy: hostSettings.hostPolicy,
     order: config.order,
     schedule: config.schedule,

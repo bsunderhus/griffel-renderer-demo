@@ -1,16 +1,10 @@
 import React from "react";
 import { HostSettings } from "./HostSettings.jsx";
-import { ScenarioCard } from "./ScenarioCard.jsx";
 import { Navigation } from "./Navigation.jsx";
-import { getThreeActorCases } from "./scenarios.js";
+import { ScenarioList } from "./ScenarioList.jsx";
 import { sitePath } from "../site.js";
 
 export function ThreeActorGallery({ settings }) {
-  const threeActorCases = getThreeActorCases(settings.personaVersion);
-  const cards = (configs) =>
-    configs.map((config, index) => (
-      <ScenarioCard key={config.id} config={config} index={index} {...settings} />
-    ));
   function navigate(changes) {
     const next = new URLSearchParams(location.search);
     for (const [key, value] of Object.entries(changes)) {
@@ -42,13 +36,11 @@ export function ThreeActorGallery({ settings }) {
       </p>
       <HostSettings {...settings} navigate={navigate} />
       <section aria-label="Primary integration examples">
-        <h2 className="section-title">Baseline: fixed actors, different schedules</h2>
+        <h2 className="section-title">Baseline: fixed schedules</h2>
         <p>
-          Use <strong>Persona version</strong> in Advanced host control to switch the same schedules
-          between Persona 1.20260927.13.2 and Persona main snapshot (2026-10-16). Host filter
-          revision is a separate configuration axis. Feedback always uses the same inspected
-          profile. Script evaluation, mounting, and reopening are explicit events; no scenario
-          changes the actors to manufacture a timing failure.
+          These scenarios preserve the inspected actors while varying load, mount, and remount
+          schedules. The separate <a href={sitePath("proposal")}>proposal playground</a> tests the
+          proposed prefix + salt change.
         </p>
         {settings.hostMode === "runtime" && (
           <p className="note">
@@ -56,7 +48,7 @@ export function ThreeActorGallery({ settings }) {
             filter. Adoption alone does not reject rules.
           </p>
         )}
-        {cards(threeActorCases)}
+        <ScenarioList settings={settings} />
       </section>
     </main>
   );

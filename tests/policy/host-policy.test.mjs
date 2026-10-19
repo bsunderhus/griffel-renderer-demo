@@ -2,7 +2,7 @@ import { installHostPolicy } from "../../src/host/policy.js";
 import { expect, onTestFinished, test, vi } from "vitest";
 
 // Test exact predicate semantics, including truthy string dataset values and prefix position.
-test.each(["master", "feedback-exception"])(
+test.each(["master", "feedback-exception", "integration-prefixes"])(
   "host policy %s preserves exact insertion semantics",
   (mode) => {
     class Sheet {
@@ -33,12 +33,16 @@ test.each(["master", "feedback-exception"])(
       [{}, ".x{color:red}", false],
       [{ makeStylesBucket: "d" }, "/* demo-feedback */.x{color:red}", true],
       [{ makeStylesBucket: "d" }, " /* demo-feedback */.x{color:red}", true],
+      [{ makeStylesBucket: "d" }, "/* demo-persona */.x{color:red}", true],
+      [{ makeStylesBucket: "d" }, " /* demo-persona */.x{color:red}", true],
       [{ makeStylesBucket: "d" }, ".x{color:red}", false, "LINK"],
     ]) {
       const sheet = new Sheet(dataset, nodeName);
-      const blocked =
-        blockedByMaster &&
-        !(mode === "feedback-exception" && rule.startsWith("/* demo-feedback */"));
+      const acceptedPrefix =
+        (mode === "feedback-exception" && rule.startsWith("/* demo-feedback */")) ||
+        (mode === "integration-prefixes" &&
+          (rule.startsWith("/* demo-feedback */") || rule.startsWith("/* demo-persona */")));
+      const blocked = blockedByMaster && !acceptedPrefix;
       expect(sheet.insertRule(rule, 0)).toBe(blocked ? 0 : 7);
       expect(sheet.calls).toBe(blocked ? 0 : 1);
       expect(decisions.at(-1).blocked).toBe(blocked);

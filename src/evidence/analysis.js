@@ -23,7 +23,9 @@ function insertionCause(actor, attempts, policy, sharedWith) {
     explanations.push(
       policy === "master"
         ? "The sheet-only host filter permits only destinations with a truthy enhanced-specificity attribute; a rule prefix cannot bypass it."
-        : "The host's prefix exception did not apply: the blocked rules have no Feedback prefix.",
+        : policy === "integration-prefixes"
+          ? "The host permits only the marked destination or the exact integration rule prefixes; the blocked rule matched neither."
+          : "The host's Feedback-prefix exception did not apply: the blocked rules have no Feedback prefix.",
     );
     explanations.push("The host skipped native insertion for those rules.");
   }
@@ -33,6 +35,11 @@ function insertionCause(actor, attempts, policy, sharedWith) {
   if (policy === "feedback-exception" && allowed.some((event) => event.feedbackPrefix)) {
     explanations.push(
       "Feedback's rule prefix grants insertion permission, even in a sheet without the enhanced-specificity attribute.",
+    );
+  }
+  if (policy === "integration-prefixes" && allowed.some((event) => event.authorizedByPrefix)) {
+    explanations.push(
+      "The host admitted an exact Persona or Feedback rule prefix; the destination sheet itself did not need the enhanced-specificity attribute.",
     );
   }
   const marked = allowed.filter(
@@ -134,6 +141,7 @@ export function analyzeEvidence(result) {
               !event.blocked &&
               event.reason === "enhanced sheet" &&
               event.creator !== actor &&
+              !event.authorizedByPrefix &&
               !(result.policy === "feedback-exception" && event.feedbackPrefix),
           ).length,
           tone: missing ? "missing" : warning ? "bypass" : "",

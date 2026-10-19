@@ -87,7 +87,7 @@ and the inspected candidate host exception are distinct controls.
 See the [dated source recheck](docs/RESEARCH.md#current-source-recheck-2026-10-16)
 for corroboration and deployment limits.
 
-The fidelity pass leaves one runner, eight schedules and six participant build
+The fidelity pass leaves one runner, eight schedules and six baseline participant build
 targets. Full validation now passes 235 Vitest tests across 20 files, without
 skips, including nine code-quality configuration checks. The fidelity pass removes
 precompiled/unsalted Feedback, the extra seed actor, forced host filtering,
@@ -106,28 +106,34 @@ when cleanup itself fails. These are lifecycle checks, not new scenarios.
 
 ## 3. Compare solution experiments
 
-**Next gate:** establish a source-backed, explicitly approved hypothesis before
-adding any solution experiment. The possible directions below are unimplemented
-research options, not baseline findings or authorization to invent actor behavior.
-Preserve the version-pinned failures and record who must change.
+**Current status:** the user-approved markerless Persona + exact rule prefix +
+distinct hash salt proposal has a dedicated `/proposal` playground. The
+version-pinned baseline remains separate and unchanged. This validates the
+modeled permission mechanism, not a production rollout or a solution
+recommendation.
 
-| Candidate                         | Experiment                                                   | Required trade-off checks                                                            |
-| --------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
-| Explicit renderer/sheet ownership | Prevent incompatible adoption                                | Public library feasibility; never simulate ownership by relabeling adopted sheets.   |
-| Supported host insertion contract | Permit legitimate runtime styles without borrowed permission | Compatibility, enforcement limits and public API support.                            |
-| Consistent class namespacing      | Separate custom and component rules                          | Raw/precompiled differences, build cost and residual sheet sharing.                  |
-| Shadow DOM                        | Separate matching and style destinations                     | Portals, theme propagation, focus, accessibility and renderer document/root support. |
-| Iframe                            | Separate documents/renderers                                 | Layout, focus, accessibility, communication and resource cost.                       |
+| Candidate                         | Experiment                                        | Required trade-off checks                                                                |
+| --------------------------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Explicit renderer/sheet ownership | Prevent incompatible adoption                     | Public library feasibility; never simulate ownership by relabeling adopted sheets.       |
+| Prefix + salted classes           | Accept known prefixes; salt raw styles            | Prefixes do not authenticate writers; salt does not permit insertion or prevent sharing. |
+| Supported host insertion contract | Permit runtime styles without borrowed permission | Compatibility, enforcement limits and public API support.                                |
+| Shadow DOM                        | Separate matching and style destinations          | Portals, theme propagation, focus, accessibility and renderer document/root support.     |
+| Iframe                            | Separate documents/renderers                      | Layout, focus, accessibility, communication and resource cost.                           |
 
-- [ ] Select a source-backed solution hypothesis before implementing a comparison.
+- [x] Select the source-backed, user-approved prefix + salt hypothesis.
+- [x] Implement the candidate in its own playground without changing the
+      baseline actor contract.
+- [x] Test both host modes, both coverage profiles, all eight schedules, native
+      insertion/CSSOM evidence, marker state and exact rule prefixes.
 - [ ] Check ownership feasibility against the pinned public Griffel APIs.
 - [ ] Prototype containment alternatives only with portal, theme and interaction checks.
 - [ ] Compare correctness, compatibility, cost and migration requirements.
 
-**Exit gate:** each candidate has executable evidence, known limitations and an
-answer to who must change: library, host, integration or build. Verify enabled/
-disabled paths, arrival order and relevant host coverage. Do not silently broaden
-permission, replace the baseline, or call the insertion filter a security boundary.
+**Remaining gate:** evaluate ownership, compatibility, cost and required
+production changes before recommending anything. The proposal tests prefix and
+salt together; salt alone does not fix insertion rejection. Do not silently
+broaden permission, replace the baseline, or call the insertion filter a
+security boundary.
 
 ## 4. Build the multi-integration coexistence lab
 

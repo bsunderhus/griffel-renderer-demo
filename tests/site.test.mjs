@@ -17,6 +17,9 @@ test("routes ignore static hosting suffixes", () => {
   for (const pathname of ["/docs", "/docs/", "/docs.html"]) {
     expect(siteRoute(pathname)).toBe("docs");
   }
+  for (const pathname of ["/proposal", "/proposal/", "/proposal.html"]) {
+    expect(siteRoute(pathname)).toBe("proposal");
+  }
 });
 
 test("canonical routes retain static hosting support under a sub-path", () => {
@@ -26,5 +29,8 @@ test("canonical routes retain static hosting support under a sub-path", () => {
   }
   for (const route of ["docs", "docs/", "docs.html"]) {
     expect(siteRoute(`${base}${route}`, base)).toBe("docs");
+  }
+  for (const route of ["proposal", "proposal/", "proposal.html"]) {
+    expect(siteRoute(`${base}${route}`, base)).toBe("proposal");
   }
 });

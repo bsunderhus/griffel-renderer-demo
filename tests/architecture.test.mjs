@@ -47,13 +47,19 @@ test("participant imports respect module boundaries", async () => {
 
 test("scenario definitions and configuration validation preserve the research contract", async () => {
   const threeActorCases = getThreeActorCases();
-  expect(targets).toHaveLength(6);
-  expect(new Set(targets.map((target) => target.name)).size).toBe(6);
+  expect(targets).toHaveLength(7);
+  expect(new Set(targets.map((target) => target.name)).size).toBe(7);
   expect(experiments.map(({ id }) => id)).toStrictEqual(threeActorCases.map(({ id }) => id));
   expect(experiments).toHaveLength(8);
   expect(new Set(experiments.map((config) => config.id)).size).toBe(experiments.length);
   expect(threeActorCases).toHaveLength(8);
   expect(resolveHostSettings("").hostPolicy).toBe("master");
+  expect(resolveHostSettings("").solution).toBe("baseline");
+  expect(resolveHostSettings("", "prefix-salted").hostPolicy).toBe("integration-prefixes");
+  expect(resolveHostSettings("", "prefix-salted").personaProfile).toBe("prefix-salted");
+  expect(() => resolveHostSettings("?personaVersion=main-2026-10-16", "prefix-salted")).toThrow(
+    /does not accept baseline-only settings/,
+  );
   expect(resolveHostSettings("").personaVersion).toBe("1.20260927.13.2");
   for (const version of Object.keys(personaRevisions)) {
     const cases = getThreeActorCases(version);
@@ -106,6 +112,7 @@ test("scenario definitions and configuration validation preserve the research co
   ).toThrow(/Baseline actors cannot be overridden/);
   expect(() => resolveHostSettings("?personaVersion=unknown")).toThrow(/Unknown Persona version/);
   expect(() => resolveHostSettings("?hostPolicy=unknown")).toThrow(/Unknown host filter revision/);
+  expect(() => resolveHostSettings("", "unknown")).toThrow(/Unknown solution experiment/);
   expect(
     await readFile("src/experiments/run.js", "utf8"),
     "The harness must not install or implement the participant-owned insertion policy",

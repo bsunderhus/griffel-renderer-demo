@@ -35,12 +35,14 @@ another participant, the gallery, evidence, or orchestration. Mounts expose
 renderer/lifecycle handles through bundle adapters; the host also exposes
 insertion decisions and runtime-call counts.
 
-Six webpack targets preserve separate Griffel copies: minimal/shared hosts
-in extracted/runtime modes, Persona, and candidate-aligned raw Feedback. React is
-shared through browser globals; Griffel is not. The minimal host imports only
+Seven webpack targets preserve separate Griffel copies: minimal/shared hosts
+in extracted/runtime modes, baseline Persona, a separately bundled raw-style
+Persona profile used by the prefix candidates, and candidate-aligned raw
+Feedback. React is shared through browser globals; Griffel is not. The minimal host imports only
 its avatar UI, with no hidden Button/Label/Textarea imports or extracted CSS.
-The raw Feedback build substitutes public Fluent `.styles.raw.js` modules when
-available. Feedback has no precompiled or unsalted variant in this experiment.
+The raw Feedback and Persona candidate builds substitute public Fluent
+`.styles.raw.js` modules when available. Baseline Feedback has no precompiled or
+unsalted variant in this experiment.
 [Architecture](../tests/architecture.test.mjs) and
 [artifact assertions](../tests/architecture-build.test.mjs) enforce these boundaries.
 Motion 14.3.0 (MIT) is limited to the esbuild app's documentation transitions;
@@ -60,13 +62,16 @@ are the pinned release, sheet-only policy, extracted host and shared coverage.
 The [registry](../src/experiments/scenarios.js) has eight schedules, all using
 these fixed actors. The UI, attribute names, salt and prefix are public
 sanitizations; they are not claims of byte-for-byte product equivalence.
+The baseline page has no solution selector. Candidate behavior is isolated at
+the `/proposal` route and never rewrites baseline actor inputs.
 
-| Participant/profile                        | Contract under test                                                                                                                                                                              |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Host `production-extraction`               | Production plus extraction selects a no-op renderer and installs the filter in a host layout effect. Runtime mode uses a DOM renderer and no filter. Installation is idempotent per document.    |
-| Persona `1.20260927.13.2` (`historical`)   | Scoped renderer per provider mount, requesting the enhanced-specificity attribute, without an adopted-handle guard. Pinned by the inspected bootstrapper, not proof of deployed assets.          |
-| Persona `main-2026-10-16` (`marker-guard`) | Same scoped workload; discards adopted handles whose enhanced-specificity attribute is not exactly `"true"`. A release or consumer deployment containing the guard is unverified.                |
-| Feedback `inspected`                       | Independently compiled raw Fluent styles, module-level salted renderer, prefixed atomic/reset rules, and no requested enhanced-specificity attribute. Mounts reject renderer/workload overrides. |
+| Participant/profile                        | Contract under test                                                                                                                                                                                                                 |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Host `production-extraction`               | Production plus extraction selects a no-op renderer and installs the filter in a host layout effect. Runtime mode uses a DOM renderer and no filter. Installation is idempotent per document.                                       |
+| Persona `1.20260927.13.2` (`historical`)   | Scoped renderer per provider mount, requesting the enhanced-specificity attribute, without an adopted-handle guard. Pinned by the inspected bootstrapper, not proof of deployed assets.                                             |
+| Persona `main-2026-10-16` (`marker-guard`) | Same scoped workload; discards adopted handles whose enhanced-specificity attribute is not exactly `"true"`. A release or consumer deployment containing the guard is unverified.                                                   |
+| Feedback `inspected`                       | Independently compiled raw Fluent styles, module-level salted renderer, prefixed atomic/reset rules, and no requested enhanced-specificity attribute. Mounts reject renderer/workload overrides.                                    |
+| Persona `prefix-salted` candidate          | Separate bundle using actual Fluent raw styles, existing selector scope, a distinct runtime hash salt and exact leading Persona prefix; creates markerless sheets. This is an explicit proposal experiment, not a baseline profile. |
 
 Baseline validation rejects actor overrides, seeds and forced filtering. Every
 schedule retains the inspected Feedback actor. Configuration/artifacts are
@@ -107,7 +112,7 @@ mount carries renderer bucket metadata or the Feedback prefix.
 
 ### Canonical navigation
 
-The only application routes are `/` and `/docs`. `/source`, `/three-actors`,
+The application routes are `/`, `/proposal` and `/docs`. `/source`, `/three-actors`,
 their generated compatibility pages, and all scenario aliases are retired.
 Old routes return 404; unknown scenario IDs are rejected, not remapped.
 Use the eight IDs in [scenarios.js](../src/experiments/scenarios.js), with
@@ -141,10 +146,12 @@ meaning; Persona's extra selector supplies specificity. The host accepts a
 truthy attribute value, whereas main Persona's guard requires exactly `"true"`.
 Thus the string `"false"` passes host truthiness but fails Persona's guard.
 
-The host's `master` policy permits destinations with a truthy attribute.
+The baseline host's `master` policy permits destinations with a truthy attribute.
 `feedback-exception` additionally accepts the exact leading
-`/* demo-feedback */` prefix. Filtering is disabled only by the host build gate,
-not a selectable `off` override. A blocked `insertRule`
+`/* demo-feedback */` prefix. On an unmarked Griffel destination, the candidate
+`integration-prefixes` policy accepts exact leading Persona and Feedback
+prefixes. Filtering is disabled only by the host build gate, not a selectable `off`
+override. A blocked `insertRule`
 returns zero without native insertion or an exception. Native insertion can
 also successfully return index zero, so the return value alone is not a verdict.
 
@@ -165,6 +172,33 @@ Shared matching CSS can mask rejection, which is why host coverage is independen
 of build mode. The retained schedules do not establish a host-background change.
 Sharing and foreign selector matches remain reported rather than treated as
 damage. These are bounded findings, not universal Griffel guarantees or security boundaries.
+
+## Separate prefix + salt proposal playground
+
+The `/proposal` route keeps the eight schedules and inspected Feedback actor
+fixed while replacing only Persona's renderer bundle/profile. It uses the
+same public Fluent `.styles.raw.js` modules as the Feedback bundle, keeps
+Persona's existing selector scope, sets `classNameHashSalt` to a distinct
+fictional value, prepends an exact fictional Persona comment to each generated
+rule, and omits the enhanced-specificity marker. The extracted host's
+`integration-prefixes` policy recognizes both exact leading prefixes. The
+proposal configuration is fixed on this page; it is not an advanced host
+control on the baseline playground.
+
+The Chromium matrix covers all eight schedules, extracted/runtime host builds,
+and minimal/shared host coverage (32 cases). Under the extracted two-prefix
+policy, markerless Persona and unchanged Feedback rules reach native insertion
+and remain in CSSOM. Runtime mode installs no host filter. Assertions inspect
+marker state, rule prefixes, cache entries, native insertion/CSSOM presence,
+host policy, and appearance presentation.
+
+This demonstrates the modeled permission mechanism and the candidate's
+class-naming input, not production behavior. Prefix checks are
+compatibility signals, not writer authentication; another stylesheet can
+still be adopted, and sheet sharing remains independently reported. A salt
+does not grant insertion permission or prevent sharing. The experiment does not
+establish that either product can safely deploy the protocol, that all rules
+carry the prefix, or that the source change is available in a released build.
 
 ## Evidence contract
 

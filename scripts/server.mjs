@@ -5,11 +5,14 @@ import { fileURLToPath } from "node:url";
 // Public allowlist shared by the local server and the static GitHub Pages artifact.
 export const SITE_FILES = {
   "/": ["index.html", "text/html"],
+  "/proposal": ["index.html", "text/html"],
   "/docs": ["index.html", "text/html"],
   "/app.js": ["app.js", "text/javascript"],
   "/host-extracted.js": ["host-extracted.js", "text/javascript"],
   "/host-runtime.js": ["host-runtime.js", "text/javascript"],
   "/persona.js": ["persona.js", "text/javascript"],
+  "/persona-raw.js": ["persona-raw.js", "text/javascript"],
+  "/persona-raw-modules.json": ["persona-raw-modules.json", "application/json"],
   "/feedback-raw.js": ["feedback-raw.js", "text/javascript"],
   "/feedback-raw-modules.json": ["feedback-raw-modules.json", "application/json"],
   "/griffel.css": ["griffel.css", "text/css"],

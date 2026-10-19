@@ -18,12 +18,14 @@ await copyFile("index.html", "dist/index.html");
 
 const rawModules = [];
 const bundleModules = {};
+const rawModuleSets = {};
 function moduleNames(modules) {
   return modules
     .flatMap((module) => [module.name, ...moduleNames(module.modules || [])])
     .filter(Boolean);
 }
 for (const target of targets) {
+  const rawModuleStart = rawModules.length;
   await new Promise((resolve, reject) => {
     const compiler = webpack(createWebpackConfig(target, rawModules));
     compiler.run((error, stats) =>
@@ -44,10 +46,15 @@ for (const target of targets) {
       }),
     );
   });
+  rawModuleSets[target.name] = rawModules.slice(rawModuleStart);
 }
 await writeFile(
   "dist/feedback-raw-modules.json",
-  JSON.stringify([...new Set(rawModules)].sort(), null, 2),
+  JSON.stringify([...new Set(rawModuleSets["feedback-raw"])].sort(), null, 2),
+);
+await writeFile(
+  "dist/persona-raw-modules.json",
+  JSON.stringify([...new Set(rawModuleSets["persona-raw"])].sort(), null, 2),
 );
 await writeFile("dist/bundle-modules.json", JSON.stringify(bundleModules, null, 2));
 

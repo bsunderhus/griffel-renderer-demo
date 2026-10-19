@@ -52,12 +52,25 @@ test.for([
   { url: "/?scenario=unknown", message: "Unknown scenario: unknown" },
   { url: "/?scenario=marker-guard", message: "Unknown scenario: marker-guard" },
   { url: "/?scenario=", message: "Unknown scenario: " },
+  {
+    url: "/proposal?personaVersion=main-2026-10-16",
+    message: "The proposal playground does not accept baseline-only settings",
+  },
   ...["/", "/docs", "/?scenario=persona-alone"].flatMap((route) =>
     [
       ["host", "Unknown host mode"],
       ["coverage", "Unknown host coverage"],
       ["personaVersion", "Unknown Persona version"],
       ["hostPolicy", "Unknown host filter revision"],
+    ].map(([key, label]) => ({
+      url: `${route}${route.includes("?") ? "&" : "?"}${key}=unknown`,
+      message: `${label}: unknown`,
+    })),
+  ),
+  ...["/proposal", "/proposal?scenario=persona-alone"].flatMap((route) =>
+    [
+      ["host", "Unknown host mode"],
+      ["coverage", "Unknown host coverage"],
     ].map(([key, label]) => ({
       url: `${route}${route.includes("?") ? "&" : "?"}${key}=unknown`,
       message: `${label}: unknown`,

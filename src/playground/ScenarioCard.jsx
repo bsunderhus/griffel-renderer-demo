@@ -2,11 +2,28 @@ import React from "react";
 import { personaRevisions } from "../experiments/scenarios.js";
 import { sitePath } from "../site.js";
 
-export function ScenarioCard({ config, index, hostMode, coverage, personaVersion, hostPolicy }) {
-  const url = sitePath(
-    `?scenario=${config.id}&host=${hostMode}&coverage=${coverage}&personaVersion=${personaVersion}&hostPolicy=${hostPolicy}`,
-  );
-  const revision = personaRevisions[personaVersion];
+export function ScenarioCard({
+  config,
+  index,
+  hostMode,
+  coverage,
+  personaVersion,
+  hostPolicy,
+  selectedHostPolicy,
+  solution,
+}) {
+  const params = new URLSearchParams({
+    scenario: config.id,
+    host: hostMode,
+    coverage,
+  });
+  const route = solution === "baseline" ? "" : "proposal";
+  if (solution === "baseline") {
+    params.set("personaVersion", personaVersion);
+    params.set("hostPolicy", selectedHostPolicy);
+  }
+  const url = sitePath(`${route}?${params}`);
+  const revision = solution === "baseline" ? personaRevisions[personaVersion] : null;
   const loadOrder = [
     "Host ready",
     ...config.schedule.map(
@@ -18,22 +35,34 @@ export function ScenarioCard({ config, index, hostMode, coverage, personaVersion
       className="card walkthrough"
       id={config.id}
       data-scenario-contract="source-aligned"
-      data-scenario-kind={revision.kind}
+      data-scenario-kind={revision?.kind || "proposal"}
     >
       <h2>
         {index + 1}. {config.title}
       </h2>
       <p className="note">
         <>
-          {revision.kind === "release"
-            ? "Pinned release renderer; deployment unverified."
-            : "Upstream main snapshot; consumer adoption unverified."}{" "}
-          Persona: <strong>{revision.label}</strong>. Feedback:{" "}
+          {solution === "baseline" ? (
+            <>
+              {revision.kind === "release"
+                ? "Pinned release renderer; deployment unverified."
+                : "Upstream main snapshot; consumer adoption unverified."}{" "}
+              Persona: <strong>{revision.label}</strong>.
+            </>
+          ) : (
+            <>
+              Proposal configuration: markerless Persona rules with an exact prefix and distinct
+              hash salt; host recognizes both integration prefixes.
+            </>
+          )}{" "}
+          Feedback:{" "}
           <strong>{config.order.includes("feedback") ? "inspected profile" : "not mounted"}</strong>
           . Host:{" "}
           {hostPolicy === "master"
             ? "sheet-only (inspected host main)"
-            : "sheet + Feedback prefix (unmerged host proposal)"}{" "}
+            : hostPolicy === "integration-prefixes"
+              ? "sheet + exact integration prefixes (candidate host policy)"
+              : "sheet + Feedback prefix (unmerged host proposal)"}{" "}
           filter,
           {hostMode === "extracted"
             ? " enabled by production/extraction."
@@ -60,9 +89,9 @@ export function ScenarioCard({ config, index, hostMode, coverage, personaVersion
       <details className="scenario-details">
         <summary>Technical details</summary>
         <p>
-          {config.description} The selected host filter revision, Persona version, and host
-          build/coverage are held constant across schedules. Feedback's raw styles, salt, prefix,
-          singleton and component workload never change. Host ready always precedes the schedule.{" "}
+          {config.description} The proposal and host build/coverage are held constant across
+          schedules. Feedback's raw styles, salt, prefix, singleton and component workload never
+          change. Host ready always precedes the schedule.{" "}
           {hostMode === "runtime"
             ? "Runtime mode installs no filter."
             : "Extraction enables the selected host filter."}{" "}

@@ -129,7 +129,7 @@ export function renderEvidence(result, analysis) {
       `Selected rule only: actual Fluent primary Button background. ` +
       `${actor} -> ${componentRule.destination}, bucket ${componentRule.bucket}/${componentRule.priority}, ` +
       `created by ${componentRule.creator} -> enhanced-specificity attribute ${componentRule.enhanced ? "truthy" : "absent or empty"}, ` +
-      `feedback prefix ${componentRule.feedbackPrefix ? "present" : "absent"} -> ` +
+      `Feedback prefix ${componentRule.feedbackPrefix ? "present" : "absent"}, Persona prefix ${componentRule.personaPrefix ? "present" : "absent"} -> ` +
       `${componentRule.blocked ? "blocked" : "allowed"} (${componentRule.reason}). ` +
       `Native insertion: ${componentRule.inserted ? "succeeded" : componentRule.blocked ? "not attempted" : `failed (${componentRule.error})`}. ` +
       `Recorded rule in destination CSSOM: ${componentRule.present ? "yes" : "no"}. ` +

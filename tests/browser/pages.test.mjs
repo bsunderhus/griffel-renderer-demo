@@ -41,6 +41,13 @@ test("Pages navigation keeps the base for the playground and documentation", asy
   for (const frame of applicationWindow(app).document.querySelectorAll("iframe")) {
     expect(new URL(frame.src).pathname.startsWith(base)).toBe(true);
   }
+  await navigateApplication(app, `${base}proposal.html?coverage=minimal`);
+  expect(applicationWindow(app).document.title).toBe(
+    "Prefix + salt proposal | Griffel integration lab",
+  );
+  for (const frame of applicationWindow(app).document.querySelectorAll("iframe")) {
+    expect(new URL(frame.src).pathname.startsWith(`${base}proposal`)).toBe(true);
+  }
 });
 
 test("Pages omits retired routes, compatibility pages and bundles", async () => {

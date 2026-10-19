@@ -59,7 +59,7 @@ export function applicationPlugin() {
           servePagesPreview(url.pathname.slice(PAGES_PREVIEW.length), response).catch(next);
           return;
         }
-        const htmlRoute = ["/", "/docs"].includes(url.pathname);
+        const htmlRoute = ["/", "/proposal", "/docs"].includes(url.pathname);
         // Exercise client-side route validation when a static host falls back to HTML.
         if (htmlRoute || url.pathname === "/unknown-route") {
           response
@@ -67,7 +67,7 @@ export function applicationPlugin() {
             .end(html);
         } else if (
           ["/source", "/three-actors"].includes(url.pathname) ||
-          /^\/(?:shared\/)?(?:app|host-extracted|host-runtime|persona|feedback-raw)\.js$/.test(
+          /^\/(?:shared\/)?(?:app|host-extracted|host-runtime|persona(?:-raw)?|feedback-raw)\.js$/.test(
             url.pathname,
           ) ||
           /^\/(?:shared\/)?griffel\.css$/.test(url.pathname)

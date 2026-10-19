@@ -20,6 +20,9 @@ export function Documentation({ settings }) {
           <a className="text-link" href={sitePath(location.search)}>
             Explore the playground <span aria-hidden="true">→</span>
           </a>
+          <a className="text-link" href={sitePath("proposal")}>
+            Explore the prefix + salt proposal <span aria-hidden="true">→</span>
+          </a>
           <a className="text-link" href={REPOSITORY_URL} target="_blank" rel="noopener noreferrer">
             Read the source, tests and research notes on GitHub <span aria-hidden="true">↗</span>
           </a>

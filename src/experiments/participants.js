@@ -20,7 +20,8 @@ export async function mountHost(settings, container) {
 
 export const integrations = {
   persona: {
-    script: () => "/persona.js",
+    script: (settings) =>
+      settings.personaProfile === "prefix-salted" ? "/persona-raw.js" : "/persona.js",
     mount: (container, settings) =>
       window.personaActor.mount(container, { profile: settings.personaProfile }),
   },
@@ -30,9 +31,9 @@ export const integrations = {
   },
 };
 
-export async function loadIntegration(name) {
+export async function loadIntegration(name, settings) {
   const participant = integrations[name];
-  const script = participant.script();
+  const script = participant.script(settings);
   await loadScript(script);
   return script;
 }

@@ -4,9 +4,12 @@ import { createEvidenceController } from "../evidence/controller.js";
 import { resolveExperiment } from "./configuration.js";
 import { prepareExperiment } from "./layout.js";
 import { integrations, loadIntegration, mountHost, mountIntegration } from "./participants.js";
+import { siteRoute } from "../site.js";
 
 export async function runThreeActorCase(config) {
-  const settings = resolveExperiment(config, location.search);
+  const solution =
+    siteRoute(location.pathname || "/") === "proposal" ? "prefix-salted" : "baseline";
+  const settings = resolveExperiment(config, location.search, solution);
   await prepareExperiment(settings);
   let host;
   let observation;
@@ -51,7 +54,7 @@ export async function runThreeActorCase(config) {
     observation.connectHost(host);
     for (const { action, actor } of settings.schedule) {
       if (action === "load") {
-        const script = await loadIntegration(actor);
+        const script = await loadIntegration(actor, settings);
         execution.push({ action, actor, script });
       } else if (action === "unmount") {
         actors[actor].unmount();
@@ -93,6 +96,7 @@ export async function runThreeActorCase(config) {
       hostMode: settings.hostMode,
       coverage: settings.coverage,
       policy: settings.policy,
+      solution: settings.solution,
       order: settings.order,
       kind: settings.kind,
       execution,
@@ -104,9 +108,10 @@ export async function runThreeActorCase(config) {
           requestedPolicy: settings.policy,
         },
         persona: {
-          script: integrations.persona.script(),
+          script: integrations.persona.script(settings),
           profile: settings.personaProfile,
           revision: settings.personaRevision,
+          label: settings.personaLabel,
         },
         feedback: {
           script: integrations.feedback.script(),
@@ -126,6 +131,7 @@ export async function runThreeActorCase(config) {
       host: host.policyState(),
       persona: settings.personaProfile,
       personaRevision: settings.personaRevision,
+      solution: settings.solution,
       feedback: settings.feedbackProfile,
       scope:
         "Sanitized renderer/insertion contracts, not a full product or incident-time deployment.",

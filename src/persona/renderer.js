@@ -1,14 +1,16 @@
 import { createDOMRenderer } from "@fluentui/react-components";
 import { compile, serialize, stringify } from "stylis";
+import { prefixSaltedPersonaProfile } from "./profile.js";
 
 export const PERSONA_SCOPE = "demo-contact-scope";
 
-function withScope(original, beforeInsert = () => {}) {
+function withScope(original, beforeInsert = () => {}, rulePrefix = "") {
   return {
     ...original,
     insertCSSRules(cssRules) {
       beforeInsert();
-      const enhance = (rule) => serialize(compile(`.${PERSONA_SCOPE} {${rule} }`), stringify);
+      const enhance = (rule) =>
+        `${rulePrefix}${serialize(compile(`.${PERSONA_SCOPE} {${rule} }`), stringify)}`;
       const rules = Object.fromEntries(
         Object.entries(cssRules).map(([bucket, entries]) => [
           bucket,
@@ -44,9 +46,18 @@ function createMarkerGuardRenderer(doc) {
   });
 }
 
+function createPrefixSaltedRenderer(doc) {
+  const renderer = createDOMRenderer(doc, {
+    insertionPoint: doc.head.firstChild,
+    classNameHashSalt: prefixSaltedPersonaProfile.salt,
+  });
+  return withScope(renderer, undefined, prefixSaltedPersonaProfile.rulePrefix);
+}
+
 const profiles = {
   historical: (doc) => createPersonaRenderer(doc),
   "marker-guard": (doc) => createMarkerGuardRenderer(doc),
+  "prefix-salted": (doc) => createPrefixSaltedRenderer(doc),
 };
 
 export function getPersonaRenderer(doc, { profile = "marker-guard" } = {}) {

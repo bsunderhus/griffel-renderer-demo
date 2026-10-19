@@ -143,10 +143,10 @@ async function waitForApplicationReady(app, expectStartupError = false) {
       .toBe(true);
   } else {
     const route = siteRoute(current.pathname.replace(/^\/pages-preview(?=\/)/, ""));
-    if (!["", "docs"].includes(route)) {
+    if (!["", "docs", "proposal"].includes(route)) {
       throw new Error(`Unknown application route: ${route}`);
     }
-    const selector = route === "" ? ".walkthrough iframe" : ".conflict-guide";
+    const selector = route === "docs" ? ".conflict-guide" : ".walkthrough iframe";
     await expect
       .poll(() => applicationWindow(app).document.querySelectorAll(selector).length)
       .toBeGreaterThan(0);

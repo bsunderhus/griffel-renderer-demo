@@ -1,4 +1,6 @@
 const FEEDBACK_PREFIX = "/* demo-feedback */";
+const PERSONA_PREFIX = "/* demo-persona */";
+const INTEGRATION_PREFIXES = [FEEDBACK_PREFIX, PERSONA_PREFIX];
 const installations = new WeakMap();
 
 // Demonstration policy based on destination metadata and an optional rule prefix.
@@ -7,7 +9,7 @@ export function installHostPolicy(doc, mode, onAttempt) {
   if (!doc.defaultView) {
     throw new Error("Host policy needs a window-backed document");
   }
-  if (!["master", "feedback-exception"].includes(mode)) {
+  if (!["master", "feedback-exception", "integration-prefixes"].includes(mode)) {
     throw new Error(`Unknown host policy: ${mode}`);
   }
   const installed = installations.get(doc);
@@ -29,15 +31,21 @@ export function installHostPolicy(doc, mode, onAttempt) {
     const node = this.ownerNode;
     const dataset = node?.nodeName === "STYLE" ? node.dataset : undefined;
     const shouldPrevent = Boolean(dataset?.makeStylesBucket) && !dataset.demoAllowRules;
-    const blocked =
-      shouldPrevent && !(mode === "feedback-exception" && rule.startsWith(FEEDBACK_PREFIX));
+    const acceptedPrefix =
+      mode === "feedback-exception"
+        ? rule.startsWith(FEEDBACK_PREFIX)
+        : mode === "integration-prefixes" &&
+          INTEGRATION_PREFIXES.some((prefix) => rule.startsWith(prefix));
+    const blocked = shouldPrevent && !acceptedPrefix;
     const reason = blocked
       ? "blocked"
       : !dataset?.makeStylesBucket
         ? "not a Griffel bucket"
         : dataset.demoAllowRules
           ? "enhanced sheet"
-          : "feedback rule prefix";
+          : mode === "integration-prefixes"
+            ? "integration rule prefix"
+            : "feedback rule prefix";
     if (blocked) {
       report({ sheet: this, rule, blocked, reason, inserted: false });
       console.error("[demo host filter] Runtime style insertion blocked.");
