@@ -10,16 +10,17 @@ product or incident replay.
 or run it locally below. Everything runs in the browser: no backend, network
 submission, telemetry, credentials, or private dependencies.
 
-| Document | Use it for |
-| --- | --- |
-| This README | Setup, playground controls, test commands, and hosting. |
+| Document                               | Use it for                                                                       |
+| -------------------------------------- | -------------------------------------------------------------------------------- |
+| This README                            | Setup, playground controls, test commands, and hosting.                          |
 | [Research reference](docs/RESEARCH.md) | Architecture, actor contracts, findings, assertions, and limits of the evidence. |
-| [Roadmap](ROADMAP.md) | Verified gates, open publication decisions, and future experiments. |
-| [Agent guide](AGENTS.md) | Working rules for preserving this experiment. |
+| [Roadmap](ROADMAP.md)                  | Verified gates, open publication decisions, and future experiments.              |
+| [Agent guide](AGENTS.md)               | Working rules for preserving this experiment.                                    |
 
 ## Setup
 
-Requires Node.js 20 or newer and npm. The fresh-install baseline was tested with
+Requires Node.js 20.19+, 22.13+, or 24+ and npm (matching ESLint's supported
+runtime ranges). The fresh-install baseline was tested with
 Node.js 24.15.0 and npm 11.12.1. From this directory:
 
 ```sh
@@ -65,12 +66,12 @@ live examples, and evidence.
 **Advanced host control** applies four independent choices to the same baseline
 schedules:
 
-| Choice | Values | Default |
-| --- | --- | --- |
-| Persona version | Pinned unguarded release / guarded main snapshot | `1.20260927.13.2` |
+| Choice               | Values                                           | Default               |
+| -------------------- | ------------------------------------------------ | --------------------- |
+| Persona version      | Pinned unguarded release / guarded main snapshot | `1.20260927.13.2`     |
 | Host filter revision | Sheet-only baseline / candidate prefix exception | `master` (sheet-only) |
-| Host CSS | Extracted / runtime | Extracted |
-| Component coverage | Shared form controls / minimal avatar-only host | Shared |
+| Host CSS             | Extracted / runtime                              | Extracted             |
+| Component coverage   | Shared form controls / minimal avatar-only host  | Shared                |
 
 The main snapshot is selected with `personaVersion=main-2026-10-16`; it is not
 evidence of a released or deployed consumer upgrade. The prefix exception is
@@ -114,6 +115,33 @@ not ship in runtime JSON. See the
 
 Message/View profile and Send feedback/Clear status are local actions only.
 
+## Code quality
+
+ESLint 10 checks ESM JavaScript/JSX with its recommended correctness rules,
+native JSX reference tracking, React Hooks rules, strict equality, and braces
+around control flow. JSX files retain `React` for the classic build transform.
+Unused arguments or caught errors may use an intentional `_` prefix.
+Browser globals apply to application/browser-test code; Node globals apply to
+tooling and tests. The host's build-time `process.env.NODE_ENV` is explicitly
+allowed. Prettier owns layout (two spaces, double quotes, semicolons, and a
+100-column target), including Markdown, HTML/CSS, JSON, and workflow YAML.
+There is no TypeScript or type-checking step.
+
+```sh
+npm run lint
+npm run format:check
+```
+
+Use `npm run lint:fix` for safe ESLint fixes, then `npm run format` to format.
+Review fixes before committing; neither command replaces the behavior tests.
+Both tools exclude generated output in `dist/` and `test-results/` and installed
+dependencies. Prettier also leaves the npm-generated lockfile alone and respects
+the repository's `.gitignore`.
+
+Both CI workflows require these checks before building/testing or publishing.
+Lint/format dependencies are pinned separately from the experimental runtime
+and build inputs; adding them does not upgrade those inputs.
+
 ## Tests
 
 Install Chromium once before browser tests:
@@ -126,13 +154,13 @@ On supported Linux systems missing browser libraries, use
 `npx playwright install --with-deps chromium`; this may require administrator
 privileges.
 
-| Command | Scope |
-| --- | --- |
-| `npm test` | Build all six participant targets and the app, then run all tests. |
-| `npm run test:unit` | Fast Node checks without a build or browser. |
-| `npm run test:watch` | Watch the unit project. |
-| `npm run test:integration` | Build, then run artifact and browser projects. |
-| `npm run test:report` | Build and run all tests with JSON and replayable blob reports. |
+| Command                    | Scope                                                              |
+| -------------------------- | ------------------------------------------------------------------ |
+| `npm test`                 | Build all six participant targets and the app, then run all tests. |
+| `npm run test:unit`        | Fast Node checks without a build or browser.                       |
+| `npm run test:watch`       | Watch the unit project.                                            |
+| `npm run test:integration` | Build, then run artifact and browser projects.                     |
+| `npm run test:report`      | Build and run all tests with JSON and replayable blob reports.     |
 
 After a fresh build, use Vitest file/name filters without rebuilding:
 
@@ -155,7 +183,7 @@ Ordinary runs do not export success reports. Browser failures produce screenshot
 under `test-results/screenshots/`. The report command also writes
 `test-results/report.json` and `test-results/blob/report.json`; per-test experiment
 records are in `meta.evidence`. A filtered report is not a complete matrix.
-No TypeScript, lint, or formatting runner is configured.
+Lint and formatting checks are separate commands; `npm test` remains the behavior suite.
 
 ## Build and hosting
 
@@ -171,7 +199,7 @@ Source maps are neither generated nor served. The unserved module inventory
 supports build assertions; it is not needed in a source export.
 
 The [validation workflow](.github/workflows/validate.yml) performs a clean
-install, installs Chromium with system dependencies, and runs `npm test` on
+install, checks lint/formatting, installs Chromium with system dependencies, and runs `npm test` on
 Node.js 24. The [Pages workflow](.github/workflows/deploy-pages.yml) repeats
 validation before deploying on `main`; only its deploy job has Pages write
 permissions. No research-evidence upload is configured.
@@ -192,13 +220,13 @@ distinguishes retained assertions from removed comparisons.
 
 ## Troubleshooting
 
-| Problem | Action |
-| --- | --- |
-| Installation fails | Check Node/npm versions and public registry access; preserve the lockfile. |
-| Missing assets or stale UI | Rebuild and refresh; do not open HTML directly. |
-| Startup shows an `ERROR` alert | Check the current scenario ID and query settings. The original error is logged in the browser console; invalid settings do not fall back to another configuration. |
-| Port occupied or remote page unreachable | Choose another `PORT`, keep your server running, and forward its loopback port. |
-| Missing Chromium or browser libraries | Use the installation commands under [Tests](#tests). |
+| Problem                                  | Action                                                                                                                                                             |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Installation fails                       | Check Node/npm versions and public registry access; preserve the lockfile.                                                                                         |
+| Missing assets or stale UI               | Rebuild and refresh; do not open HTML directly.                                                                                                                    |
+| Startup shows an `ERROR` alert           | Check the current scenario ID and query settings. The original error is logged in the browser console; invalid settings do not fall back to another configuration. |
+| Port occupied or remote page unreachable | Choose another `PORT`, keep your server running, and forward its loopback port.                                                                                    |
+| Missing Chromium or browser libraries    | Use the installation commands under [Tests](#tests).                                                                                                               |
 
 ## Publication and limits
 

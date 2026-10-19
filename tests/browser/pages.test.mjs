@@ -12,31 +12,49 @@ test("the Pages artifact runs a live scenario under its sub-path", async ({ sign
   await navigateApplication(pages, `${base}?scenario=raw-marked-first&coverage=minimal`);
   const result = applicationWindow(pages).threeActorResult;
   expect(result.id).toBe("raw-marked-first");
-  expect(JSON.stringify(result).replaceAll(base, "/")).toBe(JSON.stringify(applicationWindow(root).threeActorResult));
-  const resources = applicationWindow(pages).performance.getEntriesByType("resource")
-    .map(entry => new URL(entry.name).pathname).filter(pathname => /\.(?:js|css)$/.test(pathname));
-  expect(resources.filter(pathname => !pathname.startsWith("/tests/"))).not.toHaveLength(0);
-  expect(resources.filter(pathname => !pathname.startsWith(base) && !pathname.startsWith("/tests/"))).toEqual([]);
+  expect(JSON.stringify(result).replaceAll(base, "/")).toBe(
+    JSON.stringify(applicationWindow(root).threeActorResult),
+  );
+  const resources = applicationWindow(pages)
+    .performance.getEntriesByType("resource")
+    .map((entry) => new URL(entry.name).pathname)
+    .filter((pathname) => /\.(?:js|css)$/.test(pathname));
+  expect(resources.filter((pathname) => !pathname.startsWith("/tests/"))).not.toHaveLength(0);
+  expect(
+    resources.filter((pathname) => !pathname.startsWith(base) && !pathname.startsWith("/tests/")),
+  ).toEqual([]);
 });
 
 test("Pages navigation keeps the base for the playground and documentation", async ({ signal }) => {
   const app = await openApplication({ signal });
   await navigateApplication(app, `${base}docs.html?coverage=shared`);
   const document = applicationWindow(app).document;
-  const links = Array.from(document.querySelectorAll("a[href]"), link => new URL(link.href))
-    .filter(url => url.origin === location.origin).map(url => url.pathname);
+  const links = Array.from(document.querySelectorAll("a[href]"), (link) => new URL(link.href))
+    .filter((url) => url.origin === location.origin)
+    .map((url) => url.pathname);
   expect(links.length).toBeGreaterThan(0);
-  expect(links.filter(pathname => !pathname.startsWith(base))).toEqual([]);
+  expect(links.filter((pathname) => !pathname.startsWith(base))).toEqual([]);
   await navigateApplication(app, `${base}index.html`);
-  expect(applicationWindow(app).document.querySelectorAll(".walkthrough iframe").length).toBeGreaterThan(0);
+  expect(
+    applicationWindow(app).document.querySelectorAll(".walkthrough iframe").length,
+  ).toBeGreaterThan(0);
   for (const frame of applicationWindow(app).document.querySelectorAll("iframe")) {
     expect(new URL(frame.src).pathname.startsWith(base)).toBe(true);
   }
 });
 
 test("Pages omits retired routes, compatibility pages and bundles", async () => {
-  for (const route of ["source", "source.html", "three-actors", "three-actors.html",
-    "extracted", "runtime", "mechanisms", "integration.js", "feedback-standard.js"]) {
+  for (const route of [
+    "source",
+    "source.html",
+    "three-actors",
+    "three-actors.html",
+    "extracted",
+    "runtime",
+    "mechanisms",
+    "integration.js",
+    "feedback-standard.js",
+  ]) {
     expect((await fetch(`${base}${route}`)).status).toBe(404);
   }
 });

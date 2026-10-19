@@ -34,8 +34,10 @@ Publication of the source baseline is complete; licensing remains open.
 
 ## Working and validation
 
-- Follow existing ESM JavaScript/JSX patterns. No TypeScript, lint, or formatting
-  runner is configured; do not claim those checks passed.
+- Follow existing ESM JavaScript/JSX patterns. Run `npm run lint` and
+  `npm run format:check`; use `npm run lint:fix` and `npm run format` to apply
+  fixes. ESLint owns correctness rules and Prettier owns layout. No TypeScript
+  or type-checking step is configured.
 - Use the pinned lockfile. Do not run automatic dependency fixes or update
   versions casually: generated classes and adoption behavior are experimental
   inputs. Document and test deliberate upgrades.

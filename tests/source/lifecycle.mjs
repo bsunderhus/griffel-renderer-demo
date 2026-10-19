@@ -7,9 +7,17 @@ export async function assertSourceLifecycles(app, url) {
   const first = window.testSourceFeedback;
   const container = window.document.createElement("div");
   window.document.body.appendChild(container);
-  for (const options of [{ salt: false }, { marker: false }, { raw: false }, { diagnostic: true }, { profile: "control" }]) {
-    expect(() => window.feedbackActor.mount(container, options),
-      "The candidate cannot be configured into a different renderer or workload").toThrow(/overrides/);
+  for (const options of [
+    { salt: false },
+    { marker: false },
+    { raw: false },
+    { diagnostic: true },
+    { profile: "control" },
+  ]) {
+    expect(
+      () => window.feedbackActor.mount(container, options),
+      "The candidate cannot be configured into a different renderer or workload",
+    ).toThrow(/overrides/);
   }
   const second = window.feedbackActor.mount(container);
   expect(first.renderer).toBe(second.renderer);
@@ -17,12 +25,16 @@ export async function assertSourceLifecycles(app, url) {
   expect(second.renderer.classNameHashSalt).toBe("demo-feedback");
   expect(second.renderer.styleElementAttributes).toBeUndefined();
   second.unmount();
-  expect(Object.values(first.renderer.stylesheets).every(sheet => sheet.element.isConnected)).toBe(true);
+  expect(
+    Object.values(first.renderer.stylesheets).every((sheet) => sheet.element.isConnected),
+  ).toBe(true);
   container.remove();
 
   const host = window.testSourceHost;
   const count = window.document.styleSheets.length;
-  const rule = window.threeActorResult.events.find(event => event.actor === "feedback" && event.bucket === "d").rule;
+  const rule = window.threeActorResult.events.find(
+    (event) => event.actor === "feedback" && event.bucket === "d",
+  ).rule;
   host.renderer.insertCSSRules({ d: [rule] });
   expect(window.document.styleSheets.length).toBe(count);
   expect(Object.keys(host.renderer.insertionCache)).toHaveLength(0);

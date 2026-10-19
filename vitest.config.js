@@ -14,16 +14,21 @@ export default defineConfig({
           name: "unit",
           environment: "node",
           include: ["tests/**/*.test.mjs"],
-          exclude: ["tests/{experiments,source,gallery,browser}/**",
-            "tests/architecture-build.test.mjs", "tests/evidence/lifecycle.test.mjs"],
+          exclude: [
+            "tests/{experiments,source,gallery,browser}/**",
+            "tests/architecture-build.test.mjs",
+            "tests/evidence/lifecycle.test.mjs",
+          ],
         },
       },
       {
         plugins: [applicationPlugin()],
         test: {
           name: "browser",
-          include: ["tests/{browser,source,experiments,gallery}/**/*.test.mjs",
-            "tests/evidence/lifecycle.test.mjs"],
+          include: [
+            "tests/{browser,source,experiments,gallery}/**/*.test.mjs",
+            "tests/evidence/lifecycle.test.mjs",
+          ],
           fileParallelism: false,
           testTimeout: 15_000,
           browser: {

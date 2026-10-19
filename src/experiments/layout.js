@@ -2,7 +2,9 @@ import { personaRevisions } from "./scenarios.js";
 
 export async function prepareExperiment(settings) {
   document.body.className = "case-page three-actor-page";
-  if (settings.walkthrough) document.body.classList.add("walkthrough-page");
+  if (settings.walkthrough) {
+    document.body.classList.add("walkthrough-page");
+  }
   document.getElementById("root").innerHTML = `
     <div class="actor-grid">
       <section><h2>Host (${settings.hostMode})</h2><div id="host-mount"></div></section>

@@ -8,10 +8,15 @@ function withScope(original, beforeInsert = () => {}) {
     ...original,
     insertCSSRules(cssRules) {
       beforeInsert();
-      const enhance = rule => serialize(compile(`.${PERSONA_SCOPE} {${rule} }`), stringify);
-      const rules = Object.fromEntries(Object.entries(cssRules).map(([bucket, entries]) => [
-        bucket, entries.map(entry => typeof entry === "string" ? enhance(entry) : [enhance(entry[0]), entry[1]]),
-      ]));
+      const enhance = (rule) => serialize(compile(`.${PERSONA_SCOPE} {${rule} }`), stringify);
+      const rules = Object.fromEntries(
+        Object.entries(cssRules).map(([bucket, entries]) => [
+          bucket,
+          entries.map((entry) =>
+            typeof entry === "string" ? enhance(entry) : [enhance(entry[0]), entry[1]],
+          ),
+        ]),
+      );
       original.insertCSSRules(rules);
     },
   };
@@ -40,11 +45,13 @@ function createMarkerGuardRenderer(doc) {
 }
 
 const profiles = {
-  historical: doc => createPersonaRenderer(doc),
-  "marker-guard": doc => createMarkerGuardRenderer(doc),
+  historical: (doc) => createPersonaRenderer(doc),
+  "marker-guard": (doc) => createMarkerGuardRenderer(doc),
 };
 
 export function getPersonaRenderer(doc, { profile = "marker-guard" } = {}) {
-  if (!Object.hasOwn(profiles, profile)) throw new Error(`Unknown Persona renderer profile: ${profile}`);
+  if (!Object.hasOwn(profiles, profile)) {
+    throw new Error(`Unknown Persona renderer profile: ${profile}`);
+  }
   return profiles[profile](doc);
 }

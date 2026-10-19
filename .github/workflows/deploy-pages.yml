@@ -27,6 +27,8 @@ jobs:
           node-version: 24
       - name: Install locked public dependencies
         run: npm ci --registry=https://registry.npmjs.org
+      - name: Check lint and formatting
+        run: npm run lint && npm run format:check
       - name: Install Chromium and system dependencies
         run: npx playwright install --with-deps chromium
       - name: Build and run all scenarios

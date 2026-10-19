@@ -10,11 +10,13 @@ window.personaActor = {
     const ownerDocument = container.ownerDocument;
     const renderer = getPersonaRenderer(ownerDocument, options);
     const root = createRoot(container);
-    flushSync(() => root.render(
-      <RendererProvider renderer={renderer} targetDocument={ownerDocument}>
-        <ContactCard ownerDocument={ownerDocument} />
-      </RendererProvider>
-    ));
+    flushSync(() =>
+      root.render(
+        <RendererProvider renderer={renderer} targetDocument={ownerDocument}>
+          <ContactCard ownerDocument={ownerDocument} />
+        </RendererProvider>,
+      ),
+    );
     return { renderer, unmount: () => flushSync(() => root.unmount()) };
   },
 };

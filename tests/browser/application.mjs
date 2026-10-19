@@ -18,7 +18,9 @@ beforeEach(async () => {
 
 export function applicationWindow(app) {
   const application = applications.get(app);
-  if (!application) throw new Error("Unknown application frame");
+  if (!application) {
+    throw new Error("Unknown application frame");
+  }
   return application.frame().contentWindow;
 }
 
@@ -35,8 +37,10 @@ export async function openApplication({ signal }) {
   const frame = document.createElement("iframe");
   frame.dataset.testApplication = String(++applicationId);
   frame.style.cssText = "display:block;width:100%;height:1800px;border:0";
-  frame.addEventListener("application-error", event => {
-    expect.soft(event.detail, "No unexpected application errors or failed resources").toBeUndefined();
+  frame.addEventListener("application-error", (event) => {
+    expect
+      .soft(event.detail, "No unexpected application errors or failed resources")
+      .toBeUndefined();
   });
   const margin = document.body.style.margin;
   document.body.style.margin = "0";
@@ -45,14 +49,18 @@ export async function openApplication({ signal }) {
     frame.remove();
     document.body.style.margin = margin;
   });
-  const locator = page.frameLocator(page.getByCSS(`[data-test-application="${frame.dataset.testApplication}"]`));
+  const locator = page.frameLocator(
+    page.getByCSS(`[data-test-application="${frame.dataset.testApplication}"]`),
+  );
   applications.set(locator, { frame: () => frame, signal });
   return locator;
 }
 
 export async function navigateApplication(app, url, { expectStartupError = false } = {}) {
   const application = applications.get(app);
-  if (!application) throw new Error("Unknown application frame");
+  if (!application) {
+    throw new Error("Unknown application frame");
+  }
   const frame = application.frame();
   const { signal } = application;
   async function load(src) {
@@ -63,7 +71,9 @@ export async function navigateApplication(app, url, { expectStartupError = false
         signal.removeEventListener("abort", aborted);
       }
       function loaded() {
-        if (src !== "about:blank" && frame.contentWindow.location.href === "about:blank") return;
+        if (src !== "about:blank" && frame.contentWindow.location.href === "about:blank") {
+          return;
+        }
         cleanup();
         resolve();
       }
@@ -122,16 +132,24 @@ async function waitForApplicationReady(app, expectStartupError = false) {
   }
   const current = new URL(applicationWindow(app).location.href);
   if (current.searchParams.has("scenario")) {
-    await expect.poll(() => {
-      const window = applicationWindow(app);
-      if (window.threeActorError) throw new Error(window.threeActorError);
-      return Boolean(window.threeActorResult);
-    }).toBe(true);
+    await expect
+      .poll(() => {
+        const window = applicationWindow(app);
+        if (window.threeActorError) {
+          throw new Error(window.threeActorError);
+        }
+        return Boolean(window.threeActorResult);
+      })
+      .toBe(true);
   } else {
     const route = siteRoute(current.pathname.replace(/^\/pages-preview(?=\/)/, ""));
-    if (!["", "docs"].includes(route)) throw new Error(`Unknown application route: ${route}`);
+    if (!["", "docs"].includes(route)) {
+      throw new Error(`Unknown application route: ${route}`);
+    }
     const selector = route === "" ? ".walkthrough iframe" : ".conflict-guide";
-    await expect.poll(() => applicationWindow(app).document.querySelectorAll(selector).length).toBeGreaterThan(0);
+    await expect
+      .poll(() => applicationWindow(app).document.querySelectorAll(selector).length)
+      .toBeGreaterThan(0);
   }
 }
 
@@ -151,7 +169,7 @@ export async function waitForApplicationURL(app, url) {
 
 export async function refreshEvidence(window) {
   window.dispatchEvent(new window.Event("resize"));
-  await new Promise(resolve => window.requestAnimationFrame(resolve));
+  await new Promise((resolve) => window.requestAnimationFrame(resolve));
 }
 
 export function visible(element) {
@@ -159,5 +177,5 @@ export function visible(element) {
 }
 
 export async function waitForElement(query, { state = "visible" } = {}) {
-  await expect.poll(() => state === "attached" ? Boolean(query()) : visible(query())).toBe(true);
+  await expect.poll(() => (state === "attached" ? Boolean(query()) : visible(query()))).toBe(true);
 }

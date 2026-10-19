@@ -4,16 +4,28 @@ import { extname } from "node:path";
 
 export const PAGES_PREVIEW = "/pages-preview";
 
-const pagesTypes = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json" };
+const pagesTypes = {
+  ".html": "text/html",
+  ".js": "text/javascript",
+  ".css": "text/css",
+  ".json": "application/json",
+};
 
 function injectInstrumentation(html) {
-  return html.replace('<script src="app.js">', '<script src="/tests/browser/instrumentation.js"></script><script src="app.js">');
+  return html.replace(
+    '<script src="app.js">',
+    '<script src="/tests/browser/instrumentation.js"></script><script src="app.js">',
+  );
 }
 
 // Mimics GitHub Pages on the static artifact: "/" serves index.html and an
 // extensionless path serves the matching .html file. Anything else is a 404.
 async function servePagesPreview(pathname, response) {
-  const file = pathname.endsWith("/") ? `${pathname}index.html` : extname(pathname) ? pathname : `${pathname}.html`;
+  const file = pathname.endsWith("/")
+    ? `${pathname}index.html`
+    : extname(pathname)
+      ? pathname
+      : `${pathname}.html`;
   let content;
   try {
     content = await readFile(new URL(`../../dist/pages${file}`, import.meta.url));
@@ -30,8 +42,13 @@ export function applicationPlugin() {
   return {
     name: "built-research-application",
     async configureServer(server) {
-      const html = injectInstrumentation(await readFile(new URL("../../dist/index.html", import.meta.url), "utf8"));
-      const instrumentation = await readFile(new URL("./instrumentation.js", import.meta.url), "utf8");
+      const html = injectInstrumentation(
+        await readFile(new URL("../../dist/index.html", import.meta.url), "utf8"),
+      );
+      const instrumentation = await readFile(
+        new URL("./instrumentation.js", import.meta.url),
+        "utf8",
+      );
       server.middlewares.use((request, response, next) => {
         const url = new URL(request.url, "http://localhost");
         if (url.pathname === "/tests/browser/instrumentation.js") {
@@ -45,10 +62,16 @@ export function applicationPlugin() {
         const htmlRoute = ["/", "/docs"].includes(url.pathname);
         // Exercise client-side route validation when a static host falls back to HTML.
         if (htmlRoute || url.pathname === "/unknown-route") {
-          response.writeHead(200, { "Content-Type": "text/html", "Cache-Control": "no-store" }).end(html);
-        } else if (["/source", "/three-actors"].includes(url.pathname) ||
-          /^\/(?:shared\/)?(?:app|host-extracted|host-runtime|persona|feedback-raw)\.js$/.test(url.pathname) ||
-          /^\/(?:shared\/)?griffel\.css$/.test(url.pathname)) {
+          response
+            .writeHead(200, { "Content-Type": "text/html", "Cache-Control": "no-store" })
+            .end(html);
+        } else if (
+          ["/source", "/three-actors"].includes(url.pathname) ||
+          /^\/(?:shared\/)?(?:app|host-extracted|host-runtime|persona|feedback-raw)\.js$/.test(
+            url.pathname,
+          ) ||
+          /^\/(?:shared\/)?griffel\.css$/.test(url.pathname)
+        ) {
           serveReproRequest(request, response).catch(next);
         } else {
           next();

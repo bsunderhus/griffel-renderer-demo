@@ -12,19 +12,20 @@ Historical source observations below do not establish deployed product behavior.
 
 ## Architecture: where to investigate
 
-| Surface | Entry point | Responsibility |
-| --- | --- | --- |
-| Browser/site | [browser-entry.jsx](../src/browser-entry.jsx), [site.js](../src/site.js) | React globals, canonical route dispatch and sub-path links. |
-| Playground | [playground/](../src/playground/) | Settings, scenario prose, live frames and the visual documentation guide; no participant policy. |
-| Configuration | [scenarios.js](../src/experiments/scenarios.js), [configuration.js](../src/experiments/configuration.js) | Fixed schedules, explicit controls, validation and resolved actor inputs. |
-| Orchestration | [run.js](../src/experiments/run.js), [participants.js](../src/experiments/participants.js) | Bundle loading, mount/unmount execution, attribution and disposal. |
-| Observation | [observation.js](../src/evidence/observation.js), [native-observer.js](../src/evidence/native-observer.js) | Actual insertion decisions, native rule identity, creators and renderer-call scopes. |
-| Snapshot | [snapshot.js](../src/evidence/snapshot.js), [cssom.js](../src/evidence/cssom.js) | Live sheets, caches, selector matches and bounded host declaration cascade. |
-| Interpretation/UI | [analysis.js](../src/evidence/analysis.js), [presentation.js](../src/evidence/presentation.js), [controller.js](../src/evidence/controller.js) | Pure classification, cause-first rendering, refresh and disclosure state. |
-| Participants | [host/](../src/host/), [persona/](../src/persona/), [feedback/](../src/feedback/) | Each actor's UI, renderer, policy or transform, and lifecycle. |
-| Shared UI | [shared/](../src/shared/) | Neutral primitives compiled independently into each importing participant. |
-| Build/serve | [targets.mjs](../build/targets.mjs), [webpack-config.mjs](../build/webpack-config.mjs), [build.mjs](../scripts/build.mjs), [server.mjs](../scripts/server.mjs) | Independent builds, extraction/raw transforms, allowlisted local and Pages artifacts. |
-| Validation | [vitest.config.js](../vitest.config.js), [tests/](../tests/) | Unit, artifact and real-Chromium evidence checks. |
+| Surface           | Entry point                                                                                                                                                    | Responsibility                                                                                                                  |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Browser/site      | [browser-entry.jsx](../src/browser-entry.jsx), [site.js](../src/site.js)                                                                                       | React globals, canonical route dispatch and sub-path links.                                                                     |
+| Playground        | [playground/](../src/playground/)                                                                                                                              | Settings, scenario prose, live frames and the visual documentation guide; no participant policy.                                |
+| Configuration     | [scenarios.js](../src/experiments/scenarios.js), [configuration.js](../src/experiments/configuration.js)                                                       | Fixed schedules, explicit controls, validation and resolved actor inputs.                                                       |
+| Orchestration     | [run.js](../src/experiments/run.js), [participants.js](../src/experiments/participants.js)                                                                     | Bundle loading, mount/unmount execution, attribution and disposal.                                                              |
+| Observation       | [observation.js](../src/evidence/observation.js), [native-observer.js](../src/evidence/native-observer.js)                                                     | Actual insertion decisions, native rule identity, creators and renderer-call scopes.                                            |
+| Snapshot          | [snapshot.js](../src/evidence/snapshot.js), [cssom.js](../src/evidence/cssom.js)                                                                               | Live sheets, caches, selector matches and bounded host declaration cascade.                                                     |
+| Interpretation/UI | [analysis.js](../src/evidence/analysis.js), [presentation.js](../src/evidence/presentation.js), [controller.js](../src/evidence/controller.js)                 | Pure classification, cause-first rendering, refresh and disclosure state.                                                       |
+| Participants      | [host/](../src/host/), [persona/](../src/persona/), [feedback/](../src/feedback/)                                                                              | Each actor's UI, renderer, policy or transform, and lifecycle.                                                                  |
+| Shared UI         | [shared/](../src/shared/)                                                                                                                                      | Neutral primitives compiled independently into each importing participant.                                                      |
+| Build/serve       | [targets.mjs](../build/targets.mjs), [webpack-config.mjs](../build/webpack-config.mjs), [build.mjs](../scripts/build.mjs), [server.mjs](../scripts/server.mjs) | Independent builds, extraction/raw transforms, allowlisted local and Pages artifacts.                                           |
+| Validation        | [vitest.config.js](../vitest.config.js), [tests/](../tests/)                                                                                                   | Unit, artifact and real-Chromium evidence checks.                                                                               |
+| Code quality      | [eslint.config.js](../eslint.config.js), [.prettierrc.json](../.prettierrc.json)                                                                               | Static correctness/React Hooks rules and consistent layout, enforced in both CI workflows; not evidence of experiment behavior. |
 
 ### Module contracts and dependency direction
 
@@ -60,12 +61,12 @@ The [registry](../src/experiments/scenarios.js) has eight schedules, all using
 these fixed actors. The UI, attribute names, salt and prefix are public
 sanitizations; they are not claims of byte-for-byte product equivalence.
 
-| Participant/profile | Contract under test |
-| --- | --- |
-| Host `production-extraction` | Production plus extraction selects a no-op renderer and installs the filter in a host layout effect. Runtime mode uses a DOM renderer and no filter. Installation is idempotent per document. |
-| Persona `1.20260927.13.2` (`historical`) | Scoped renderer per provider mount, requesting the enhanced-specificity attribute, without an adopted-handle guard. Pinned by the inspected bootstrapper, not proof of deployed assets. |
-| Persona `main-2026-10-16` (`marker-guard`) | Same scoped workload; discards adopted handles whose enhanced-specificity attribute is not exactly `"true"`. A release or consumer deployment containing the guard is unverified. |
-| Feedback `inspected` | Independently compiled raw Fluent styles, module-level salted renderer, prefixed atomic/reset rules, and no requested enhanced-specificity attribute. Mounts reject renderer/workload overrides. |
+| Participant/profile                        | Contract under test                                                                                                                                                                              |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Host `production-extraction`               | Production plus extraction selects a no-op renderer and installs the filter in a host layout effect. Runtime mode uses a DOM renderer and no filter. Installation is idempotent per document.    |
+| Persona `1.20260927.13.2` (`historical`)   | Scoped renderer per provider mount, requesting the enhanced-specificity attribute, without an adopted-handle guard. Pinned by the inspected bootstrapper, not proof of deployed assets.          |
+| Persona `main-2026-10-16` (`marker-guard`) | Same scoped workload; discards adopted handles whose enhanced-specificity attribute is not exactly `"true"`. A release or consumer deployment containing the guard is unverified.                |
+| Feedback `inspected`                       | Independently compiled raw Fluent styles, module-level salted renderer, prefixed atomic/reset rules, and no requested enhanced-specificity attribute. Mounts reject renderer/workload overrides. |
 
 Baseline validation rejects actor overrides, seeds and forced filtering. Every
 schedule retains the inspected Feedback actor. Configuration/artifacts are
@@ -73,16 +74,16 @@ recorded once in `result.configuration`; `result.execution` records events,
 per-mount renderer identity and reuse. Native attempts retain actor/mount-index
 attribution; renderer wrappers detach before a singleton is reused.
 
-| Baseline ID | Events after the host is ready |
-| --- | --- |
-| `persona-alone` | Load/mount Persona only. |
-| `feedback-alone` | Load/mount Feedback only. |
-| `raw-marked-first` | Load/mount Feedback, then load/mount Persona. |
-| `persona-first-raw` | Reverse the same actors' arrival order. |
-| `feedback-preloaded` | Evaluate Feedback before loading/mounting Persona; mount Feedback last. |
-| `both-preloaded` | Evaluate both scripts, then mount Feedback and Persona. |
-| `feedback-reopened` | Persona first; unmount/remount Feedback with its singleton/cache retained. |
-| `persona-remounted` | Feedback first; unmount/remount Persona with a fresh renderer. |
+| Baseline ID          | Events after the host is ready                                             |
+| -------------------- | -------------------------------------------------------------------------- |
+| `persona-alone`      | Load/mount Persona only.                                                   |
+| `feedback-alone`     | Load/mount Feedback only.                                                  |
+| `raw-marked-first`   | Load/mount Feedback, then load/mount Persona.                              |
+| `persona-first-raw`  | Reverse the same actors' arrival order.                                    |
+| `feedback-preloaded` | Evaluate Feedback before loading/mounting Persona; mount Feedback last.    |
+| `both-preloaded`     | Evaluate both scripts, then mount Feedback and Persona.                    |
+| `feedback-reopened`  | Persona first; unmount/remount Feedback with its singleton/cache retained. |
+| `persona-remounted`  | Feedback first; unmount/remount Persona with a fresh renderer.             |
 
 Validation rejects duplicate loads, mounting before loading, double mounts,
 unmounting absent actors, unknown events and an unfinished final actor set.
@@ -126,13 +127,13 @@ original logged error, absent actor mounts and unchanged native insertion.
 
 ## Current findings and underlying mechanisms
 
-| Technique/mechanism | Observed guarantee | What it does not guarantee |
-| --- | --- | --- |
-| Container scoping | Persona rewrites selectors beneath its parent, restricting matching and adding specificity. | Private sheets or insertion permission; portals must remain inside the scope. |
-| Enhanced-specificity attribute | The host can admit rules based on destination metadata. | Writer authentication, exclusive ownership, or CSS specificity by itself. Adoption does not copy requested attributes. |
-| Runtime salt | Feedback uses salted runtime-generated class names. | Preventing sheet adoption; this baseline does not isolate salt-off behavior or test precompiled Feedback. |
-| Rule prefix | The candidate host can admit a prefixed rule independently of its sheet. | Containment, ownership, permission for an unprefixed rule, or compatibility with a sheet-only host. |
-| Griffel cache | A generated rule can remain cached after host rejection. | Evidence of native insertion or automatic retry after restoring native insertion. |
+| Technique/mechanism            | Observed guarantee                                                                          | What it does not guarantee                                                                                             |
+| ------------------------------ | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Container scoping              | Persona rewrites selectors beneath its parent, restricting matching and adding specificity. | Private sheets or insertion permission; portals must remain inside the scope.                                          |
+| Enhanced-specificity attribute | The host can admit rules based on destination metadata.                                     | Writer authentication, exclusive ownership, or CSS specificity by itself. Adoption does not copy requested attributes. |
+| Runtime salt                   | Feedback uses salted runtime-generated class names.                                         | Preventing sheet adoption; this baseline does not isolate salt-off behavior or test precompiled Feedback.              |
+| Rule prefix                    | The candidate host can admit a prefixed rule independently of its sheet.                    | Containment, ownership, permission for an unprefixed rule, or compatibility with a sheet-only host.                    |
+| Griffel cache                  | A generated rule can remain cached after host rejection.                                    | Evidence of native insertion or automatic retry after restoring native insertion.                                      |
 
 The inspected attribute `data-enhanced-specificity="true"` maps to the fictional
 `data-demo-allow-rules="true"` locally. The browser assigns neither special
@@ -237,14 +238,14 @@ Keep host build/coverage fixed within a pair and `hostPolicy` fixed unless
 explicitly comparing policies. Extra actors, ownership proposals, forced filtering
 and alternative Feedback code are excluded, not additional baseline schedules.
 
-| Pair/change | Assertion and executable evidence |
-| --- | --- |
-| `persona-alone` / Feedback-first | Feedback supplies the incompatible destination without a seed actor; [source tests](../tests/source/run.test.mjs) compare both revisions. |
-| Feedback-first, change Persona revision | Same generated scoped rule, host contract and Feedback actor; release rejection remains cached, main inserts. [Revision comparisons](../tests/source/current-main.mjs). |
-| Feedback-first / Persona-first | Same actor-generated CSS; destination and permission can change. [Baseline matrix](../tests/source/run.test.mjs), [schedule pairs](../tests/source/schedules.test.mjs). |
-| Feedback-first, change host policy | Prefix compatibility changes Feedback permission; main Persona inserts under both. [Baseline matrix](../tests/source/run.test.mjs). |
-| Ordinary / preloaded schedules | Same configuration, generated CSS, permission, CSSOM, cache and sheet relationships across all 16 control inputs. [Preload comparisons](../tests/source/schedules.test.mjs). |
-| Ordinary / reopen or remount | Feedback reuses its renderer/cache without retrying rules; fresh Persona attempts Fluent rules again. [Baseline lifecycle cases](../tests/source/run.test.mjs). |
+| Pair/change                             | Assertion and executable evidence                                                                                                                                            |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `persona-alone` / Feedback-first        | Feedback supplies the incompatible destination without a seed actor; [source tests](../tests/source/run.test.mjs) compare both revisions.                                    |
+| Feedback-first, change Persona revision | Same generated scoped rule, host contract and Feedback actor; release rejection remains cached, main inserts. [Revision comparisons](../tests/source/current-main.mjs).      |
+| Feedback-first / Persona-first          | Same actor-generated CSS; destination and permission can change. [Baseline matrix](../tests/source/run.test.mjs), [schedule pairs](../tests/source/schedules.test.mjs).      |
+| Feedback-first, change host policy      | Prefix compatibility changes Feedback permission; main Persona inserts under both. [Baseline matrix](../tests/source/run.test.mjs).                                          |
+| Ordinary / preloaded schedules          | Same configuration, generated CSS, permission, CSSOM, cache and sheet relationships across all 16 control inputs. [Preload comparisons](../tests/source/schedules.test.mjs). |
+| Ordinary / reopen or remount            | Feedback reuses its renderer/cache without retrying rules; fresh Persona attempts Fluent rules again. [Baseline lifecycle cases](../tests/source/run.test.mjs).              |
 
 Start with extracted/minimal to reduce masking, then compare shared coverage and
 the runtime host. Both inspected Persona revisions remain first-class; neither
@@ -266,14 +267,14 @@ and the optional pre-refactor capture comparison are retired. Those routes and
 Current fixtures/assertions replace external captures; archived forms, class
 names and result schemas are not compatibility promises.
 
-| Retired claim | Retained assertion |
-| --- | --- |
-| New destinations permit insertion; adoption can reject/cache rules | Persona-alone/runtime baseline and release/main [matrix cases](../tests/source/run.test.mjs). |
-| Foreign writers borrow permission while new buckets remain blocked | Persona-first, sheet-only [baseline cases](../tests/source/run.test.mjs). |
-| A prefix admits its rule, not another actor's | Both baseline host policies and [exact predicate tests](../tests/policy/host-policy.test.mjs). |
-| Restoring native insertion does not retry cached rejection | [Cache replay](../tests/browser/adoption.test.mjs): actual candidate Feedback rule/cache, restored native insertion, and a fresh runtime-host document as the accepted-rule control. |
-| Extracted versus runtime hosts retain the inspected gate and component coverage | [Matrix cases](../tests/source/run.test.mjs) and [artifact checks](../tests/architecture-build.test.mjs); native Fluent avatar declaration, not constructed colors. |
-| Controls keep local actions and usable layout | [Participant](../tests/experiments/run.test.mjs), [gallery](../tests/gallery/playground.test.mjs) and [lifecycle](../tests/source/lifecycle.mjs) checks. |
+| Retired claim                                                                   | Retained assertion                                                                                                                                                                   |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| New destinations permit insertion; adoption can reject/cache rules              | Persona-alone/runtime baseline and release/main [matrix cases](../tests/source/run.test.mjs).                                                                                        |
+| Foreign writers borrow permission while new buckets remain blocked              | Persona-first, sheet-only [baseline cases](../tests/source/run.test.mjs).                                                                                                            |
+| A prefix admits its rule, not another actor's                                   | Both baseline host policies and [exact predicate tests](../tests/policy/host-policy.test.mjs).                                                                                       |
+| Restoring native insertion does not retry cached rejection                      | [Cache replay](../tests/browser/adoption.test.mjs): actual candidate Feedback rule/cache, restored native insertion, and a fresh runtime-host document as the accepted-rule control. |
+| Extracted versus runtime hosts retain the inspected gate and component coverage | [Matrix cases](../tests/source/run.test.mjs) and [artifact checks](../tests/architecture-build.test.mjs); native Fluent avatar declaration, not constructed colors.                  |
+| Controls keep local actions and usable layout                                   | [Participant](../tests/experiments/run.test.mjs), [gallery](../tests/gallery/playground.test.mjs) and [lifecycle](../tests/source/lifecycle.mjs) checks.                             |
 
 [Gate tests](../tests/policy/host-contract.test.mjs) cover production/development/
 test environments with extraction enabled/disabled, idempotence, provider

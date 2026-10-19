@@ -12,6 +12,11 @@ export function sitePath(path = "") {
 }
 
 export function siteRoute(pathname, base = SITE_BASE) {
-  const relative = pathname.startsWith(base) ? pathname.slice(base.length) : pathname.replace(/^\//, "");
-  return relative.replace(/\/$/, "").replace(/\.html$/, "").replace(/^index$/, "");
+  const relative = pathname.startsWith(base)
+    ? pathname.slice(base.length)
+    : pathname.replace(/^\//, "");
+  return relative
+    .replace(/\/$/, "")
+    .replace(/\.html$/, "")
+    .replace(/^index$/, "");
 }

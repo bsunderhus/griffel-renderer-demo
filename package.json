@@ -3,8 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": "^20.19.0 || ^22.13.0 || >=24"
+  },
   "scripts": {
     "build": "node scripts/build.mjs",
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "npm run lint -- --fix",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
     "start": "node scripts/server.mjs",
     "test": "npm run build && vitest run",
     "test:unit": "vitest run --project unit",
@@ -24,14 +31,19 @@
   "devDependencies": {
     "@babel/core": "7.29.6",
     "@babel/preset-react": "7.28.5",
+    "@eslint/js": "10.0.1",
     "@griffel/babel-preset": "1.9.1",
     "@griffel/webpack-extraction-plugin": "0.5.21",
     "@vitest/browser-playwright": "4.1.12",
     "babel-loader": "9.2.1",
     "css-loader": "7.1.4",
     "esbuild": "0.25.12",
+    "eslint": "10.13.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.13.0",
     "mini-css-extract-plugin": "2.9.4",
     "playwright": "1.58.2",
+    "prettier": "3.9.10",
     "vite": "6.4.4",
     "vitest": "4.1.12",
     "webpack": "5.105.4"

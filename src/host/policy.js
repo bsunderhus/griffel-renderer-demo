@@ -4,26 +4,40 @@ const installations = new WeakMap();
 // Demonstration policy based on destination metadata and an optional rule prefix.
 // Instrumentation is separate from the policy decision.
 export function installHostPolicy(doc, mode, onAttempt) {
-  if (!doc.defaultView) throw new Error("Host policy needs a window-backed document");
-  if (!["master", "feedback-exception"].includes(mode)) throw new Error(`Unknown host policy: ${mode}`);
+  if (!doc.defaultView) {
+    throw new Error("Host policy needs a window-backed document");
+  }
+  if (!["master", "feedback-exception"].includes(mode)) {
+    throw new Error(`Unknown host policy: ${mode}`);
+  }
   const installed = installations.get(doc);
   if (installed) {
-    if (onAttempt) installed.subscribe(onAttempt);
+    if (onAttempt) {
+      installed.subscribe(onAttempt);
+    }
     return installed;
   }
   const proto = doc.defaultView.CSSStyleSheet.prototype;
   const original = proto.insertRule;
   const listeners = new Set(onAttempt ? [onAttempt] : []);
-  const report = event => { for (const listener of listeners) listener(event); };
+  const report = (event) => {
+    for (const listener of listeners) {
+      listener(event);
+    }
+  };
   proto.insertRule = function (rule, index) {
     const node = this.ownerNode;
     const dataset = node?.nodeName === "STYLE" ? node.dataset : undefined;
     const shouldPrevent = Boolean(dataset?.makeStylesBucket) && !dataset.demoAllowRules;
-    const blocked = shouldPrevent &&
-      !(mode === "feedback-exception" && rule.startsWith(FEEDBACK_PREFIX));
-    const reason = blocked ? "blocked" :
-      !dataset?.makeStylesBucket ? "not a Griffel bucket" : dataset.demoAllowRules ?
-        "enhanced sheet" : "feedback rule prefix";
+    const blocked =
+      shouldPrevent && !(mode === "feedback-exception" && rule.startsWith(FEEDBACK_PREFIX));
+    const reason = blocked
+      ? "blocked"
+      : !dataset?.makeStylesBucket
+        ? "not a Griffel bucket"
+        : dataset.demoAllowRules
+          ? "enhanced sheet"
+          : "feedback rule prefix";
     if (blocked) {
       report({ sheet: this, rule, blocked, reason, inserted: false });
       console.error("[demo host filter] Runtime style insertion blocked.");
@@ -40,12 +54,14 @@ export function installHostPolicy(doc, mode, onAttempt) {
     return insertedIndex;
   };
   const restore = () => {
-    if (installations.get(doc) !== restore) return;
+    if (installations.get(doc) !== restore) {
+      return;
+    }
     proto.insertRule = original;
     installations.delete(doc);
     listeners.clear();
   };
-  restore.subscribe = listener => {
+  restore.subscribe = (listener) => {
     listeners.add(listener);
     return () => listeners.delete(listener);
   };

@@ -17,21 +17,32 @@ const root = document.getElementById("root");
 
 async function startApplication() {
   const route = siteRoute(location.pathname);
-  if (!["", "docs"].includes(route)) throw new Error(`Unknown route: ${route}`);
+  if (!["", "docs"].includes(route)) {
+    throw new Error(`Unknown route: ${route}`);
+  }
   const scenarioId = new URLSearchParams(location.search).get("scenario");
   if (route === "" && scenarioId !== null) {
-    const config = experiments.find(item => item.id === scenarioId);
-    if (!config) throw new Error(`Unknown scenario: ${scenarioId}`);
+    const config = experiments.find((item) => item.id === scenarioId);
+    if (!config) {
+      throw new Error(`Unknown scenario: ${scenarioId}`);
+    }
     await runThreeActorCase(config);
     return;
   }
   const settings = resolveHostSettings(location.search);
-  if (route === "docs") document.title = "Documentation | Griffel integration lab";
-  createRoot(root).render(route === "docs" ?
-    <Documentation settings={settings} /> : <ThreeActorGallery settings={settings} />);
+  if (route === "docs") {
+    document.title = "Documentation | Griffel integration lab";
+  }
+  createRoot(root).render(
+    route === "docs" ? (
+      <Documentation settings={settings} />
+    ) : (
+      <ThreeActorGallery settings={settings} />
+    ),
+  );
 }
 
-startApplication().catch(error => {
+startApplication().catch((error) => {
   console.error(error);
   const message = error instanceof Error ? error.message : String(error);
   window.threeActorError = message;

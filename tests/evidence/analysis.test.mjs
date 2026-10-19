@@ -4,26 +4,49 @@ import { expect, test } from "vitest";
 function result(overrides = {}) {
   return {
     policy: "master",
-    events: [{
-      actor: "persona", bucket: "d", creator: "persona", rule: ".button{background-color:var(--colorBrandBackground)}",
-      blocked: false, inserted: true, present: true, equivalentPresent: true, reason: "enhanced sheet", enhanced: true,
-      ...overrides,
-    }],
+    events: [
+      {
+        actor: "persona",
+        bucket: "d",
+        creator: "persona",
+        rule: ".button{background-color:var(--colorBrandBackground)}",
+        blocked: false,
+        inserted: true,
+        present: true,
+        equivalentPresent: true,
+        reason: "enhanced sheet",
+        enhanced: true,
+        ...overrides,
+      },
+    ],
     actors: { persona: { sheets: [{ creator: "persona", sharedWith: [] }] } },
-    hostEvidence: { avatarBackground: { changed: false }, foreignWrites: 0, foreignRules: [], sharedWith: [] },
+    hostEvidence: {
+      avatarBackground: { changed: false },
+      foreignWrites: 0,
+      foreignRules: [],
+      sharedWith: [],
+    },
   };
 }
 test("classification separates host blocking, native rejection, and equivalent CSS", () => {
   expect(analyzeEvidence(result()).actors.persona.tone).toBe("");
-  expect(analyzeEvidence(result({ blocked: true, inserted: false, present: false, equivalentPresent: false }))
-    .actors.persona.tone).toBe("missing");
-  expect(analyzeEvidence(result({ inserted: false, present: false, equivalentPresent: false }))
-    .actors.persona.tone, "A native parser rejection is distinct from a host block").toBe("bypass");
+  expect(
+    analyzeEvidence(
+      result({ blocked: true, inserted: false, present: false, equivalentPresent: false }),
+    ).actors.persona.tone,
+  ).toBe("missing");
+  expect(
+    analyzeEvidence(result({ inserted: false, present: false, equivalentPresent: false })).actors
+      .persona.tone,
+    "A native parser rejection is distinct from a host block",
+  ).toBe("bypass");
   expect(
     analyzeEvidence(result({ present: false })).actors.persona.tone,
     "Equivalent CSS preserves availability when the recorded native instance is removed",
   ).toBe("bypass");
-  expect(analyzeEvidence(result({ present: false, equivalentPresent: false })).actors.persona.tone).toBe("missing");
+  expect(
+    analyzeEvidence(result({ present: false, equivalentPresent: false })).actors.persona.tone,
+  ).toBe("missing");
 });
 
 test("borrowed permission and sharing are independent from insertion", () => {
@@ -37,7 +60,11 @@ test("borrowed permission and sharing are independent from insertion", () => {
   expect(analyzeEvidence(shared).actors.persona.tone).toBe("bypass");
 });
 
-test.each([[true, "missing"], [false, ""], [null, "bypass"]])("host change %s produces tone %s", (changed, tone) => {
+test.each([
+  [true, "missing"],
+  [false, ""],
+  [null, "bypass"],
+])("host change %s produces tone %s", (changed, tone) => {
   const sample = result();
   sample.hostEvidence.avatarBackground.changed = changed;
   expect(analyzeEvidence(sample).hostTone).toBe(tone);
@@ -47,18 +74,29 @@ test("classification does not mutate evidence", () => {
   const snapshot = result();
   const original = structuredClone(snapshot);
   analyzeEvidence(snapshot);
-  expect(snapshot, "Evidence classification is pure and does not mutate snapshots").toStrictEqual(original);
+  expect(snapshot, "Evidence classification is pure and does not mutate snapshots").toStrictEqual(
+    original,
+  );
 });
 
 test("cause names the host rejection, adopted destination and inapplicable prefix exception", () => {
   const sample = result({
-    creator: "feedback", enhanced: false, personaScope: true, feedbackPrefix: false,
-    blocked: true, inserted: false, present: false, equivalentPresent: false, reason: "blocked",
+    creator: "feedback",
+    enhanced: false,
+    personaScope: true,
+    feedbackPrefix: false,
+    blocked: true,
+    inserted: false,
+    present: false,
+    equivalentPresent: false,
+    reason: "blocked",
   });
   sample.policy = "feedback-exception";
   const cause = analyzeEvidence(sample).actors.persona.cause;
   expect(cause.title).toBe("Host filter blocked 1 rule");
-  expect(cause.explanation).toContain("adopted from Feedback without a truthy enhanced-specificity attribute");
+  expect(cause.explanation).toContain(
+    "adopted from Feedback without a truthy enhanced-specificity attribute",
+  );
   expect(cause.explanation).toContain("blocked rules have no Feedback prefix");
   expect(cause.explanation).toContain("host skipped native insertion");
   expect(cause.explanation).not.toContain("browser rejected");
@@ -66,32 +104,56 @@ test("cause names the host rejection, adopted destination and inapplicable prefi
 
 test("sheet-only cause explains why even a prefixed rule in an actor's own sheet is blocked", () => {
   const sample = result({
-    enhanced: false, feedbackPrefix: true, blocked: true, inserted: false,
-    present: false, equivalentPresent: false, reason: "blocked",
+    enhanced: false,
+    feedbackPrefix: true,
+    blocked: true,
+    inserted: false,
+    present: false,
+    equivalentPresent: false,
+    reason: "blocked",
   });
   const cause = analyzeEvidence(sample).actors.persona.cause;
-  expect(cause.explanation).toContain("created by this actor without a truthy enhanced-specificity attribute");
+  expect(cause.explanation).toContain(
+    "created by this actor without a truthy enhanced-specificity attribute",
+  );
   expect(cause.explanation).toContain("a rule prefix cannot bypass it");
   expect(cause.explanation).not.toContain("adopted from");
 });
 
 test("partial permission does not hide rejections in a different destination", () => {
   const sample = result({ creator: "feedback" });
-  sample.events.push({ ...sample.events[0], creator: "persona", enhanced: false,
-    blocked: true, inserted: false, present: false, equivalentPresent: false, reason: "blocked" });
+  sample.events.push({
+    ...sample.events[0],
+    creator: "persona",
+    enhanced: false,
+    blocked: true,
+    inserted: false,
+    present: false,
+    equivalentPresent: false,
+    reason: "blocked",
+  });
   const cause = analyzeEvidence(sample).actors.persona.cause;
   expect(cause.title).toBe("Host filter blocked 1 rule");
-  expect(cause.explanation).toContain("created by this actor without a truthy enhanced-specificity attribute");
+  expect(cause.explanation).toContain(
+    "created by this actor without a truthy enhanced-specificity attribute",
+  );
   expect(cause.explanation).toContain("shared from Feedback");
   expect(cause.explanation).toContain("borrowed permission");
 });
 
 test("browser rejection and later CSS removal are not described as host rejection", () => {
-  const rejected = analyzeEvidence(result({ inserted: false, present: false, equivalentPresent: false,
-    error: "Failed to parse the rule" })).actors.persona.cause;
+  const rejected = analyzeEvidence(
+    result({
+      inserted: false,
+      present: false,
+      equivalentPresent: false,
+      error: "Failed to parse the rule",
+    }),
+  ).actors.persona.cause;
   expect(rejected.title).toBe("Host allowed insertion; the browser rejected some rules");
   expect(rejected.explanation).toContain("not host-filter rejections");
-  const removed = analyzeEvidence(result({ present: false, equivalentPresent: false })).actors.persona.cause;
+  const removed = analyzeEvidence(result({ present: false, equivalentPresent: false })).actors
+    .persona.cause;
   expect(removed.title).toBe("Previously inserted rules are now missing");
   expect(removed.explanation).toContain("rule removal, not blocked insertion");
   const replaced = analyzeEvidence(result({ present: false })).actors.persona.cause;
@@ -110,5 +172,7 @@ test("success explains independent prefix permission, disabled filtering and har
   expect(shared.explanation).toContain("Shared sheets alone do not mean insertion failed");
   const unfiltered = result({ reason: "filter disabled" });
   unfiltered.policy = "off";
-  expect(analyzeEvidence(unfiltered).actors.persona.cause.explanation).toBe("No host insertion filter is active.");
+  expect(analyzeEvidence(unfiltered).actors.persona.cause.explanation).toBe(
+    "No host insertion filter is active.",
+  );
 });

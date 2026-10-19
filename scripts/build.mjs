@@ -19,22 +19,36 @@ await copyFile("index.html", "dist/index.html");
 const rawModules = [];
 const bundleModules = {};
 function moduleNames(modules) {
-  return modules.flatMap(module => [module.name, ...moduleNames(module.modules || [])]).filter(Boolean);
+  return modules
+    .flatMap((module) => [module.name, ...moduleNames(module.modules || [])])
+    .filter(Boolean);
 }
 for (const target of targets) {
   await new Promise((resolve, reject) => {
     const compiler = webpack(createWebpackConfig(target, rawModules));
-    compiler.run((error, stats) => compiler.close(closeError => {
-      if (error || closeError) return reject(error || closeError);
-      if (stats.hasErrors()) return reject(new Error(stats.toString({ all: false, errors: true })));
-      bundleModules[target.name] = [...new Set(moduleNames(
-        stats.toJson({ all: false, modules: true, nestedModules: true }).modules))].sort();
-      console.log(`${target.name}: build complete`);
-      resolve();
-    }));
+    compiler.run((error, stats) =>
+      compiler.close((closeError) => {
+        if (error || closeError) {
+          return reject(error || closeError);
+        }
+        if (stats.hasErrors()) {
+          return reject(new Error(stats.toString({ all: false, errors: true })));
+        }
+        bundleModules[target.name] = [
+          ...new Set(
+            moduleNames(stats.toJson({ all: false, modules: true, nestedModules: true }).modules),
+          ),
+        ].sort();
+        console.log(`${target.name}: build complete`);
+        resolve();
+      }),
+    );
   });
 }
-await writeFile("dist/feedback-raw-modules.json", JSON.stringify([...new Set(rawModules)].sort(), null, 2));
+await writeFile(
+  "dist/feedback-raw-modules.json",
+  JSON.stringify([...new Set(rawModules)].sort(), null, 2),
+);
 await writeFile("dist/bundle-modules.json", JSON.stringify(bundleModules, null, 2));
 
 // Static artifact for GitHub Pages: the same allowlisted files, with each route

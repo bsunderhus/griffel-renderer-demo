@@ -17,7 +17,7 @@ product integration or incident attribution.
 
 - [x] Sanitize the source, document scope and verify a fresh public-dependency install.
 - [x] Obtain explicit authorization for the public destination; review source-only
-  contents, disclosure boundaries and author metadata before creating fresh history.
+      contents, disclosure boundaries and author metadata before creating fresh history.
 - [x] Triage baseline dependency advisories and observe hosted validation passing.
 - [x] Publish the playground through a validation-gated GitHub Pages workflow.
 - [ ] Select and add a license after ownership and authorization are confirmed.
@@ -67,15 +67,15 @@ its deploy job; [hosting details](README.md#build-and-hosting) remain in the REA
 ## 2. Evaluate the techniques, not the labels
 
 - [x] Link scoping, enhanced-specificity attributes, salt and prefix guarantees
-  and assumptions to live examples and recorded-rule assertions.
+      and assumptions to live examples and recorded-rule assertions.
 - [x] Freeze baseline actors; vary validated load/mount/unmount schedules and
-  independent version/policy/build/coverage controls.
+      independent version/policy/build/coverage controls.
 - [x] Cover preload equivalence, renderer lifetime and 128 baseline configurations
-  without altered actors, seed sheets or ownership proposals.
+      without altered actors, seed sheets or ownership proposals.
 - [x] Explain causes from native evidence, independently reporting permission,
-  insertion, CSSOM presence, cache, ownership, sharing and bounded host effects.
+      insertion, CSSOM presence, cache, ownership, sharing and bounded host effects.
 - [x] Assert the documentation explainer against real Fluent rules and keep
-  independent bundles/minimal-host coverage enforced by architecture tests.
+      independent bundles/minimal-host coverage enforced by architecture tests.
 
 **Exit gate met for the modeled baseline:** conclusions link to reproducible
 configurations and assertions, not appearance or deployment assumptions.
@@ -88,7 +88,8 @@ See the [dated source recheck](docs/RESEARCH.md#current-source-recheck-2026-10-1
 for corroboration and deployment limits.
 
 The fidelity pass leaves one runner, eight schedules and six participant build
-targets. All 226 Vitest tests pass across 19 files, without skips. It removes
+targets. Full validation now passes 235 Vitest tests across 20 files, without
+skips, including nine code-quality configuration checks. The fidelity pass removes
 precompiled/unsalted Feedback, the extra seed actor, forced host filtering,
 the proposed owner cache, constructed collisions and measurement declarations.
 Cache replay now exercises the actual candidate Feedback renderer. Native Fluent
@@ -110,13 +111,13 @@ adding any solution experiment. The possible directions below are unimplemented
 research options, not baseline findings or authorization to invent actor behavior.
 Preserve the version-pinned failures and record who must change.
 
-| Candidate | Experiment | Required trade-off checks |
-| --- | --- | --- |
-| Explicit renderer/sheet ownership | Prevent incompatible adoption | Public library feasibility; never simulate ownership by relabeling adopted sheets. |
-| Supported host insertion contract | Permit legitimate runtime styles without borrowed permission | Compatibility, enforcement limits and public API support. |
-| Consistent class namespacing | Separate custom and component rules | Raw/precompiled differences, build cost and residual sheet sharing. |
-| Shadow DOM | Separate matching and style destinations | Portals, theme propagation, focus, accessibility and renderer document/root support. |
-| Iframe | Separate documents/renderers | Layout, focus, accessibility, communication and resource cost. |
+| Candidate                         | Experiment                                                   | Required trade-off checks                                                            |
+| --------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| Explicit renderer/sheet ownership | Prevent incompatible adoption                                | Public library feasibility; never simulate ownership by relabeling adopted sheets.   |
+| Supported host insertion contract | Permit legitimate runtime styles without borrowed permission | Compatibility, enforcement limits and public API support.                            |
+| Consistent class namespacing      | Separate custom and component rules                          | Raw/precompiled differences, build cost and residual sheet sharing.                  |
+| Shadow DOM                        | Separate matching and style destinations                     | Portals, theme propagation, focus, accessibility and renderer document/root support. |
+| Iframe                            | Separate documents/renderers                                 | Layout, focus, accessibility, communication and resource cost.                       |
 
 - [ ] Select a source-backed solution hypothesis before implementing a comparison.
 - [ ] Check ownership feasibility against the pinned public Griffel APIs.
@@ -135,13 +136,13 @@ a necessary constraint. Do not invent a third actor to create a failure.
 
 - [ ] Establish the additional integration's source-backed contract before adding it.
 - [ ] All six integration arrival orders across extracted/runtime hosts and
-  minimal/shared coverage: 24 combinations per candidate configuration.
+      minimal/shared coverage: 24 combinations per candidate configuration.
 - [ ] Mount, unmount and remount each actor without resetting the document.
 - [ ] Exercise only shared styles and custom rules present in the inspected workloads.
 - [ ] Portals, theme changes and keyboard/focus interactions.
 - [ ] Supported dependency-version combinations as an explicit axis; record unsupported ones.
 - [ ] Separate rejected rules, creators/reuse, computed appearance, cache/rule
-  growth and interactions.
+      growth and interactions.
 
 **Success contract:** every integration retains intended styling, the host stays
 unchanged, and correctness does not depend on arrival order, masked rejections
@@ -152,16 +153,20 @@ measured steady state; do not require all styles to disappear.
 ## 5. Publish options and a recommendation
 
 - [ ] Publish a decision table of benefits, residual failures, migration effort
-  and ownership of required changes.
+      and ownership of required changes.
 - [ ] Distinguish immediately usable mitigations from durable architecture.
 - [ ] Recommend only configurations that passed their stated contract, with
-  rollback and compatibility considerations.
+      rollback and compatibility considerations.
 - [ ] Keep unresolved cases visible and replayable.
 
 **Exit gate:** readers can reproduce failure and proposed behavior, understand
 costs and identify what remains unresolved.
 
 ## Working rules
+
+Lint and formatting are enforced locally and in validation/deployment CI; see
+the [code-quality commands](README.md#code-quality). These checks supplement,
+not replace, the experiment's build, artifact and browser assertions.
 
 Finish one bounded experiment and its assertions before adding another.
 Preserve the [module boundaries](docs/RESEARCH.md#module-contracts-and-dependency-direction)

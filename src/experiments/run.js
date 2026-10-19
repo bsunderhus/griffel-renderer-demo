@@ -18,13 +18,17 @@ export async function runThreeActorCase(config) {
   let controller;
   let disposed = false;
   function dispose() {
-    if (disposed) return;
+    if (disposed) {
+      return;
+    }
     disposed = true;
     const errors = [];
     for (const cleanup of [
       () => controller?.dispose(),
       () => observation?.dispose(),
-      ...Object.values(actors).reverse().map(actor => () => actor.unmount()),
+      ...Object.values(actors)
+        .reverse()
+        .map((actor) => () => actor.unmount()),
       () => host?.dispose(),
       () => window.removeEventListener("pagehide", dispose),
     ]) {
@@ -34,7 +38,9 @@ export async function runThreeActorCase(config) {
         errors.push(error);
       }
     }
-    if (errors.length) throw new AggregateError(errors, "Experiment cleanup failed");
+    if (errors.length) {
+      throw new AggregateError(errors, "Experiment cleanup failed");
+    }
   }
   try {
     host = await mountHost(settings, document.getElementById("host-mount"));
@@ -54,35 +60,75 @@ export async function runThreeActorCase(config) {
       } else {
         const mountIndex = (mountCounts.get(actor) || 0) + 1;
         mountCounts.set(actor, mountIndex);
-        const mounted = mountIntegration(actor, settings, document.getElementById(`${actor}-mount`), observation, mountIndex);
+        const mounted = mountIntegration(
+          actor,
+          settings,
+          document.getElementById(`${actor}-mount`),
+          observation,
+          mountIndex,
+        );
         actors[actor] = mounted;
         const previous = previousRenderers.get(actor);
-        if (!rendererIds.has(mounted.renderer)) rendererIds.set(mounted.renderer, `${actor}-${mountIndex}`);
-        execution.push({ action, actor, mountIndex, renderer: rendererIds.get(mounted.renderer),
-          reusesPreviousRenderer: previous ? previous === mounted.renderer : null });
+        if (!rendererIds.has(mounted.renderer)) {
+          rendererIds.set(mounted.renderer, `${actor}-${mountIndex}`);
+        }
+        execution.push({
+          action,
+          actor,
+          mountIndex,
+          renderer: rendererIds.get(mounted.renderer),
+          reusesPreviousRenderer: previous ? previous === mounted.renderer : null,
+        });
         previousRenderers.set(actor, mounted.renderer);
       }
     }
-    const actorEvidence = Object.fromEntries(Object.entries(actors).map(([actor, { renderer }]) => [
-      actor, { rendererSalt: renderer.classNameHashSalt || null },
-    ]));
+    const actorEvidence = Object.fromEntries(
+      Object.entries(actors).map(([actor, { renderer }]) => [
+        actor,
+        { rendererSalt: renderer.classNameHashSalt || null },
+      ]),
+    );
     const result = {
-      id: settings.id, hostMode: settings.hostMode, coverage: settings.coverage, policy: settings.policy, order: settings.order,
-      kind: settings.kind, execution,
+      id: settings.id,
+      hostMode: settings.hostMode,
+      coverage: settings.coverage,
+      policy: settings.policy,
+      order: settings.order,
+      kind: settings.kind,
+      execution,
       configuration: {
-        host: { script: settings.script, stylesheet: settings.stylesheet || null, contract: settings.hostContract,
-          requestedPolicy: settings.policy },
-        persona: { script: integrations.persona.script(), profile: settings.personaProfile, revision: settings.personaRevision },
-        feedback: { script: integrations.feedback.script(), profile: settings.feedbackProfile,
-          ...settings.feedback },
+        host: {
+          script: settings.script,
+          stylesheet: settings.stylesheet || null,
+          contract: settings.hostContract,
+          requestedPolicy: settings.policy,
+        },
+        persona: {
+          script: integrations.persona.script(),
+          profile: settings.personaProfile,
+          revision: settings.personaRevision,
+        },
+        feedback: {
+          script: integrations.feedback.script(),
+          profile: settings.feedbackProfile,
+          ...settings.feedback,
+        },
       },
-      hostRuntimeCalls: host.runtimeCalls(), hostBuckets, actors: actorEvidence, events: observation.events,
-      staticCSS: host.stylesheet ? Array.from(host.stylesheet.sheet.cssRules, rule => rule.cssText) : [],
+      hostRuntimeCalls: host.runtimeCalls(),
+      hostBuckets,
+      actors: actorEvidence,
+      events: observation.events,
+      staticCSS: host.stylesheet
+        ? Array.from(host.stylesheet.sheet.cssRules, (rule) => rule.cssText)
+        : [],
     };
     result.simulation = {
-      host: host.policyState(), persona: settings.personaProfile, personaRevision: settings.personaRevision,
+      host: host.policyState(),
+      persona: settings.personaProfile,
+      personaRevision: settings.personaRevision,
       feedback: settings.feedbackProfile,
-      scope: "Sanitized renderer/insertion contracts, not a full product or incident-time deployment.",
+      scope:
+        "Sanitized renderer/insertion contracts, not a full product or incident-time deployment.",
     };
     result.policy = host.contract.effectivePolicy;
     controller = createEvidenceController({ doc: document, result, actors, observation, baseline });

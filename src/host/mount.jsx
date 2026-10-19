@@ -21,18 +21,28 @@ export function createHostModule(HostControls) {
         useLayoutEffect(() => {
           activatePolicy();
         }, []);
-        return <RendererProvider renderer={renderer} targetDocument={ownerDocument}>{children}</RendererProvider>;
+        return (
+          <RendererProvider renderer={renderer} targetDocument={ownerDocument}>
+            {children}
+          </RendererProvider>
+        );
       }
       let runtimeCalls = 0;
       const renderer = createHostRenderer(ownerDocument, contract.renderer);
       const insert = renderer.insertCSSRules.bind(renderer);
-      renderer.insertCSSRules = rules => {
+      renderer.insertCSSRules = (rules) => {
         runtimeCalls++;
         insert(rules);
       };
       const root = createRoot(container);
       try {
-        flushSync(() => root.render(<HostProvider><HostControls ownerDocument={ownerDocument} /></HostProvider>));
+        flushSync(() =>
+          root.render(
+            <HostProvider>
+              <HostControls ownerDocument={ownerDocument} />
+            </HostProvider>,
+          ),
+        );
       } catch (error) {
         policy?.();
         flushSync(() => root.unmount());
@@ -49,8 +59,10 @@ export function createHostModule(HostControls) {
         renderer,
         contract,
         policyState: () => ({ ...contract, installed: Boolean(policy) }),
-        subscribeInsertions: listener => {
-          if (!policy) throw new Error("Insertion policy is not installed");
+        subscribeInsertions: (listener) => {
+          if (!policy) {
+            throw new Error("Insertion policy is not installed");
+          }
           return policy.subscribe(listener);
         },
         runtimeCalls: () => runtimeCalls,

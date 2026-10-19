@@ -13,5 +13,7 @@ export function observeNativeInsertions(doc, onAttempt) {
     onAttempt({ ...base, inserted: true, index: insertedIndex });
     return insertedIndex;
   };
-  return () => { proto.insertRule = original; };
+  return () => {
+    proto.insertRule = original;
+  };
 }

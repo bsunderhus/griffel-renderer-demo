@@ -11,20 +11,28 @@ console.error = (...args) => {
 };
 function testMeasureAppearance(owner) {
   const provider = document.querySelector(`[data-fluent-owner="${owner}"]`);
-  if (!provider) return null;
-  const read = selector => {
+  if (!provider) {
+    return null;
+  }
+  const read = (selector) => {
     const element = provider.querySelector(selector);
-    if (!element) return null;
+    if (!element) {
+      return null;
+    }
     const css = getComputedStyle(element);
     return {
-      width: css.width, height: css.height, minWidth: css.minWidth,
+      width: css.width,
+      height: css.height,
+      minWidth: css.minWidth,
       paddingLeft: css.paddingLeft,
-      background: css.backgroundColor, display: css.display,
+      background: css.backgroundColor,
+      display: css.display,
       classes: Array.from(element.classList),
     };
   };
   return {
-    icon: read("[data-fluent-icon]"), primary: read("[data-fluent-primary]"),
+    icon: read("[data-fluent-icon]"),
+    primary: read("[data-fluent-primary]"),
     avatar: read("[data-fluent-avatar]"),
     hostAvatar: read("[data-host-avatar]"),
     scoped: provider.classList.contains("demo-contact-scope"),
@@ -32,20 +40,34 @@ function testMeasureAppearance(owner) {
 }
 function reportTestApplicationError(message) {
   let owner = window;
-  while (owner.frameElement && !owner.frameElement.hasAttribute("data-test-application")) owner = owner.parent;
+  while (owner.frameElement && !owner.frameElement.hasAttribute("data-test-application")) {
+    owner = owner.parent;
+  }
   if (owner.frameElement) {
-    owner.frameElement.dispatchEvent(new owner.parent.CustomEvent("application-error", {
-      detail: `${location.href}: ${message}`,
-    }));
+    owner.frameElement.dispatchEvent(
+      new owner.parent.CustomEvent("application-error", {
+        detail: `${location.href}: ${message}`,
+      }),
+    );
   }
 }
-window.addEventListener("error", event => {
-  reportTestApplicationError(event.message || `Unable to load ${event.target.src || event.target.href}`);
-}, true);
-window.addEventListener("unhandledrejection", event => {
+window.addEventListener(
+  "error",
+  (event) => {
+    reportTestApplicationError(
+      event.message || `Unable to load ${event.target.src || event.target.href}`,
+    );
+  },
+  true,
+);
+window.addEventListener("unhandledrejection", (event) => {
   reportTestApplicationError(String(event.reason));
 });
-for (const [name, key] of [["reproHost", "Host"], ["personaActor", "Persona"], ["feedbackActor", "Feedback"]]) {
+for (const [name, key] of [
+  ["reproHost", "Host"],
+  ["personaActor", "Persona"],
+  ["feedbackActor", "Feedback"],
+]) {
   Object.defineProperty(window, name, {
     configurable: true,
     set(module) {
@@ -55,17 +77,22 @@ for (const [name, key] of [["reproHost", "Host"], ["personaActor", "Persona"], [
         const mounted = mount(...args);
         window[`testSource${key}`] = mounted;
         if (key === "Host") {
-          window.testSourcePatchedDuringHostMount = CSSStyleSheet.prototype.insertRule !== window.testSourceNativeInsert;
+          window.testSourcePatchedDuringHostMount =
+            CSSStyleSheet.prototype.insertRule !== window.testSourceNativeInsert;
         } else if (key === "Persona") {
           window.testPersonaRenderer = mounted.renderer;
         }
         window.testAppearanceStages.push({
-          phase: key.toLowerCase(), host: testMeasureAppearance("host"),
-          persona: testMeasureAppearance("persona"), feedback: testMeasureAppearance("feedback"),
+          phase: key.toLowerCase(),
+          host: testMeasureAppearance("host"),
+          persona: testMeasureAppearance("persona"),
+          feedback: testMeasureAppearance("feedback"),
         });
         if (failurePoint) {
           for (const action of ["unmount", "dispose"]) {
-            if (!mounted[action]) continue;
+            if (!mounted[action]) {
+              continue;
+            }
             const original = mounted[action];
             mounted[action] = () => {
               window.testCleanupCalls.push(`${key}:${action}`);
@@ -90,12 +117,15 @@ for (const [name, key] of [["reproHost", "Host"], ["personaActor", "Persona"], [
           if (key === "Persona") {
             window.testOriginalPersonaInsert = mounted.renderer.insertCSSRules;
             if (failurePoint === "renderer-observation") {
-              const descriptor = Object.getOwnPropertyDescriptor(mounted.renderer, "insertCSSRules");
+              const descriptor = Object.getOwnPropertyDescriptor(
+                mounted.renderer,
+                "insertCSSRules",
+              );
               Object.defineProperty(mounted.renderer, "insertCSSRules", {
                 configurable: true,
                 get() {
                   Object.defineProperty(mounted.renderer, "insertCSSRules", descriptor);
-                  fail();
+                  return fail();
                 },
               });
             }

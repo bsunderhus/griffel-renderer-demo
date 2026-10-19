@@ -13,7 +13,9 @@ export function createEvidenceController(context) {
   function schedule() {
     view.cancelAnimationFrame(frame);
     frame = view.requestAnimationFrame(() => {
-      if (context.doc.documentElement.getClientRects().length) refresh();
+      if (context.doc.documentElement.getClientRects().length) {
+        refresh();
+      }
     });
   }
   refresh();

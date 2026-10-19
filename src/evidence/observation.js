@@ -36,10 +36,13 @@ export function createObservation(doc, hostStylesheet) {
 
   function observeRenderer(name, renderer, index) {
     const original = renderer.insertCSSRules;
-    renderer.insertCSSRules = rules => withActor(name, () => original.call(renderer, rules), index);
+    renderer.insertCSSRules = (rules) =>
+      withActor(name, () => original.call(renderer, rules), index);
     let active = true;
     const restore = () => {
-      if (!active) return;
+      if (!active) {
+        return;
+      }
       active = false;
       renderer.insertCSSRules = original;
     };
@@ -52,9 +55,16 @@ export function createObservation(doc, hostStylesheet) {
     const element = sheet.ownerNode;
     const event = {
       id: events.length + 1,
-      actor, mountIndex, creator: creators.get(element) || "not a Griffel bucket", rule, blocked, reason,
+      actor,
+      mountIndex,
+      creator: creators.get(element) || "not a Griffel bucket",
+      rule,
+      blocked,
+      reason,
       destination: sheetIds.get(element) || null,
-      inserted, cssText: inserted ? sheet.cssRules[index].cssText : null, error: error || null,
+      inserted,
+      cssText: inserted ? sheet.cssRules[index].cssText : null,
+      error: error || null,
       bucket: element?.getAttribute("data-make-styles-bucket"),
       priority: element?.getAttribute("data-priority"),
       enhanced: Boolean(element?.dataset.demoAllowRules),
@@ -72,18 +82,34 @@ export function createObservation(doc, hostStylesheet) {
 
   registerSheets("host");
   return {
-    creators, sheetIds, nativeRules, events, registerSheets, withActor, observeRenderer, record,
+    creators,
+    sheetIds,
+    nativeRules,
+    events,
+    registerSheets,
+    withActor,
+    observeRenderer,
+    record,
     connectHost(host) {
       disconnect();
-      disconnect = host.contract.shouldInstall ? host.subscribeInsertions(record) : observeNativeInsertions(doc, record);
+      disconnect = host.contract.shouldInstall
+        ? host.subscribeInsertions(record)
+        : observeNativeInsertions(doc, record);
     },
-    ruleSource: entry => ruleSources.get(entry.rootRule)?.actor ||
-      (entry.sheet === hostStylesheet?.sheet ? "host" : creators.get(entry.sheet.ownerNode) || "page"),
-    onChange(listener) { onChange = listener; },
+    ruleSource: (entry) =>
+      ruleSources.get(entry.rootRule)?.actor ||
+      (entry.sheet === hostStylesheet?.sheet
+        ? "host"
+        : creators.get(entry.sheet.ownerNode) || "page"),
+    onChange(listener) {
+      onChange = listener;
+    },
     dispose() {
       onChange = () => {};
       disconnect();
-      for (const restore of restoreRenderers.reverse()) restore();
+      for (const restore of restoreRenderers.reverse()) {
+        restore();
+      }
     },
   };
 }
