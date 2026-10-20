@@ -130,6 +130,41 @@ test.for(configurations)(
         if (actor === "feedback") {
           expect(attempts.every((event) => event.feedbackPrefix)).toBeTruthy();
           expect(evidence.rendererSalt).toBe("demo-feedback");
+        } else if (actor === "persona") {
+          const avatarRule = attempts.find((event) =>
+            event.rule.includes("background-color:#d8d0ef"),
+          );
+          expect(
+            avatarRule,
+            "Every Persona schedule uses the same custom avatar style",
+          ).toBeTruthy();
+          expect(avatarRule.blocked).toBe(blocked);
+          expect(avatarRule.present).toBe(!blocked);
+          const initials = window.document.querySelector(
+            '[data-fluent-owner="persona"] .fui-Avatar__initials',
+          );
+          expect(window.getComputedStyle(initials).backgroundColor).toBe(
+            blocked ? "rgba(0, 0, 0, 0)" : "rgb(216, 208, 239)",
+          );
+          for (const declaration of [
+            "background-color:#eee8f7",
+            "color:#594079",
+            "border-top-color:#b7a3d1",
+          ]) {
+            const accentRule = attempts.find((event) => event.rule.includes(declaration));
+            expect(accentRule, `Shared Persona accent: ${declaration}`).toBeTruthy();
+            expect(accentRule.blocked).toBe(blocked);
+            expect(accentRule.present).toBe(!blocked);
+          }
+          for (const selector of ["[data-fluent-icon]", "[data-fluent-secondary]"]) {
+            const button = window.document.querySelector(
+              `[data-fluent-owner="persona"] ${selector}`,
+            );
+            const css = window.getComputedStyle(button);
+            expect(css.backgroundColor === "rgb(238, 232, 247)").toBe(!blocked);
+            expect(css.color === "rgb(89, 64, 121)").toBe(!blocked);
+            expect(css.borderTopColor === "rgb(183, 163, 209)").toBe(!blocked);
+          }
         }
       }
       if (result.actors.persona && resolved.personaProfile !== "historical") {

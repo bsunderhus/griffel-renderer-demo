@@ -169,7 +169,37 @@ Under the extracted, sheet-only host:
 
 The runtime-host baseline confirms that adoption alone does not reject rules.
 Shared matching CSS can mask rejection, which is why host coverage is independent
-of build mode. The retained schedules do not establish a host-background change.
+of build mode. Persona's avatar uses a custom background via Griffel's
+`makeStyles`, applied to the public Fluent Avatar's initials slot. The custom
+lavender value `#d8d0ef` is shared by every schedule and renderer profile; host
+and Feedback avatars remain unchanged. Using a custom value rather than Fluent's
+built-in palette avoids reusing an avatar color class already extracted by the
+host, which would mask the missing rule.
+With the pinned Persona release and an extracted host, Feedback-first blocks
+this rule and the avatar's initials background becomes transparent. Griffel
+merges the custom background class in place of the default neutral class, so
+the host's neutral Avatar rule does not restore the missing fill.
+Persona-alone and Persona-first retain lavender; runtime
+hosts, the marker guard and the prefix + salt proposal also retain it.
+The same Persona styles give the phone icon button and View profile button a
+pale lavender fill (`#eee8f7`), purple text/icon (`#594079`) and purple border
+(`#b7a3d1`); the contact heading repeats the purple text. These overrides only
+change colors, never sizes, padding, border widths or radii. The phone glyph
+inherits the button's foreground through `currentColor`. Host and Feedback
+receive no accent classes. Blocked insertion loses the accents without adding
+scenario-specific markup or layout changes.
+Shared host coverage retains the Fluent Button base shape even when the custom
+colors are blocked. Minimal host coverage deliberately has no Button CSS;
+blocked insertion can still remove Fluent's base sizing there, independently
+of these color-only overrides. No static sizing fallback is added to hide that
+pre-existing failure.
+The static `.fluent-card` wrapper preserves the same compact layout throughout.
+Chromium assertions pair computed avatar colors with native insertion/CSSOM and
+cache evidence across both host coverage profiles and both baseline host
+policies. This is a custom component style shared by every scenario, not a
+scenario-specific override or width witness.
+
+The retained schedules do not establish a host-background change.
 Sharing and foreign selector matches remain reported rather than treated as
 damage. These are bounded findings, not universal Griffel guarantees or security boundaries.
 
@@ -220,6 +250,22 @@ Ownership, Sharing and Permission. A trace follows:
 generated rule -> destination/bucket/creator -> attribute/prefix -> host decision
               -> native insertion -> destination CSSOM -> cache -> selector matches
 ```
+
+Visual inspection prompts live only in the gallery's **Visual check** paragraph
+for each schedule, not in actor insertion summaries. They ask for comparisons
+rather than assuming default settings or inferring a whole control's styling
+from one blocked background rule. In Persona-first schedules under the extracted sheet-only
+filter, Feedback's `:focus-within::after { transform: scaleX(1) }` rule is blocked:
+the Fluent bottom focus underline stays collapsed even though the primary
+button is styled. The page's general focus outline can remain. Chromium tests
+focus the actual field in Persona-first, preloaded and reopened schedules,
+checking the pseudo-element transform against both host policies, both host
+modes and both coverage profiles. Actor summaries report the selected
+configuration's recorded insertion evidence, separately from the gallery's
+inspection prompts. These prompts are not runtime appearance measurements or
+a claim that every rejected rule causes visible damage.
+Feedback-alone titles and participant notes do not imply that a Persona
+revision was mounted or exercised.
 
 Keep these distinctions independent:
 

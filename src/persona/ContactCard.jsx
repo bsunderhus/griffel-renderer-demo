@@ -1,9 +1,30 @@
 import React, { useState } from "react";
-import { Button, FluentProvider, webLightTheme } from "@fluentui/react-components";
+import {
+  Button,
+  FluentProvider,
+  makeStyles,
+  shorthands,
+  webLightTheme,
+} from "@fluentui/react-components";
 import { PersonSummary } from "../shared/PersonSummary.jsx";
 import { PERSONA_SCOPE } from "./renderer.js";
 
+const useStyles = makeStyles({
+  avatarInitials: {
+    backgroundColor: "#d8d0ef",
+  },
+  accentButton: {
+    backgroundColor: "#eee8f7",
+    color: "#594079",
+    ...shorthands.borderColor("#b7a3d1"),
+  },
+  heading: {
+    color: "#594079",
+  },
+});
+
 export function ContactCard({ ownerDocument = document }) {
+  const styles = useStyles();
   const [submitted, setSubmitted] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   return (
@@ -14,8 +35,14 @@ export function ContactCard({ ownerDocument = document }) {
       className={PERSONA_SCOPE}
     >
       <div className="fluent-card">
-        <strong>Contact details</strong>
-        <PersonSummary callLabel="Call Alex (persona)" />
+        <strong className={styles.heading} data-persona-heading>
+          Contact details
+        </strong>
+        <PersonSummary
+          callLabel="Call Alex (persona)"
+          avatarInitialsClassName={styles.avatarInitials}
+          callButtonClassName={styles.accentButton}
+        />
         <p>
           Design team
           <br />
@@ -28,6 +55,7 @@ export function ContactCard({ ownerDocument = document }) {
           <Button
             id="clear-persona"
             data-fluent-secondary
+            className={styles.accentButton}
             onClick={() => setProfileOpen((open) => !open)}
             aria-expanded={profileOpen}
           >

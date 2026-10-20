@@ -76,6 +76,13 @@ its deploy job; [hosting details](README.md#build-and-hosting) remain in the REA
       insertion, CSSOM presence, cache, ownership, sharing and bounded host effects.
 - [x] Assert the documentation explainer against real Fluent rules and keep
       independent bundles/minimal-host coverage enforced by architecture tests.
+- [x] Give Persona's avatar, phone/profile buttons and heading shared
+      Griffel-applied color accents so rejected styling appears as color loss
+      without changing component shapes; pair color checks with native rule/cache
+      evidence and healthy arrival-order/version/host controls.
+- [x] Add one comparison-based visual inspection prompt to every schedule,
+      keeping actor insertion summaries separate. Verify Feedback's focus
+      underline across host controls instead of inferring appearance from counts.
 
 **Exit gate met for the modeled baseline:** conclusions link to reproducible
 configurations and assertions, not appearance or deployment assumptions.

@@ -124,8 +124,28 @@ permission, native insertion, CSSOM presence, and cache state.
   of a recorded native rule while equivalent CSS remains.
 - Neither shared storage nor matching appearance proves success or failure.
 
+Each scenario includes one short **Visual check** above its live example.
+These are comparison prompts, not appearance verdicts. Actor summaries remain
+focused on insertion evidence, without duplicate visual descriptions. For
+Persona-first schedules, click **Share feedback** and compare its blue bottom
+focus underline with the Feedback prefix exception or runtime host. The page's
+general focus outline may remain even if Fluent's underline is missing.
+Matching CSS can mask a missing rule; one blocked background rule does not
+prove that an entire button is browser-default. Feedback-alone scenarios
+identify Persona as not mounted, not as a tested Persona revision.
+
 A real Fluent Button background rule witnesses outcomes, without an added
-measurement declaration. Host results separately report foreign
+measurement declaration. Persona's avatar has a custom lavender background,
+applied through Griffel to the Fluent Avatar's initials slot in every schedule.
+Compare scenario 1 (Persona alone) with scenario 3 (Feedback first): under the
+pinned release and extracted host, the latter loses that color and becomes
+transparent, even with shared host coverage. The compact card layout stays
+unchanged. Runtime mode and the guarded Persona revision preserve the lavender
+background. The phone icon button and View profile button also use a pale
+lavender fill, purple foreground and border; the contact heading repeats the
+purple accent. These Persona-only Griffel overrides change colors, not component
+dimensions, spacing or shapes, and disappear when their rules are blocked.
+Host results separately report foreign
 writes, selector matches, and a bounded avatar-background cascade check, not
 complete host correctness. Computed appearance snapshots are test-only and do
 not ship in runtime JSON. See the

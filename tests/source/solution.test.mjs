@@ -3,6 +3,7 @@ import { experiments } from "../../src/experiments/scenarios.js";
 import { analyzeEvidence } from "../../src/evidence/analysis.js";
 import {
   applicationWindow,
+  appearanceStages,
   navigateApplication,
   openApplication,
 } from "../browser/application.mjs";
@@ -49,10 +50,33 @@ test.for(cases)(
     expect(result.configuration.persona.revision).toBeNull();
     expect(result.actors.persona.rendererSalt).toBe("demo-persona");
     expect(result.actors.persona.sheets.every((sheet) => !sheet.enhanced)).toBe(true);
+    const appearance = appearanceStages(app).find((stage) => stage.phase === "persona").persona;
+    expect(appearance.avatarInitials.background).toBe("rgb(216, 208, 239)");
+    for (const button of [appearance.icon, appearance.secondary]) {
+      expect(button).toMatchObject({
+        background: "rgb(238, 232, 247)",
+        color: "rgb(89, 64, 121)",
+        borderColor: "rgb(183, 163, 209)",
+      });
+    }
+    expect(appearance.heading.color).toBe("rgb(89, 64, 121)");
+    expect(appearance.card).toMatchObject({
+      display: "grid",
+      paddingLeft: "12px",
+      gap: "8px",
+      borderRadius: "8px",
+    });
 
     const personaAttempts = result.events.filter(
       (event) => event.actor === "persona" && event.bucket,
     );
+    const avatarRule = personaAttempts.find((event) =>
+      event.rule.includes("background-color:#d8d0ef"),
+    );
+    expect(avatarRule).toBeTruthy();
+    expect(avatarRule.blocked).toBe(false);
+    expect(avatarRule.inserted).toBe(true);
+    expect(avatarRule.present).toBe(true);
     expect(personaAttempts.length).toBeGreaterThan(100);
     expect(personaAttempts.every((event) => event.personaPrefix)).toBe(true);
     expect(personaAttempts.every((event) => !event.feedbackPrefix)).toBe(true);

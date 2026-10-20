@@ -42,7 +42,11 @@ export function ScenarioCard({
       </h2>
       <p className="note">
         <>
-          {solution === "baseline" ? (
+          {!config.order.includes("persona") ? (
+            <>
+              Persona: <strong>not mounted</strong>.
+            </>
+          ) : solution === "baseline" ? (
             <>
               {revision.kind === "release"
                 ? "Pinned release renderer; deployment unverified."
@@ -84,6 +88,10 @@ export function ScenarioCard({
             disables host filtering.
           </>
         )}
+      </p>
+      <p data-scenario-visual-check>
+        <strong>Visual check: </strong>
+        {config.visualCheck} Insertion evidence below is separate from appearance.
       </p>
       <iframe className="walkthrough-frame" title={config.title} src={`${url}&view=walkthrough`} />
       <details className="scenario-details">

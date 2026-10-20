@@ -71,11 +71,10 @@ test("scenario definitions and configuration validation preserve the research co
       const resolved = resolveExperiment(config, `personaVersion=${version}`);
       expect(resolved.personaRevision).toBe(version);
       expect(resolved.personaProfile).toBe(personaRevisions[version].profile);
-      expect(
-        cases
-          .find((item) => item.id === config.id)
-          .title.startsWith(`${personaRevisions[version].label}:`),
-      ).toBeTruthy();
+      const content = cases.find((item) => item.id === config.id);
+      expect(content.title.startsWith(`${personaRevisions[version].label}:`)).toBe(
+        config.order.includes("persona"),
+      );
     }
   }
   for (const config of experiments) {
@@ -83,7 +82,9 @@ test("scenario definitions and configuration validation preserve the research co
     expect(config.description).toBeUndefined();
     resolveExperiment(config, "");
     const content = threeActorCases.find((item) => item.id === config.id);
-    expect(content.title && content.takeaway && content.description).toBeTruthy();
+    expect(
+      content.title && content.takeaway && content.description && content.visualCheck,
+    ).toBeTruthy();
     expect(config.kind).toBe("baseline");
     expect(config.feedbackProfile).toBe("inspected");
     expect(

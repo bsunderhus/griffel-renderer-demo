@@ -79,6 +79,8 @@ export async function assertPresentedEvidence(app, result) {
       })
       .toBe(true);
     expect(cause().parentElement.firstElementChild).toBe(cause());
+    expect(cause().querySelector("[data-visual-guidance]")).toBeNull();
+    expect(cause().textContent).not.toContain("What to look for");
     if (blocked) {
       expect(cause().querySelector("strong").textContent).toBe(
         `Host filter blocked ${blocked} ${blocked === 1 ? "rule" : "rules"}`,

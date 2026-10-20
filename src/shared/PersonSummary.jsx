@@ -12,14 +12,22 @@ function CallIcon() {
   );
 }
 
-export function PersonSummary({ host = false, callLabel }) {
+export function PersonSummary({
+  host = false,
+  callLabel,
+  avatarInitialsClassName,
+  callButtonClassName,
+}) {
   return (
     <div className="fluent-person">
       <Avatar
         name="Alex Taylor"
         badge={{ status: "available" }}
         data-fluent-avatar
-        initials={{ "data-host-avatar": host ? "" : undefined }}
+        initials={{
+          "data-host-avatar": host ? "" : undefined,
+          className: avatarInitialsClassName,
+        }}
       />
       <span>
         Alex Taylor
@@ -27,7 +35,12 @@ export function PersonSummary({ host = false, callLabel }) {
         <small>Product designer</small>
       </span>
       <span className="fluent-call">
-        <Button icon={<CallIcon />} aria-label={callLabel} data-fluent-icon />
+        <Button
+          icon={<CallIcon />}
+          aria-label={callLabel}
+          className={callButtonClassName}
+          data-fluent-icon
+        />
       </span>
     </div>
   );

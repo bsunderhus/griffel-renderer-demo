@@ -25,15 +25,25 @@ function testMeasureAppearance(owner) {
       height: css.height,
       minWidth: css.minWidth,
       paddingLeft: css.paddingLeft,
+      gap: css.gap,
+      borderRadius: css.borderRadius,
+      boxShadow: css.boxShadow,
       background: css.backgroundColor,
+      color: css.color,
+      borderColor: css.borderColor,
+      borderWidth: css.borderWidth,
       display: css.display,
       classes: Array.from(element.classList),
     };
   };
   return {
+    card: read(".fluent-card"),
     icon: read("[data-fluent-icon]"),
     primary: read("[data-fluent-primary]"),
+    secondary: read("[data-fluent-secondary]"),
+    heading: read("[data-persona-heading]"),
     avatar: read("[data-fluent-avatar]"),
+    avatarInitials: read(".fui-Avatar__initials"),
     hostAvatar: read("[data-host-avatar]"),
     scoped: provider.classList.contains("demo-contact-scope"),
   };

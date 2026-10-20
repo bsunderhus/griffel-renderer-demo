@@ -43,6 +43,33 @@ test("gallery scenario structure, classification, and load order", async ({ sign
     location.origin,
   );
 });
+test("every scenario exposes a visual check without opening technical details", async ({
+  signal,
+}) => {
+  const app = await openApplication({ signal });
+  for (const route of ["/", "/proposal"]) {
+    await navigateApplication(app, route);
+    const document = applicationWindow(app).document;
+    const checks = document.querySelectorAll("[data-scenario-visual-check]");
+    expect(checks).toHaveLength(8);
+    for (const check of checks) {
+      expect(check.checkVisibility()).toBe(true);
+      expect(check.closest("details")).toBeNull();
+      expect(check.textContent).toContain("Insertion evidence below is separate from appearance");
+    }
+    expect(
+      document.querySelector("#persona-first-raw [data-scenario-visual-check]").textContent,
+    ).toContain(
+      route === "/" ? "compare the bottom focus underline" : "proposal admits both rule prefixes",
+    );
+    const feedback = document.querySelector("#feedback-alone");
+    expect(feedback.querySelector("h2").textContent.trim()).toBe("2. Feedback alone");
+    expect(feedback.querySelector(":scope > .note").textContent).toContain("Persona: not mounted");
+    expect(feedback.querySelector(":scope > .note").textContent).not.toContain(
+      "Pinned release renderer",
+    );
+  }
+});
 test(
   "gallery version, host, and coverage settings survive navigation and reload",
   { timeout: 30_000 },

@@ -360,7 +360,11 @@ export async function assertGalleryStructure(app, url) {
       .toBe("release");
     await expect
       .element(app.getByCSS(`#${config.id} > .note`))
-      .toHaveTextContent(/Pinned release renderer; deployment unverified/);
+      .toHaveTextContent(
+        config.order.includes("persona")
+          ? /Pinned release renderer; deployment unverified/
+          : /Persona: not mounted/,
+      );
   }
   for (const config of threeActorCases) {
     await expect
