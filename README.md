@@ -59,8 +59,8 @@ matching CSS can mask their absence.
 
 The `/docs` page introduces the actors, animates their encounter, and provides
 a collapsed technical reference. The baseline playground at `/` focuses on the
-reported failure. The separate `/proposal` playground models the proposed
-markerless prefix + salt solution.
+reported failure. The separate `/proposal` playground compares two explicitly
+labeled solutions without changing the baseline.
 
 ### Baseline playground
 
@@ -83,24 +83,37 @@ Eight baseline schedules vary loading and lifecycle events, **not actor code**:
 single actors, both arrival orders, script preloading, Feedback reopening, and
 Persona remounting. They keep the same raw-style, salted, prefixed Feedback
 singleton. The baseline has no alternate Feedback build, extra actor, constructed
-collision, forced-filter host, or ownership-fix scenario. The opt-in candidate
-is kept in its own playground rather than as an advanced baseline setting.
+collision, forced-filter host, or ownership-fix scenario. Opt-in candidates
+are kept in their own playground rather than as advanced baseline settings.
 
 ### Proposal playground
 
-Open `/proposal` or choose **Proposal playground** in the navigation. It keeps
-the candidate fixed: Persona uses actual Fluent raw-style modules in a separate
-bundle, retains its selector scope, adds an exact leading Persona comment,
-applies a distinct Griffel hash salt, and does not request the
-enhanced-specificity marker. The extracted host recognizes both exact
-integration prefixes. Only host build mode and host component coverage vary;
-Feedback and all eight schedules remain unchanged. Runtime mode is the control
-where the host filter is absent.
+Open `/proposal` or choose **Proposal playground** in the navigation. The
+**Proposal** selector switches between:
+
+| Proposal                | Persona                                                                                    | Feedback                                                                                                      | Extracted host policy                |
+| ----------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| Prefix + salt (default) | Raw Fluent styles, existing scope, distinct salt, leading Persona comment, no allow marker | Unchanged inspected renderer                                                                                  | Recognizes both integration prefixes |
+| Feedback marker         | Unchanged pinned release, including scope and sheet marker                                 | Same raw styles, salt, prefix and singleton; requests the enhanced-specificity attribute on sheets it creates | Unchanged sheet-only filter          |
+
+Use `/proposal?proposal=feedback-marked` to open the minimal marker proposal
+directly, or `proposal=prefix-salted` for the first proposal. Each selection
+runs all eight schedules with fixed actors. Host build mode and component
+coverage remain independent controls. Runtime mode installs no host filter.
+
+Both candidates pass their 32-case schedule/build/coverage matrices. Paired
+baseline/marker checks confirm identical generated rules and classes while
+the marker changes insertion permission. Native Chromium parser rejection of
+Firefox-only placeholder selectors remains separately recorded.
 
 The prefix permits insertion under the candidate host policy; the salt changes
 generated class names. Salt alone does not grant permission, prevent sheet
-sharing, or authenticate a rule prefix. This playground tests the proposed
-combined change, not production behavior or deployment readiness.
+sharing, or authenticate a rule prefix. The marker grants destination-based
+permission, not additional selector scope; it does not mark an existing sheet
+that Feedback adopts. Runtime-host checks observe such unmarked adoption
+without rejection because no filter is installed. The marker result establishes
+feasibility for these actors and schedules, not safety for every possible
+pre-existing sheet. Neither proposal establishes production deployment readiness.
 
 Each example starts in a fresh iframe. Settings survive navigation and reload:
 
@@ -194,7 +207,7 @@ privileges.
 
 | Command                    | Scope                                                                |
 | -------------------------- | -------------------------------------------------------------------- |
-| `npm test`                 | Build all seven participant targets and the app, then run all tests. |
+| `npm test`                 | Build all eight participant targets and the app, then run all tests. |
 | `npm run test:unit`        | Fast Node checks without a build or browser.                         |
 | `npm run test:watch`       | Watch the unit project.                                              |
 | `npm run test:integration` | Build, then run artifact and browser projects.                       |
@@ -226,9 +239,10 @@ Lint and formatting checks are separate commands; `npm test` remains the behavio
 
 ## Build and hosting
 
-The [build manifest](build/targets.mjs) keeps seven webpack targets independent:
+The [build manifest](build/targets.mjs) keeps eight webpack targets independent:
 four host build/coverage combinations, baseline Persona, a separate raw-style
-Persona bundle for prefix profiles, and raw Feedback. esbuild separately
+Persona bundle for prefix profiles, raw Feedback, and the raw Feedback marker
+candidate. esbuild separately
 bundles the playground app. Do not combine the renderers.
 Pinned dependencies and generated classes are experimental inputs; preserve the
 lockfile rather than applying automatic upgrades.

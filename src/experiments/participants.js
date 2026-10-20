@@ -26,7 +26,8 @@ export const integrations = {
       window.personaActor.mount(container, { profile: settings.personaProfile }),
   },
   feedback: {
-    script: () => "/feedback-raw.js",
+    script: (settings) =>
+      settings.feedbackProfile === "enhanced-marker" ? "/feedback-marked.js" : "/feedback-raw.js",
     mount: (container) => window.feedbackActor.mount(container),
   },
 };

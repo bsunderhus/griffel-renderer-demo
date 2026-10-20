@@ -47,8 +47,8 @@ test("participant imports respect module boundaries", async () => {
 
 test("scenario definitions and configuration validation preserve the research contract", async () => {
   const threeActorCases = getThreeActorCases();
-  expect(targets).toHaveLength(7);
-  expect(new Set(targets.map((target) => target.name)).size).toBe(7);
+  expect(targets).toHaveLength(8);
+  expect(new Set(targets.map((target) => target.name)).size).toBe(8);
   expect(experiments.map(({ id }) => id)).toStrictEqual(threeActorCases.map(({ id }) => id));
   expect(experiments).toHaveLength(8);
   expect(new Set(experiments.map((config) => config.id)).size).toBe(experiments.length);
@@ -57,6 +57,25 @@ test("scenario definitions and configuration validation preserve the research co
   expect(resolveHostSettings("").solution).toBe("baseline");
   expect(resolveHostSettings("", "prefix-salted").hostPolicy).toBe("integration-prefixes");
   expect(resolveHostSettings("", "prefix-salted").personaProfile).toBe("prefix-salted");
+  const marked = resolveExperiment(experiments[0], "?proposal=feedback-marked", "proposal");
+  expect(marked).toMatchObject({
+    solution: "feedback-marked",
+    policy: "master",
+    personaProfile: "historical",
+    personaRevision: "1.20260927.13.2",
+    feedbackProfile: "enhanced-marker",
+    feedback: { raw: true, salt: true, marker: true, enhanced: true },
+  });
+  expect(resolveHostSettings("", "proposal").solution).toBe("prefix-salted");
+  for (const proposal of ["unknown", "baseline"]) {
+    expect(() => resolveHostSettings(`?proposal=${proposal}`, "proposal")).toThrow(
+      /Unknown solution experiment/,
+    );
+  }
+  expect(resolveHostSettings("?proposal=feedback-marked").solution).toBe("baseline");
+  expect(() =>
+    resolveHostSettings("?proposal=feedback-marked&hostPolicy=feedback-exception", "proposal"),
+  ).toThrow(/does not accept baseline-only settings/);
   expect(() => resolveHostSettings("?personaVersion=main-2026-10-16", "prefix-salted")).toThrow(
     /does not accept baseline-only settings/,
   );

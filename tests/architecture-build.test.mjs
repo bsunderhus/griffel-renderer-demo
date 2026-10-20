@@ -3,19 +3,28 @@ import { createRequire } from "node:module";
 import { expect, test } from "vitest";
 import { targets } from "../build/targets.mjs";
 
-test("Feedback uses the actual public Fluent raw-style modules", async () => {
-  const rawModules = JSON.parse(await readFile("dist/feedback-raw-modules.json", "utf8"));
-  for (const module of [
-    "useButtonStyles.styles.raw.js",
-    "useAvatarStyles.styles.raw.js",
-    "useTextareaStyles.styles.raw.js",
-    "useFluentProviderStyles.styles.raw.js",
-  ]) {
-    expect(
-      rawModules.some((path) => path.endsWith(module)),
-      `Active Fluent raw module: ${module}`,
-    ).toBeTruthy();
-  }
+test.each(["feedback-raw", "feedback-marked"])(
+  "%s uses the actual public Fluent raw-style modules",
+  async (target) => {
+    const rawModules = JSON.parse(await readFile(`dist/${target}-modules.json`, "utf8"));
+    for (const module of [
+      "useButtonStyles.styles.raw.js",
+      "useAvatarStyles.styles.raw.js",
+      "useTextareaStyles.styles.raw.js",
+      "useFluentProviderStyles.styles.raw.js",
+    ]) {
+      expect(
+        rawModules.some((path) => path.endsWith(module)),
+        `Active Fluent raw module: ${module}`,
+      ).toBeTruthy();
+    }
+  },
+);
+
+test("marked Feedback changes no Fluent raw module inputs", async () => {
+  expect(JSON.parse(await readFile("dist/feedback-marked-modules.json", "utf8"))).toEqual(
+    JSON.parse(await readFile("dist/feedback-raw-modules.json", "utf8")),
+  );
 });
 
 test("the candidate Persona bundle uses the actual public Fluent raw-style modules", async () => {

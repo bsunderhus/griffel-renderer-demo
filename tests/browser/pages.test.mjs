@@ -42,12 +42,24 @@ test("Pages navigation keeps the base for the playground and documentation", asy
     expect(new URL(frame.src).pathname.startsWith(base)).toBe(true);
   }
   await navigateApplication(app, `${base}proposal.html?coverage=minimal`);
-  expect(applicationWindow(app).document.title).toBe(
-    "Prefix + salt proposal | Griffel integration lab",
-  );
+  expect(applicationWindow(app).document.title).toBe("Proposals | Griffel integration lab");
   for (const frame of applicationWindow(app).document.querySelectorAll("iframe")) {
     expect(new URL(frame.src).pathname.startsWith(`${base}proposal`)).toBe(true);
   }
+});
+
+test("Pages runs marked Feedback with the unchanged host and Persona", async ({ signal }) => {
+  const app = await openApplication({ signal });
+  await navigateApplication(
+    app,
+    `${base}proposal?proposal=feedback-marked&scenario=raw-marked-first&coverage=minimal`,
+  );
+  const result = applicationWindow(app).threeActorResult;
+  expect(result.solution).toBe("feedback-marked");
+  expect(result.policy).toBe("master");
+  expect(result.configuration.persona.profile).toBe("historical");
+  expect(result.configuration.feedback.script).toBe("/feedback-marked.js");
+  expect(result.events.filter((event) => event.blocked)).toEqual([]);
 });
 
 test("Pages omits retired routes, compatibility pages and bundles", async () => {

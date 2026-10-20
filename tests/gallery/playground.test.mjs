@@ -128,7 +128,7 @@ test(
     ).toBeGreaterThan(0);
   },
 );
-test("proposal playground is a separate route with a fixed candidate and baseline navigation", async ({
+test("proposal playground is a separate route with a candidate selector and baseline navigation", async ({
   signal,
 }) => {
   const app = await openApplication({ signal });
@@ -140,7 +140,7 @@ test("proposal playground is a separate route with a fixed candidate and baselin
     .element(app.getByRole("heading", { name: "Test the prefix + salt proposal" }))
     .toBeVisible();
   const proposalDocument = applicationWindow(app).document;
-  expect(proposalDocument.querySelector("#solution")).toBeNull();
+  expect(proposalDocument.querySelector("#solution").value).toBe("prefix-salted");
   expect(proposalDocument.querySelector("#persona-version")).toBeNull();
   expect(proposalDocument.querySelector("#host-policy")).toBeNull();
   const candidateFrame = applicationFrame(app, "#raw-marked-first iframe");
@@ -151,6 +151,41 @@ test("proposal playground is a separate route with a fixed candidate and baselin
   expect(candidate.policy).toBe("integration-prefixes");
   expect(candidate.solution).toBe("prefix-salted");
   expect(candidate.configuration.persona.profile).toBe("prefix-salted");
+  await app.getByLabelText("Proposal", { exact: true }).selectOptions("feedback-marked");
+  await waitForApplicationURL(app, `${location.origin}/proposal?proposal=feedback-marked`);
+  await expect
+    .element(app.getByRole("heading", { name: "Test the Feedback marker proposal" }))
+    .toBeVisible();
+  const markedFrame = applicationFrame(app, "#raw-marked-first iframe");
+  await waitForElement(() =>
+    applicationWindow(markedFrame).document.querySelector("[data-host-contract]"),
+  );
+  expect(applicationWindow(markedFrame).threeActorResult.solution).toBe("feedback-marked");
+  expect(applicationWindow(markedFrame).threeActorResult.policy).toBe("master");
+  expect(applicationWindow(markedFrame).threeActorResult.configuration.persona.profile).toBe(
+    "historical",
+  );
+  expect(new URL(applicationWindow(markedFrame).location.href).searchParams.get("proposal")).toBe(
+    "feedback-marked",
+  );
+  await app.getByCSS(".host-settings > summary").click();
+  await app.getByRole("button", { name: "Replay all scenarios" }).click();
+  await waitForApplicationURL(app, `${location.origin}/proposal?proposal=feedback-marked`);
+  await expect
+    .element(app.getByLabelText("Proposal", { exact: true }))
+    .toHaveValue("feedback-marked");
+  await app.getByRole("link", { name: "Documentation", exact: true }).click();
+  await waitForApplicationURL(app, `${location.origin}/docs?proposal=feedback-marked`);
+  await app.getByRole("link", { name: "Proposal playground", exact: true }).click();
+  await waitForApplicationURL(app, `${location.origin}/proposal?proposal=feedback-marked`);
+  await expect
+    .element(app.getByLabelText("Proposal", { exact: true }))
+    .toHaveValue("feedback-marked");
+  await app.getByLabelText("Proposal", { exact: true }).selectOptions("prefix-salted");
+  await waitForApplicationURL(app, `${location.origin}/proposal?proposal=prefix-salted`);
+  await expect
+    .element(app.getByRole("heading", { name: "Test the prefix + salt proposal" }))
+    .toBeVisible();
   expect(
     new URL(
       applicationWindow(app).document.querySelector("#raw-marked-first a").href,

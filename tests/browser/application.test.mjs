@@ -71,6 +71,7 @@ test.for([
     [
       ["host", "Unknown host mode"],
       ["coverage", "Unknown host coverage"],
+      ["proposal", "Unknown solution experiment"],
     ].map(([key, label]) => ({
       url: `${route}${route.includes("?") ? "&" : "?"}${key}=unknown`,
       message: `${label}: unknown`,

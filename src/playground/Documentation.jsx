@@ -5,6 +5,18 @@ import { Navigation } from "./Navigation.jsx";
 import { REPOSITORY_URL, sitePath } from "../site.js";
 
 export function Documentation({ settings }) {
+  const baselineSettings = new URLSearchParams(location.search);
+  const selectedProposal = baselineSettings.get("proposal");
+  baselineSettings.delete("proposal");
+  const proposalSettings = new URLSearchParams();
+  for (const key of ["host", "coverage"]) {
+    if (baselineSettings.has(key)) {
+      proposalSettings.set(key, baselineSettings.get(key));
+    }
+  }
+  if (selectedProposal) {
+    proposalSettings.set("proposal", selectedProposal);
+  }
   return (
     <main className="documentation-page">
       <Navigation mode="docs" />
@@ -17,11 +29,17 @@ export function Documentation({ settings }) {
           sheet. Follow how those reasonable decisions become an incompatible contract.
         </p>
         <div className="hero-links">
-          <a className="text-link" href={sitePath(location.search)}>
+          <a
+            className="text-link"
+            href={sitePath(baselineSettings.size ? `?${baselineSettings}` : "")}
+          >
             Explore the playground <span aria-hidden="true">→</span>
           </a>
-          <a className="text-link" href={sitePath("proposal")}>
-            Explore the prefix + salt proposal <span aria-hidden="true">→</span>
+          <a
+            className="text-link"
+            href={sitePath(`proposal${proposalSettings.size ? `?${proposalSettings}` : ""}`)}
+          >
+            Explore the proposals <span aria-hidden="true">→</span>
           </a>
           <a className="text-link" href={REPOSITORY_URL} target="_blank" rel="noopener noreferrer">
             Read the source, tests and research notes on GitHub <span aria-hidden="true">↗</span>

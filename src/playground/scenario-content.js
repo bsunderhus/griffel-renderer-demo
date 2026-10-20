@@ -58,7 +58,17 @@ export function getScenarioContent(config, personaVersion, solution = "baseline"
   }
   const [title, takeaway, description, visualCheck] = content;
   const personaLabel =
-    solution === "baseline" ? personaRevisions[personaVersion].label : "Persona prefix + salt";
+    solution === "prefix-salted" ? "Persona prefix + salt" : personaRevisions[personaVersion].label;
+  if (solution === "feedback-marked") {
+    return {
+      title: config.order.includes("persona") ? `${personaLabel}: ${title}` : title,
+      takeaway: "Test destination-marker permission with unchanged Persona and host policy.",
+      visualCheck:
+        "Compare Persona's lavender accents and Feedback's idle/focus styles, when mounted, with the baseline under the same host mode and coverage. Inspect native insertion separately from appearance.",
+      description:
+        "Feedback keeps its raw styles, salt, prefix and module-level renderer but requests the enhanced-specificity attribute on new sheets. Persona stays at the pinned release. The marker does not change attributes on adopted sheets.",
+    };
+  }
   return {
     title: config.order.includes("persona") ? `${personaLabel}: ${title}` : title,
     takeaway,

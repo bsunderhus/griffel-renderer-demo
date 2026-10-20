@@ -1,3 +1,8 @@
-import { mount } from "./mount.jsx";
+import { createFeedbackMount } from "./mount.jsx";
+import { createFeedbackRenderer } from "./renderer.js";
 
-window.feedbackActor = { build: { rawStyles: true }, mount };
+const renderer = createFeedbackRenderer(document);
+window.feedbackActor = {
+  build: { rawStyles: true },
+  mount: createFeedbackMount(renderer),
+};

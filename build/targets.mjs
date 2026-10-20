@@ -6,4 +6,5 @@ export const targets = [
   { name: "persona", entry: "persona/entry.jsx" },
   { name: "persona-raw", entry: "persona/entry.jsx", raw: true },
   { name: "feedback-raw", entry: "feedback/entry-raw.jsx", raw: true },
+  { name: "feedback-marked", entry: "feedback/entry-marked.jsx", raw: true },
 ];

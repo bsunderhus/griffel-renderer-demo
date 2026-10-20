@@ -30,12 +30,12 @@ async function startApplication() {
     await runThreeActorCase(config);
     return;
   }
-  const solution = route === SOLUTION_ROUTE ? "prefix-salted" : "baseline";
+  const solution = route === SOLUTION_ROUTE ? "proposal" : "baseline";
   const settings = resolveHostSettings(location.search, solution);
   if (route === "docs") {
     document.title = "Documentation | Griffel integration lab";
   } else if (route === SOLUTION_ROUTE) {
-    document.title = "Prefix + salt proposal | Griffel integration lab";
+    document.title = "Proposals | Griffel integration lab";
   }
   createRoot(root).render(
     route === "docs" ? (

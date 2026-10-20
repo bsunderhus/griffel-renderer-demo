@@ -35,10 +35,11 @@ another participant, the gallery, evidence, or orchestration. Mounts expose
 renderer/lifecycle handles through bundle adapters; the host also exposes
 insertion decisions and runtime-call counts.
 
-Seven webpack targets preserve separate Griffel copies: minimal/shared hosts
+Eight webpack targets preserve separate Griffel copies: minimal/shared hosts
 in extracted/runtime modes, baseline Persona, a separately bundled raw-style
 Persona profile used by the prefix candidates, and candidate-aligned raw
-Feedback. React is shared through browser globals; Griffel is not. The minimal host imports only
+Feedback plus a separately bundled marked Feedback candidate. React is shared
+through browser globals; Griffel is not. The minimal host imports only
 its avatar UI, with no hidden Button/Label/Textarea imports or extracted CSS.
 The raw Feedback and Persona candidate builds substitute public Fluent
 `.styles.raw.js` modules when available. Baseline Feedback has no precompiled or
@@ -72,6 +73,7 @@ the `/proposal` route and never rewrites baseline actor inputs.
 | Persona `main-2026-10-16` (`marker-guard`) | Same scoped workload; discards adopted handles whose enhanced-specificity attribute is not exactly `"true"`. A release or consumer deployment containing the guard is unverified.                                                   |
 | Feedback `inspected`                       | Independently compiled raw Fluent styles, module-level salted renderer, prefixed atomic/reset rules, and no requested enhanced-specificity attribute. Mounts reject renderer/workload overrides.                                    |
 | Persona `prefix-salted` candidate          | Separate bundle using actual Fluent raw styles, existing selector scope, a distinct runtime hash salt and exact leading Persona prefix; creates markerless sheets. This is an explicit proposal experiment, not a baseline profile. |
+| Feedback `enhanced-marker` candidate       | Separate raw-style bundle retaining the inspected salt, prefix, singleton and workload; requests the enhanced-specificity attribute on newly created sheets. Paired with pinned Persona and the unchanged sheet-only host.          |
 
 Baseline validation rejects actor overrides, seeds and forced filtering. Every
 schedule retains the inspected Feedback actor. Configuration/artifacts are
@@ -203,17 +205,23 @@ The retained schedules do not establish a host-background change.
 Sharing and foreign selector matches remain reported rather than treated as
 damage. These are bounded findings, not universal Griffel guarantees or security boundaries.
 
-## Separate prefix + salt proposal playground
+## Separate proposal playground
 
-The `/proposal` route keeps the eight schedules and inspected Feedback actor
+The `/proposal` route has a selector for `prefix-salted` (default) and
+`feedback-marked`. The query parameter `proposal` selects one fixed
+configuration across all eight schedules; it never changes the baseline.
+Baseline-only Persona revision and host-policy overrides are rejected here.
+
+### Prefix + salt
+
+This selection keeps the eight schedules and inspected Feedback actor
 fixed while replacing only Persona's renderer bundle/profile. It uses the
 same public Fluent `.styles.raw.js` modules as the Feedback bundle, keeps
 Persona's existing selector scope, sets `classNameHashSalt` to a distinct
 fictional value, prepends an exact fictional Persona comment to each generated
 rule, and omits the enhanced-specificity marker. The extracted host's
 `integration-prefixes` policy recognizes both exact leading prefixes. The
-proposal configuration is fixed on this page; it is not an advanced host
-control on the baseline playground.
+proposal is not an advanced host control on the baseline playground.
 
 The Chromium matrix covers all eight schedules, extracted/runtime host builds,
 and minimal/shared host coverage (32 cases). Under the extracted two-prefix
@@ -229,6 +237,39 @@ still be adopted, and sheet sharing remains independently reported. A salt
 does not grant insertion permission or prevent sharing. The experiment does not
 establish that either product can safely deploy the protocol, that all rules
 carry the prefix, or that the source change is available in a released build.
+
+### Feedback enhanced-specificity marker
+
+`proposal=feedback-marked` selects a separately bundled Feedback entry point
+whose module-level renderer requests `data-demo-allow-rules="true"`. It uses
+the same raw Fluent modules, salt, rule prefix, singleton lifetime and UI as
+baseline Feedback. The existing configuration field `marker: true` denotes
+the retained rule-comment prefix; `enhanced: true` separately records the
+candidate sheet attribute. Persona uses the unchanged pinned release, not the
+marker guard or prefix-salted profile. The host keeps its sheet-only policy.
+
+All 32 schedule/build/coverage cases pass: under extraction, recorded Griffel
+destinations are marked, there are no host rejections, and parseable rules
+reach native CSSOM. Persona retains its lavender accents and Feedback retains
+its primary button and focused textarea underline. Shared sheets remain
+observable rather than treated as damage. Paired checks under both coverage
+profiles establish identical generated rules/classes before and after the
+marker change, while baseline rejection disappears. Feedback reopening reuses
+its renderer; Persona remounting creates a fresh renderer as before.
+
+The marker applies only to newly created sheets. Runtime-host checks observe
+Feedback adopting host-created unmarked sheets without changing their
+attributes; no rejection occurs there because filtering is disabled. The
+matrix does not prove that every possible pre-existing destination in a
+product is marked. No additional seed actor or artificial stylesheet is
+introduced to manufacture such a failure.
+
+The attribute grants permission but supplies no selector scoping. Both
+proposals retain Chromium's native parser rejection of Firefox-only
+`::-moz-placeholder` rules independently of host permission; the marker tests
+assert these errors explicitly rather than declaring every attempt inserted.
+This demonstrates feasibility for the modeled actors and schedules, not
+production readiness or global-style isolation.
 
 ## Evidence contract
 

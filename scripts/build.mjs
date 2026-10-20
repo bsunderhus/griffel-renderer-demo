@@ -56,6 +56,10 @@ await writeFile(
   "dist/persona-raw-modules.json",
   JSON.stringify([...new Set(rawModuleSets["persona-raw"])].sort(), null, 2),
 );
+await writeFile(
+  "dist/feedback-marked-modules.json",
+  JSON.stringify([...new Set(rawModuleSets["feedback-marked"])].sort(), null, 2),
+);
 await writeFile("dist/bundle-modules.json", JSON.stringify(bundleModules, null, 2));
 
 // Static artifact for GitHub Pages: the same allowlisted files, with each route

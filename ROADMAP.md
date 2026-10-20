@@ -113,32 +113,42 @@ when cleanup itself fails. These are lifecycle checks, not new scenarios.
 
 ## 3. Compare solution experiments
 
-**Current status:** the user-approved markerless Persona + exact rule prefix +
-distinct hash salt proposal has a dedicated `/proposal` playground. The
-version-pinned baseline remains separate and unchanged. This validates the
-modeled permission mechanism, not a production rollout or a solution
-recommendation.
+**Current status:** the dedicated `/proposal` playground switches between the
+user-approved markerless Persona + prefix + salt proposal and a minimal
+Feedback enhanced-specificity-marker proposal. The latter changes only
+Feedback's requested sheet attributes, keeping its salt/prefix/singleton,
+pinned Persona and sheet-only host. Each passes all eight schedules in both
+host modes and coverage profiles (32 cases per candidate). The version-pinned
+baseline remains separate and unchanged. This validates modeled permission
+mechanisms, not a production rollout or a solution recommendation.
 
-| Candidate                         | Experiment                                        | Required trade-off checks                                                                |
-| --------------------------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Explicit renderer/sheet ownership | Prevent incompatible adoption                     | Public library feasibility; never simulate ownership by relabeling adopted sheets.       |
-| Prefix + salted classes           | Accept known prefixes; salt raw styles            | Prefixes do not authenticate writers; salt does not permit insertion or prevent sharing. |
-| Supported host insertion contract | Permit runtime styles without borrowed permission | Compatibility, enforcement limits and public API support.                                |
-| Shadow DOM                        | Separate matching and style destinations          | Portals, theme propagation, focus, accessibility and renderer document/root support.     |
-| Iframe                            | Separate documents/renderers                      | Layout, focus, accessibility, communication and resource cost.                           |
+| Candidate                         | Experiment                                                                   | Required trade-off checks                                                                |
+| --------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Explicit renderer/sheet ownership | Prevent incompatible adoption                                                | Public library feasibility; never simulate ownership by relabeling adopted sheets.       |
+| Prefix + salted classes           | Accept known prefixes; salt raw styles                                       | Prefixes do not authenticate writers; salt does not permit insertion or prevent sharing. |
+| Mark Feedback sheets              | Add the existing allow marker; retain salt/prefix and unchanged host/Persona | Marks created sheets, not adopted ones; grants permission, not selector containment.     |
+| Supported host insertion contract | Permit runtime styles without borrowed permission                            | Compatibility, enforcement limits and public API support.                                |
+| Shadow DOM                        | Separate matching and style destinations                                     | Portals, theme propagation, focus, accessibility and renderer document/root support.     |
+| Iframe                            | Separate documents/renderers                                                 | Layout, focus, accessibility, communication and resource cost.                           |
 
 - [x] Select the source-backed, user-approved prefix + salt hypothesis.
 - [x] Implement the candidate in its own playground without changing the
       baseline actor contract.
 - [x] Test both host modes, both coverage profiles, all eight schedules, native
       insertion/CSSOM evidence, marker state and exact rule prefixes.
+- [x] Add the user-approved Feedback marker candidate and proposal selector,
+      retaining the baseline and first proposal.
+- [x] Validate marker feasibility across the same 32 cases, paired baseline
+      rules/classes, focus styling, and unchanged attributes on adopted host sheets.
 - [ ] Check ownership feasibility against the pinned public Griffel APIs.
 - [ ] Prototype containment alternatives only with portal, theme and interaction checks.
 - [ ] Compare correctness, compatibility, cost and migration requirements.
 
 **Remaining gate:** evaluate ownership, compatibility, cost and required
-production changes before recommending anything. The proposal tests prefix and
-salt together; salt alone does not fix insertion rejection. Do not silently
+production changes before recommending anything. The prefix proposal tests prefix and
+salt together; salt alone does not fix insertion rejection. The marker proposal
+passes the modeled workloads but does not establish permission on arbitrary
+pre-existing unmarked sheets. Do not silently
 broaden permission, replace the baseline, or call the insertion filter a
 security boundary.
 

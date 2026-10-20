@@ -7,8 +7,7 @@ import { integrations, loadIntegration, mountHost, mountIntegration } from "./pa
 import { siteRoute } from "../site.js";
 
 export async function runThreeActorCase(config) {
-  const solution =
-    siteRoute(location.pathname || "/") === "proposal" ? "prefix-salted" : "baseline";
+  const solution = siteRoute(location.pathname || "/") === "proposal" ? "proposal" : "baseline";
   const settings = resolveExperiment(config, location.search, solution);
   await prepareExperiment(settings);
   let host;
@@ -114,7 +113,7 @@ export async function runThreeActorCase(config) {
           label: settings.personaLabel,
         },
         feedback: {
-          script: integrations.feedback.script(),
+          script: integrations.feedback.script(settings),
           profile: settings.feedbackProfile,
           ...settings.feedback,
         },

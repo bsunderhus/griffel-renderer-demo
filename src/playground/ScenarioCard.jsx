@@ -21,9 +21,11 @@ export function ScenarioCard({
   if (solution === "baseline") {
     params.set("personaVersion", personaVersion);
     params.set("hostPolicy", selectedHostPolicy);
+  } else {
+    params.set("proposal", solution);
   }
   const url = sitePath(`${route}?${params}`);
-  const revision = solution === "baseline" ? personaRevisions[personaVersion] : null;
+  const revision = solution === "prefix-salted" ? null : personaRevisions[personaVersion];
   const loadOrder = [
     "Host ready",
     ...config.schedule.map(
@@ -35,7 +37,7 @@ export function ScenarioCard({
       className="card walkthrough"
       id={config.id}
       data-scenario-contract="source-aligned"
-      data-scenario-kind={revision?.kind || "proposal"}
+      data-scenario-kind={solution === "baseline" ? revision.kind : "proposal"}
     >
       <h2>
         {index + 1}. {config.title}
@@ -53,6 +55,11 @@ export function ScenarioCard({
                 : "Upstream main snapshot; consumer adoption unverified."}{" "}
               Persona: <strong>{revision.label}</strong>.
             </>
+          ) : solution === "feedback-marked" ? (
+            <>
+              Proposal configuration: unchanged pinned Persona; Feedback requests the
+              enhanced-specificity attribute on new sheets.
+            </>
           ) : (
             <>
               Proposal configuration: markerless Persona rules with an exact prefix and distinct
@@ -60,7 +67,13 @@ export function ScenarioCard({
             </>
           )}{" "}
           Feedback:{" "}
-          <strong>{config.order.includes("feedback") ? "inspected profile" : "not mounted"}</strong>
+          <strong>
+            {config.order.includes("feedback")
+              ? solution === "feedback-marked"
+                ? "enhanced-marker proposal"
+                : "inspected profile"
+              : "not mounted"}
+          </strong>
           . Host:{" "}
           {hostPolicy === "master"
             ? "sheet-only (inspected host main)"

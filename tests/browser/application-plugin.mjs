@@ -67,7 +67,7 @@ export function applicationPlugin() {
             .end(html);
         } else if (
           ["/source", "/three-actors"].includes(url.pathname) ||
-          /^\/(?:shared\/)?(?:app|host-extracted|host-runtime|persona(?:-raw)?|feedback-raw)\.js$/.test(
+          /^\/(?:shared\/)?(?:app|host-extracted|host-runtime|persona(?:-raw)?|feedback-(?:raw|marked))\.js$/.test(
             url.pathname,
           ) ||
           /^\/(?:shared\/)?griffel\.css$/.test(url.pathname)
